@@ -4,10 +4,21 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  
 } from "@remix-run/react";
 import type { LinksFunction } from "@remix-run/node";
 
-import "./tailwind.css";
+// import "./tailwind.css";
+// import dotenv from "dotenv";
+import { Provider } from "./components/ui/provider";
+import { getUserSession } from "./utils/auth";
+
+// dotenv.config();
+
+export const loader = async () => {
+  const session = await getUserSession();
+  return Response.json({ user: session?.user || null });
+};
 
 export const links: LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -19,6 +30,10 @@ export const links: LinksFunction = () => [
   {
     rel: "stylesheet",
     href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
+  },
+  {
+    rel: "stylesheet",
+    href: "https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap",
   },
 ];
 
@@ -41,5 +56,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  return <Outlet />;
+  // const data = useLoaderData<{ data: string }>();
+  return (
+
+    <Provider>
+      <Outlet />
+    </Provider>
+
+)
 }
