@@ -3,4 +3,5 @@ export interface ComboboxItemProp {
     name: string
     value: string
     description?: string
+    group?: string
 }

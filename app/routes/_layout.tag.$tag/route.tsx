@@ -4,8 +4,9 @@ import { getSupabaseServerClient } from "~/utils/supabase.server";
 import { useLoaderData } from "@remix-run/react";
 import { getMoviesByKeyword } from "~/utils/services/external/tmdb/discover";
 // import { GenreInterface } from "~/interfaces/genre";
-import TagDashboard from "./dashboards/tagDashboard";
 import { getKeywordDetail } from "~/utils/services/external/tmdb/keywords";
+import ReactQueryProvider from "~/components/providers/react-query-provider";
+import ResultsLayout from "../_common/results-layout";
 
 export const loader: LoaderFunction = async ({ request, params } : LoaderFunctionArgs) => {
   const headers = new Headers();
@@ -49,6 +50,23 @@ export default function Index() {
   const { tagList } = useLoaderData<typeof loader>();
 
   return (
-    <TagDashboard tagList={tagList} />
+    // <TagDashboard tagList={tagList} />
+    <ReactQueryProvider>
+      <ResultsLayout 
+        payload={tagList.movies} 
+        title={tagList.tag.name}   
+        callback={async (pageParam, sort) => {
+
+          const res = await fetch(`/resources/tag/${tagList.tag.id}?page=${pageParam}&sort=${sort}`);
+          const data = await res.json();
+
+          return {
+            results: data.movies.results,
+            page: data.movies.page,
+            total_pages: data.movies.total_pages,
+          };
+        }}
+      />
+  </ReactQueryProvider>
   )
 }

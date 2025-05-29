@@ -6,7 +6,7 @@ import { PaginationComponent } from "~/components/ui/pagination";
 // import MovieSearchItem from "~/components/search/movieSearchItem";
 import { MovieListsInterface } from "~/interfaces/movie-lists";
 
-export default function ResultsDashboard({ results: initialResults }: {results: MovieListsInterface}) {
+export default function ResultsPagination({ results: initialResults }: {results: MovieListsInterface}) {
   const [searchParams] = useSearchParams();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const navigate = useNavigate()
@@ -28,6 +28,7 @@ export default function ResultsDashboard({ results: initialResults }: {results: 
               <SimpleGrid
                   columns={{ base: 1, sm: 2, md: 3, lg: 4 }}
                   gap={4}
+                  alignItems="start"
                 >
                 {initialResults?.results.map((item, index) => (
                     <MoviePoster key={index} item={item} />

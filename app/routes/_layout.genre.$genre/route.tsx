@@ -5,7 +5,8 @@ import { useLoaderData } from "@remix-run/react";
 import { getOfficialMovieGenres } from "~/utils/services/external/tmdb/genres";
 import { getMoviesByGenre } from "~/utils/services/external/tmdb/discover";
 import { GenreInterface } from "~/interfaces/genre";
-import CategoryDashboard from "./dashboards/categoryDashboard";
+import ReactQueryProvider from "~/components/providers/react-query-provider";
+import ResultsLayout from "../_common/results-layout";
 
 export const loader: LoaderFunction = async ({ request, params } : LoaderFunctionArgs) => {
   const headers = new Headers();
@@ -24,11 +25,9 @@ export const loader: LoaderFunction = async ({ request, params } : LoaderFunctio
   
     const genreObj = genres.genres.filter((i: GenreInterface) => i.name === capitalizeFirstLetter(genre))
   
-    console.log('getOfficialMovieGenres genreName', genreObj)
-    console.log('getOfficialMovieGenres genre', genre)
-  
+
     // Fetch movies for each genre in parallel
-    const movies = await getMoviesByGenre({genre: genreObj[0].id})
+    const movies = await getMoviesByGenre({genre: genreObj[0].id, page: 1})
   
     const genreList = {
       genre: genreObj[0],
@@ -55,6 +54,23 @@ export default function Index() {
   const { genreList } = useLoaderData<typeof loader>();
 
   return (
-    <CategoryDashboard genreList={genreList} />
+    <ReactQueryProvider>
+      {/* <CategoryDashboard genreList={genreList} /> */}
+      <ResultsLayout 
+        payload={genreList.movies} 
+        title={genreList.genre.name}   
+        callback={async (pageParam, sort) => {
+
+          const res = await fetch(`/resources/genre/${genreList.genre.id}?page=${pageParam}&sort=${sort}`);
+          const data = await res.json();
+
+          return {
+            results: data.movies.results,
+            page: data.movies.page,
+            total_pages: data.movies.total_pages,
+          };
+        }}
+      />
+    </ReactQueryProvider>
   )
 }

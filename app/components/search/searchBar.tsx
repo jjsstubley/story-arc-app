@@ -8,7 +8,7 @@ import {
 } from "@chakra-ui/react";
 // import { useOutsideClick } from "@chakra-ui/utils"
 // import { Form, useFetcher } from "@remix-run/react";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 
 import SlashCommandEngine from "./CommandEngines/slash";
 import GenreCommandEngine from "./CommandEngines/genre";
@@ -18,7 +18,7 @@ import { GenreInterface } from "~/interfaces/genre";
 import KeywordCommandEngine from "./CommandEngines/keyword";
 import CastCommandEngine from "./CommandEngines/cast";
 import { ComboboxItemProp } from "../ui/combobox/interfaces/combobox-item";
-import { Form } from "@remix-run/react";
+import { Form, useSearchParams } from "@remix-run/react";
 import AtCommandEngine from "./CommandEngines/at";
 
 
@@ -33,6 +33,7 @@ type ExtendedValueChangeDetails = Combobox.ValueChangeDetails & {
 };
 
 const SearchBar = ({ genres } : { genres: GenreInterface[] } ) => {
+  const [searchParams] = useSearchParams();
   const [inputValue, setInputValue] = useState("");
   const [chips, setChips] = useState<Chip[]>([]);
   const [currentChip, setCurrentChip] = useState<Chip | null>(null);
@@ -44,6 +45,35 @@ const SearchBar = ({ genres } : { genres: GenreInterface[] } ) => {
   //   query: string;
   //   startIndex: number;
   // } | null>(null);
+
+  useEffect(() => {
+    const loadedChips: Chip[] = [];
+  
+    // Parse all chips from query params
+    for (const [key, val] of searchParams.entries()) {
+      if (key.startsWith("chips[")) {
+        const [type, ids, value] = val.split(":");
+        if (type && ids) {
+          const chip: Chip = {
+            type: type as Chip["type"],
+            value, // You might replace this with a readable label if needed
+            ids,
+          };
+          loadedChips.push(chip);
+        }
+      }
+    }
+  
+    if (loadedChips.length > 0) {
+      setChips(loadedChips);
+    }
+  
+    // Optional: restore input value from `search` param
+    const input = searchParams.get("search");
+    if (input) {
+      setInputValue(input);
+    }
+  }, []);
 
   const inputRef = useRef<HTMLInputElement>(null);
   // const containerRef = useRef(null);
@@ -281,7 +311,7 @@ const SearchBar = ({ genres } : { genres: GenreInterface[] } ) => {
                       key={index}
                       type="hidden"
                       name={`chips[${index}]`}
-                      value={`${chip.type}:${chip.ids}`}
+                      value={`${chip.type}:${chip.ids}:${chip.value}`}
                     />
                   ))}
                   <Flex gap={4}>

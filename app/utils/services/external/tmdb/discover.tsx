@@ -7,14 +7,20 @@ interface payloadProps {
     value: string,
 }
 
-export async function getMoviesByAdvancedFilters({ payload, page }: { payload: payloadProps[], page: string }) {
+const defaultSort = 'popularity.dec'
+
+const defaultParams = {
+    include_adult: 'false',
+    include_video: 'false',
+    language: 'en-US',
+};
+
+export async function getMoviesByAdvancedFilters({ payload, page, sort=defaultSort }: { payload: payloadProps[], page: string, sort?: string }) {
 
     const params = new URLSearchParams({
-        include_adult: 'false',
-        include_video: 'false',
-        language: 'en-US',
+        ...defaultParams,
         page: page,
-        sort_by: 'popularity.desc',
+        sort_by: sort,
     });
 
     payload.forEach((i) => {
@@ -33,28 +39,10 @@ export async function getMoviesByAdvancedFilters({ payload, page }: { payload: p
     
 }
 
-export async function getMoviesByGenre({ genre }: { genre: number }) {
-    const url = `${TMDB_API_BASE_URL}${SEGMENT_ENDPOINT}/movie?include_adult=false&include_video=false&language=en-US&page=1&sort_by=popularity.desc&with_genres=${genre}`;
-    
-    try {
-        const res = await fetch(url, TMDB_API_OPTIONS)
-        return res.json()
-    } catch (err) {
-        console.error(err)
-        return []
-    }
-    
+export async function getMoviesByGenre({ genre, page=1, sort=defaultSort }: { genre: number, page?: number, sort?: string }) {
+    return await getMoviesByAdvancedFilters({payload: [{type: 'with_genres', value: genre.toString()}], page: page.toString(), sort: sort})
 }
 
-export async function getMoviesByKeyword({ keyword }: { keyword: number }) {
-  const url = `${TMDB_API_BASE_URL}${SEGMENT_ENDPOINT}/movie?include_adult=false&include_video=false&language=en-US&page=1&sort_by=popularity.desc&with_keywords=${keyword}`;
-  
-  try {
-      const res = await fetch(url, TMDB_API_OPTIONS)
-      return res.json()
-  } catch (err) {
-      console.error(err)
-      return []
-  }
-  
+export async function getMoviesByKeyword({ keyword, page=1, sort=defaultSort }: { keyword: number, page?: number, sort?: string }) {
+  return await getMoviesByAdvancedFilters({payload: [{type: 'with_keywords', value: keyword.toString()}], page: page.toString(), sort: sort})
 }

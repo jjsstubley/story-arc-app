@@ -7,13 +7,26 @@ import { CustomDialog } from '../../custom-dialog';
 import MovieDialogHeader from './movie-dialog-header';
 import MovieDialogBody from './movie-dialog-body';
 import { PeopleListInterface } from '~/interfaces/people';
+import { KeywordsInterface } from '~/interfaces/keywords';
+import { MovieListsInterface } from '~/interfaces/movie-lists';
+import { ReviewListsInterface } from '~/interfaces/review';
+import { VideosInterface } from '~/interfaces/videos';
+
+interface MovieDetailsProps {
+    details: TmdbMovieDetailInterface;
+    similar: MovieListsInterface;
+    reviews: ReviewListsInterface;
+    keywords: KeywordsInterface;
+    providers: WatchProvidersInterface;
+    videos: VideosInterface;
+    credits: PeopleListInterface;
+}
 
 const MovieDialog = ({item, children} : { item: TmdbMovieInterface, children: React.ReactNode; }) => {
     // const location = useLocation();
     const [open, setOpen] = useState(false);
+    const [movieData, setMovieData] = useState<MovieDetailsProps | null>(null);
     const [movieDetails, setMovieDetails] = useState<TmdbMovieDetailInterface | null>(null);
-    const [movieProviders, setMovieProviders] = useState<WatchProvidersInterface | null>(null);
-    const [credits, setCredits] = useState<PeopleListInterface | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -27,9 +40,8 @@ const MovieDialog = ({item, children} : { item: TmdbMovieInterface, children: Re
             setError(data.error)
         }
 
+        setMovieData(data)
         setMovieDetails(data.movieDetails)
-        setMovieProviders(data.providers)
-        setCredits(data.credits)
         setLoading(false)
     }
 
@@ -50,8 +62,8 @@ const MovieDialog = ({item, children} : { item: TmdbMovieInterface, children: Re
                 scrollBehavior: 'outside',
             }}
             trigger={ children }
-            header={ <MovieDialogHeader movie={movieDetails} error={error} loading={loading}/>}
-            body={ <MovieDialogBody providers={movieProviders} credits={credits}/>}
+            header={ <MovieDialogHeader details={movieDetails} error={error} loading={loading} /> }
+            body={ <MovieDialogBody movieData={ movieData } />}
         />
     );
 };

@@ -1,15 +1,13 @@
-import { Avatar, Box, Container, defineStyle, Flex, Heading, MenuContent, MenuItem, MenuRoot, MenuTrigger, Text } from "@chakra-ui/react";
+import { Avatar, Box, Container, defineStyle, Flex, Heading, MenuContent, MenuItem, MenuRoot, MenuTrigger, Image } from "@chakra-ui/react";
 import { LoaderFunction, LoaderFunctionArgs } from "@remix-run/node";
-import { json, Link, Outlet, useLoaderData, useLocation } from "@remix-run/react";
+import { json,  Outlet, useLoaderData, useLocation } from "@remix-run/react";
 import SearchFeature from "~/components/search/searchFeature";
 import { ColorModeButton } from "~/components/ui/color-mode";
 
-import { MdOutlineSubdirectoryArrowRight } from "react-icons/md";
-import { GoDotFill } from "react-icons/go"
-
 import { getOfficialMovieGenres } from "~/utils/services/external/tmdb/genres";
 import { getSupabaseServerClient } from "~/utils/supabase.server";
-import { GenreInterface } from "~/interfaces/genre";
+
+import SidePanel from "../_common/side-panel";
 
 export const loader: LoaderFunction = async ({ request } : LoaderFunctionArgs) => {
   const headers = new Headers();
@@ -41,7 +39,8 @@ export default function Layout() {
     <Container>
         <Flex direction="column" minH="100vh" gap={4}>
             <Box as="header"  p={4} display="flex" justifyContent="space-between">
-                <Heading as="h1">&#123;&#123; Story Arc &#125;&#125; </Heading>
+                <Heading as="h1" display="flex" alignItems="center" gap={1} >STORY <Image src="/public/logo.jpg"  width={10} height={10} alt="Brand"/> ARC</Heading>
+          
                 <Box display="flex" justifyContent="space-between" gap={4}>
                 <ColorModeButton />
                 <Box>
@@ -63,22 +62,14 @@ export default function Layout() {
             </Box>    
             <SearchFeature genres={genres.genres}/>
             <Flex as="main" flex="1" direction={{ base: "column", md: "row" }} py={4} gap={2} alignItems="start">
-              <Box as="nav" w={{ base: "100%", md: "25%" }} minWidth="300px" p={4} bgColor="bg.muted" rounded="lg">
-                {/* <Text>Sidebar</Text> */}
-                <Link to="/genres"><Box display="flex" gap={2} alignItems="center" color="gray.700"><MdOutlineSubdirectoryArrowRight /><Heading as="h3" fontSize="sm" letterSpacing="0.225em">Genre</Heading></Box></Link>
-                {/* <Box height="1px" width="100%" bg="gray.700" mt={4}></Box> */}
-                {
-                  genres.genres.map((item: GenreInterface, index: number) => (
-                    <Box key={index} display="flex" gap={2} alignItems="center" mt={4} color="whiteAlpha.500"><GoDotFill /><Link to={`/genre/${item.name.toLowerCase()}`}><Text fontSize="smaller">{item.name}</Text></Link></Box>
-                  ))
-                }
-              </Box>
+              <SidePanel />
               <Box p={4} bgColor="bg.muted" rounded="lg">
                 <Outlet key={location.key} context={{ background: location }} />
               </Box>
             </Flex>
-            <Box as="footer" p={4}>
-                <Heading size="lg">Footer</Heading>
+            <Box as="footer" p={4} display="flex" justifyContent="end">
+                {/* <Heading size="lg">Footer</Heading> */}
+                <small>Logo created by <a href="https://www.designevo.com/" title="Free Online Logo Maker">DesignEvo logo maker</a></small>
             </Box>
         </Flex>
     </Container>

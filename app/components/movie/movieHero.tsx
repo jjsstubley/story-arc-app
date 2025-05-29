@@ -5,7 +5,7 @@ import MovieImage from "./movieImage";
 import { Link } from "@remix-run/react";
 import { getFormattedDate } from "~/utils/helpers";
 
-const MovieHero = ({movie, height} : {movie: TmdbMovieDetailInterface, height: '400px'}) => {
+const MovieHero = ({movie, height = '400px'} : {movie: TmdbMovieDetailInterface, height: string}) => {
 
     if (!movie) return (<Box width="100%" height={height} backgroundColor="gray.900" rounded="md"></Box>)
     return (
@@ -40,12 +40,13 @@ const MovieHero = ({movie, height} : {movie: TmdbMovieDetailInterface, height: '
                   ))
                 }
             </Box>
-            <Box display="flex" gap={2} width="200px" alignItems="center">
+            <Box display="flex" gap={2} width="300px" alignItems="center">
               <Box position="relative" width="100%">
                   <Box position="absolute"  top="0" left="0" zIndex={1} bg="orange.400" height="8px" rounded="md" width={`${(parseFloat(movie.vote_average) / 10) * 100}%`}></Box>
                   <Box bg="gray.200" height="8px" rounded="md" width="100%"></Box>
               </Box>
               <Text whiteSpace="nowrap">{parseFloat(movie.vote_average).toFixed(1)} / 10</Text>
+              <Text whiteSpace="nowrap" fontSize="xs">{movie.vote_count} ratings</Text>
             </Box>
           </Box>
 

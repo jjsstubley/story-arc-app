@@ -5,7 +5,7 @@ interface ProviderInterface {
     display_priority: number;
 }
   
-interface CountryResultInterface {
+export interface CountryResultInterface {
     link: string;
     flatrate?: ProviderInterface[];
     rent?: ProviderInterface[];

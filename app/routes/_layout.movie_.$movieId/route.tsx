@@ -24,7 +24,17 @@ export const loader: LoaderFunction = async ({ request, params } : LoaderFunctio
       await getCreditsByMovieId({movie_id: parseInt(movieId)})
     ]);
 
-    return json({ session, movieDetails, similar, reviews, keywords, providers, videos, credits }, { headers });
+    const movieData = {
+      details: movieDetails,
+      similar: similar,
+      reviews: reviews,
+      keywords: keywords,
+      providers: providers,
+      videos: videos,
+      credits: credits
+    }
+
+    return json({ session, movieData }, { headers });
   }
 
   return json({ session }, { headers });
@@ -37,15 +47,15 @@ export const meta: MetaFunction<typeof loader> = ({data}) => {
     {
       rel: "preload",
       as: "image",
-      href: `https://image.tmdb.org/t/p/original/${data.movieDetails.backdrop_path}`,
+      href: `https://image.tmdb.org/t/p/original/${data.movieData.details.backdrop_path}`,
     },
   ];
 };
 
 export default function Index() {
-  const { movieDetails, similar, reviews, keywords, providers, videos, credits } = useLoaderData<typeof loader>();
+  const { movieData } = useLoaderData<typeof loader>();
   
   return (
-    <MovieDetails movieDetails={movieDetails} similar={similar} reviews={reviews} keywords={keywords} providers={providers} videos={videos} credits={credits}/>
+    <MovieDetails movieData={movieData} />
   );
 }
