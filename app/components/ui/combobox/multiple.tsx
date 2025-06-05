@@ -6,21 +6,22 @@ import {
   createListCollection,
   InputGroup,
   Box,
-  Wrap,
-  Badge,
 } from "@chakra-ui/react"
 import { ReactNode, useMemo, useState } from "react"
 import { ComboboxItemProp } from "./interfaces/combobox-item";
 import { BaseComboboxProps } from "./interfaces/combobox";
+import ComboTags from "./combo-tags";
 
 interface ComboboxProps extends BaseComboboxProps {
     onSelect: (details: Combobox.ValueChangeDetails  | null) => void;
     children?: (item: ComboboxItemProp, selected: string[]) => ReactNode
+    colorPalette?: string
+    defaultTags?: string[]
 }
 
-export const MultipleCombobox = ({ suggestions, onSelect, startElement, placeholder = "Type to search", defaultOpen = true, children }: ComboboxProps) => {
+export const MultipleCombobox = ({ suggestions, onSelect, startElement, placeholder = "Type to search", defaultOpen = true, children, colorPalette='orange', defaultTags }: ComboboxProps) => {
   const [searchValue, setSearchValue] = useState("")
-  const [selectedSkills, setSelectedSkills] = useState<string[]>([])
+  const [tags, setTags] = useState<string[]>(defaultTags ?? [])
 
   const filteredItems = useMemo(
     () =>
@@ -37,7 +38,7 @@ export const MultipleCombobox = ({ suggestions, onSelect, startElement, placehol
 
   const handleValueChange = (details: Combobox.ValueChangeDetails) => {
     console.log('handleValueChange details', details)
-    setSelectedSkills(details.value)
+    setTags(details.value)
     onSelect(details)
   }
 
@@ -45,7 +46,7 @@ export const MultipleCombobox = ({ suggestions, onSelect, startElement, placehol
     <Combobox.Root
       collection={collection}
       onInputValueChange={(details) => setSearchValue(details.inputValue)}
-      value={selectedSkills}
+      value={tags}
       onValueChange={handleValueChange}
       width="100%"
       openOnClick
@@ -73,7 +74,7 @@ export const MultipleCombobox = ({ suggestions, onSelect, startElement, placehol
             {collection.items.map((item) => (
               <Combobox.Item item={item} key={item.name}>
                     {children ? (
-                        children(item, selectedSkills)
+                        children(item, tags)
                     ) : (
                     <Box
                         p={2}
@@ -94,11 +95,7 @@ export const MultipleCombobox = ({ suggestions, onSelect, startElement, placehol
           </Combobox.Content>
         </Combobox.Positioner>
       </Portal>
-      <Wrap gap="2" mt={4}>
-        {selectedSkills.map((skill) => (
-          <Badge colorPalette="orange" key={skill}>{skill}</Badge>
-        ))}
-      </Wrap>
+      <ComboTags tags={tags} colorPalette={colorPalette} />
     </Combobox.Root>
   )
 }

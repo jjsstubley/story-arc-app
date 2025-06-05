@@ -1,12 +1,13 @@
-import { Box, Heading, SimpleGrid, Skeleton } from "@chakra-ui/react"
+import { Box, Heading, SimpleGrid, Skeleton, useBreakpointValue } from "@chakra-ui/react"
 
 import { MovieListsInterface } from "~/interfaces/movie-lists";
 import MoviePoster from "~/components/movie/poster";
 import { useInfiniteQuery} from '@tanstack/react-query';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { TmdbMovieInterface } from "~/interfaces/tdmi-movie";
 import SortMenu from "~/components/search/filters/sort-menu";
+import { useLocation } from "@remix-run/react";
 
 function useIntersectionObserver(callback: () => void) {
   const ref = useRef<HTMLDivElement | null>(null);
@@ -37,19 +38,52 @@ function useIntersectionObserver(callback: () => void) {
   return ref;
 }
 
+export function useResizeObserver(
+  ref: React.RefObject<HTMLElement>,
+  callback: (rect: DOMRectReadOnly) => void
+) {
+  useEffect(() => {
+    if (!ref.current) return;
+    const observer = new ResizeObserver(entries => {
+      if (entries[0]) {
+        callback(entries[0].contentRect);
+      }
+    });
+
+    observer.observe(ref.current);
+
+    return () => observer.disconnect();
+  }, [ref, callback]);
+}
+
+interface FiltersProps {
+  type: string,
+  value: number
+}
 interface ResultsLayoutProps {
   payload: MovieListsInterface;
   title: string;
-  callback: (pageParam: number, sort: string) => Promise<{
+  filters?: FiltersProps[],
+  callback: (pageParam: number, sort: string, filters?: FiltersProps[]) => Promise<{
     results: TmdbMovieInterface[];
     page: number;
     total_pages: number;
   }>;
 }
 
-export default function ResultsLayout({ payload, title, callback }: ResultsLayoutProps) {
+export default function ResultsLayout({ payload, title, callback, filters }: ResultsLayoutProps) {
   const parentRef = useRef(null);
   const [sort, setSort] = useState("popularity.desc");
+  const location = useLocation();
+  const columns = useBreakpointValue({ base: 1, sm: 2, md: 3, lg: 4, xl: 5 }) ?? 1;
+  const rowMeasurementRef = useRef<HTMLDivElement | null>(null);
+  const [rowHeight, setRowHeight] = useState(250);
+
+  useEffect(() => {
+    // Smooth scroll on URL param changes (e.g., filter updates)
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [location.search]);
+
   const loadMoreRef = useIntersectionObserver(() => {
     if (hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
@@ -60,80 +94,206 @@ export default function ResultsLayout({ payload, title, callback }: ResultsLayou
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    isError,
+    error,
+    isLoading,
   } = useInfiniteQuery({
-    queryKey: ['results', 'page', 'total_pages', sort],
+    queryKey: ['results', 'page', 'total_pages', sort, filters],
     initialPageParam: 1,
     initialData: {
       pageParams: [1],
       pages: [{ results: payload.results, page: payload.page, total_pages: payload.total_pages }],
     },
     getNextPageParam: (lastPage) => {
-      console.log('lastPage', lastPage)
       if (lastPage.page < lastPage.total_pages) {
         return lastPage.page + 1;
       }
       return undefined;
     },
-    queryFn: async ({ pageParam = 1 }) => callback(pageParam, sort),
+    queryFn: async ({ pageParam = 1 }) => callback(pageParam, sort, filters),
   });
 
 
   const movies = data.pages.flatMap(page => page.results);
 
+  const movieRows = [];
+  for (let i = 0; i < movies.length; i += columns) {
+    movieRows.push(movies.slice(i, i + columns));
+  }
+
   const rowVirtualizer = useVirtualizer({
-    count: movies.length + (hasNextPage ? 1 : 0),
+    count: movieRows.length + (hasNextPage ? 1 : 0),
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 70,
+    estimateSize: () => 315,
     overscan: 5,
+    gap: 8,
+    measureElement: (el) => {
+      console.log('measureElement el', el.getBoundingClientRect().height)
+      return el.getBoundingClientRect().height
+    },
   });
 
+//   const measureElement = useCallback(
+//     (element) => {
+//         if (element) {
+//             rowVirtualizer.measureElement(element.getBoundingClientRect().height);
+//         }
+//     },
+//     [rowVirtualizer]
+// );
+
+  useEffect(() => {
+    rowVirtualizer.scrollToIndex(0); // scroll to top on filter change
+  }, [sort, filters]);
+
+  useResizeObserver(rowMeasurementRef, (rect) => {
+    const measuredHeight = rect.height;
+    if (measuredHeight !== rowHeight) {
+      console.log('Measured height:', measuredHeight);
+      setRowHeight(measuredHeight + 20); // or adjust padding here if needed
+    }
+  });
+
+  useEffect(() => {
+    console.log('columns changed, measuring rows');
+    rowVirtualizer.scrollToIndex(0);
+    rowVirtualizer.measure();
+  }, [columns]);
+
   return (
-    <>
-        <Box as="section" ref={parentRef} flex="1" p={4} overflow="hidden">
-            <Box as="section" flex="1" overflow="hidden" height={rowVirtualizer.getTotalSize()}>
+   
+        <Box as="section" ref={parentRef} flex="1" p={4} overflow="hidden" width="100%">
+            <Box as="section" flex="1" overflow="hidden">
               <Box display="flex" justifyContent="space-between">
                 <Heading as="h3" pb={4}>{title}</Heading>
               </Box>
-              <Box display="flex" justifyContent="flex-end" mb={8}>
-                <Box width="20%">
+              <Box display="flex" justifyContent="flex-end" mb={8} gap={4}>
+                <Box width="200px">
                   <SortMenu value={sort} onChange={(val) => setSort(val[0])}/>
                 </Box>
               </Box>
-              <SimpleGrid
-                  columns={{ base: 1, sm: 1, md: 3, lg: 4, xl: 5 }}
-                  gap={4}
-                  alignItems="start"
-                >
-                {
-                  rowVirtualizer.getVirtualItems().map(virtualRow => { 
-                    const item = movies[virtualRow.index];
-
-                    if (virtualRow.index > movies.length - 1) {
-                      return (
-                        <Skeleton height="200px" rounded="md" key={virtualRow.key} ref={loadMoreRef} /> 
-                      );
-                    }
-
-                    return (
-                      <Box
-                      key={virtualRow.key}
-                      width="100%"
+              {
+                !isLoading && movies.length === 0 && (
+                  
+                    <Box p={8} textAlign="center">
+                      <Heading size="md" mb={4}>No movies found</Heading>
+                      <Box>Try adjusting your filters or search query.</Box>
+                    </Box>
                  
+                )
+              }
+              {
+                isLoading &&  (
+                  
+                    <Box p={8} textAlign="center">
+                      <Heading size="md" mb={4}>No movies found</Heading>
+                      <Box>Try adjusting your filters or search query.</Box>
+                    </Box>
+                 
+                )
+              }
+              <Box position="relative" >
+                <Box position="absolute" visibility="hidden" top={0} left={0} width="100%" ref={rowMeasurementRef}>
+                  <Box display="flex" gap={4} px={4}>
+                    {movies.slice(0, columns).map((item, i) => (
+                      <MoviePoster key={`measure-${i}`} item={item} />
+                    ))}
+                  </Box>
+                </Box>
+              </Box>
+              {
+                !isLoading && movies.length > 0 && (
+                  <Box>
+                    <Box key={columns} height={rowVirtualizer.getTotalSize()} position="relative">
+                      {
+                        rowVirtualizer.getVirtualItems().map(virtualRow => {
+                          const rowIndex = virtualRow.index;
+                          const items = movieRows[rowIndex];
+    
+                          return (
+                            <Box
+                              key={virtualRow.key}
+           
+                              position="absolute"
+                              top={0}
+                              left={0}
+                              width="100%"
+                              transform={`translateY(${virtualRow.start}px)`}
+                            >
+                              <Box                    data-index={virtualRow.index}
+                              ref={rowVirtualizer.measureElement}>
+                                <SimpleGrid
+                                  columns={columns}
+                                  gap={4}
+                                  px={4}
+                                  alignItems="start"
+                    
+                                  // ref={(element) => measureElement(element)}
+                                >
+                                  {
+                                    items?.map((item, colIndex: number) => (
+                                      <Box data-index={virtualRow.index} key={`${rowIndex}-${colIndex}`} width="100%" ref={rowVirtualizer.measureElement}>
+                                        <MoviePoster key={item.id ?? `${rowIndex}-${colIndex}`} item={item} />
+                                      </Box>  
+                                    )) ?? (
+                                      <Skeleton height="200px" rounded="md" ref={loadMoreRef} />
+                                    )
+                                  }
+                                </SimpleGrid>
+                              </Box>
+                            </Box>
+                          );
+                        })
+    
+                      }
+                    {/* <SimpleGrid
+                      columns={{ base: 1, sm: 1, md: 3, lg: 4, xl: 5 }}
+                      gap={4}
+                      alignItems="start"
                     >
                       {
-                        item ? (
-                          <MoviePoster key={virtualRow.key} item={item}/>
-                        ): (
-                          <Skeleton height="200px" rounded="md" /> 
-                        )
+                        rowVirtualizer.getVirtualItems().map(virtualRow => { 
+                          const item = movies[virtualRow.index];
+                          if (virtualRow.index > movies.length - 1) {
+                            return (
+                              <Skeleton height="200px" rounded="md" key={virtualRow.key} ref={loadMoreRef} /> 
+                            );
+                          }
+  
+                          if (isError) {
+                            return (
+                              <Box key={virtualRow.index} p={4} textAlign="center">
+                                <Heading size="md" color="red.500" mb={4}>Something went wrong</Heading>
+                                <Box>{(error as Error).message || 'An unexpected error occurred.'}</Box>
+                              </Box>
+                            );
+                          }
+  
+                          return (
+                            <Box
+                            key={virtualRow.key}
+                            width="100%"
+                      
+                          >
+                            {
+                              item ? (
+                                <MoviePoster key={virtualRow.key} item={item}/>
+                              ): (
+                                <Skeleton height="200px" rounded="md" /> 
+                              )
+                            }
+                          </Box>
+                          )
+                        })
                       }
-                    </Box>
-                    )
-                  })
-                }
-              </SimpleGrid>
+                    </SimpleGrid> */}
+                  </Box>
+                </Box>
+                )
+              }
+
             </Box> 
         </Box>
-    </>
+  
   );
 }

@@ -1,9 +1,10 @@
 import { createListCollection, Portal, Select } from "@chakra-ui/react";
 
-const SortMenu = ({value, onChange} : {value: string, onChange: (value: string[]) => void;}) => {
+const SortMenu = ({value, label, onChange} : {value: string, label?: string, onChange: (value: string[]) => void;}) => {
   return (
     <Select.Root variant="outline" collection={frameworks} defaultValue={[value]} onValueChange={(e) => onChange(e.value)}>
       <Select.HiddenSelect />
+      { label && (<Select.Label mb={2}>{label}</Select.Label>)}
       <Select.Control>
         <Select.Trigger>
           <Select.ValueText placeholder="Most Popular" />
@@ -32,6 +33,7 @@ const frameworks = createListCollection({
   items: [
     { label: "Most Popular", value: "popularity.desc" },
     { label: "Highest rated", value: "vote_average.desc" },
+    { label: "Most rated", value: "vote_count.desc" },
     { label: "Most Recent", value: "primary_release_date.desc" },
   ],
 })

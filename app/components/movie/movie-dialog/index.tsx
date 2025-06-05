@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { TmdbMovieInterface } from '~/interfaces/tdmi-movie';
 import { TmdbMovieDetailInterface } from '~/interfaces/tdmi-movie-detail';
-import { WatchProvidersInterface } from '~/interfaces/provider';
+import { WatchProvidersByProductionInterface } from '~/interfaces/provider';
 
 import { CustomDialog } from '../../custom-dialog';
 import MovieDialogHeader from './movie-dialog-header';
@@ -17,7 +17,7 @@ interface MovieDetailsProps {
     similar: MovieListsInterface;
     reviews: ReviewListsInterface;
     keywords: KeywordsInterface;
-    providers: WatchProvidersInterface;
+    providers: WatchProvidersByProductionInterface;
     videos: VideosInterface;
     credits: PeopleListInterface;
 }
@@ -32,7 +32,7 @@ const MovieDialog = ({item, children} : { item: TmdbMovieInterface, children: Re
 
     async function getMovieDetails() {
         setLoading(true);
-        const res = await fetch(`/resources/movie/${item.id}`)
+        const res = await fetch(`/api/movie/${item.id}`)
         const data = await res.json()
 
         console.log('getMovieDetails data', data)

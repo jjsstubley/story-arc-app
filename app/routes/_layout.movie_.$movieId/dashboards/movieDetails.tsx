@@ -8,7 +8,7 @@ import Review from "~/components/movie/review";
 import { KeywordsInterface } from "~/interfaces/keywords";
 import { MovieListsInterface } from "~/interfaces/movie-lists";
 import { PeopleListInterface } from "~/interfaces/people";
-import { WatchProvidersInterface } from "~/interfaces/provider";
+import { WatchProvidersByProductionInterface } from "~/interfaces/provider";
 import { ReviewListsInterface } from "~/interfaces/review";
 import { TmdbMovieDetailInterface } from "~/interfaces/tdmi-movie-detail";
 import { VideosInterface } from "~/interfaces/videos";
@@ -23,7 +23,7 @@ interface MovieDetailsProps {
     similar: MovieListsInterface;
     reviews: ReviewListsInterface;
     keywords: KeywordsInterface;
-    providers: WatchProvidersInterface;
+    providers: WatchProvidersByProductionInterface;
     videos: VideosInterface;
     credits: PeopleListInterface;
   };

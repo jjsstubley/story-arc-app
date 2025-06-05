@@ -1,25 +1,25 @@
 
 import { useEffect, useState } from "react";
-import { GenreInterface } from "~/interfaces/genre";
 import { ComboboxItemProp } from "~/components/ui/combobox/interfaces/combobox-item";
 import { MultipleCombobox } from "~/components/ui/combobox/multiple";
 import { Box, Combobox } from "@chakra-ui/react";
+import { FullProviderInterface } from "~/interfaces/provider";
 
-const GenreCommandEngine = ({ onSelect, genres, defaults }: { onSelect: (details: Combobox.ValueChangeDetails | null) => void, genres: GenreInterface[], defaults?: string[] }) => {
-  const [genreFields, setGenreFields] = useState<ComboboxItemProp[]>([]);
+const ProviderCommandEngine = ({ onSelect, providers, defaults }: { onSelect: (details: Combobox.ValueChangeDetails | null) => void, providers: FullProviderInterface[], defaults?: string[] }) => {
+  const [providerFields, setProviderFields] = useState<ComboboxItemProp[]>([]);
 
   useEffect(() => {
-    if (genres) {
-      setGenreFields(genres.map((g: {id: number, name: string}) => ({
-        id: g.id,
-        name: g.name,
-        value: g.name,
+    if (providers) {
+      setProviderFields(providers.map((g: {provider_id: number, provider_name: string}) => ({
+        id: g.provider_id,
+        name: g.provider_name,
+        value: g.provider_name,
       })));
     }
   }, []);
 
   return (
-    <MultipleCombobox suggestions={genreFields} onSelect={onSelect} startElement="" placeholder="Genre" defaultOpen={false} defaultTags={defaults}>
+    <MultipleCombobox suggestions={providerFields} onSelect={onSelect} startElement="" placeholder="Providers" defaultOpen={false} colorPalette="green" defaultTags={defaults}>
     {(item) => {
       return (
         <Box display="flex" justifyItems="space-between" width="100%" alignItems="center">
@@ -41,4 +41,4 @@ const GenreCommandEngine = ({ onSelect, genres, defaults }: { onSelect: (details
   );
 };
 
-export default GenreCommandEngine;
+export default ProviderCommandEngine;

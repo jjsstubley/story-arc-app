@@ -76,7 +76,6 @@ export const CommandCombobox = ({ suggestions, onSelect, startElement = '/', pla
                     >
                         <strong>{item.name}</strong>
                         <small>{item.description}</small>
-                        internal
                     </Box>
                     )}
                 <Combobox.ItemIndicator />

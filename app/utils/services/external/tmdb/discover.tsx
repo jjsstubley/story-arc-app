@@ -13,9 +13,10 @@ const defaultParams = {
     include_adult: 'false',
     include_video: 'false',
     language: 'en-US',
+    watch_region: 'AU'
 };
 
-export async function getMoviesByAdvancedFilters({ payload, page, sort=defaultSort }: { payload: payloadProps[], page: string, sort?: string }) {
+export async function getMoviesByAdvancedFilters({ payload, page, sort=defaultSort, provider }: { payload: payloadProps[], page: string, sort?: string, provider?: string }) {
 
     const params = new URLSearchParams({
         ...defaultParams,
@@ -23,9 +24,15 @@ export async function getMoviesByAdvancedFilters({ payload, page, sort=defaultSo
         sort_by: sort,
     });
 
+    console.log('getMoviesByAdvancedFilters payload', payload)
+
     payload.forEach((i) => {
         params.append(i.type, i.value)
     })
+
+    if (provider) {
+        params.append('with_watch_providers', provider)
+    }
       
     const url = `${TMDB_API_BASE_URL}${SEGMENT_ENDPOINT}/movie?${params.toString()}`;
     

@@ -1,30 +1,28 @@
 import { Box, Button, Combobox, Group, SegmentGroup } from "@chakra-ui/react";
 import { MultipleCombobox } from "../../ui/combobox/multiple";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ComboboxItemProp } from "~/components/ui/combobox/interfaces/combobox-item";
 import { AsyncMultipleCombobox } from "~/components/ui/combobox/async-multiple";
 import { AsyncGroupedMultipleCombobox } from "~/components/ui/combobox/async-grouped-multiple";
-
-
-type ExtendedValueChangeDetails = Combobox.ValueChangeDetails & {
-  conditions: Record<string, string>;
-};
+import { ExtendedValueChangeDetails } from "./interfaces/ExtendedValueChangeDetails";
 
 interface ConditionCommandEngineProps {
   onSelect: (details: ExtendedValueChangeDetails | null) => void;
   suggestions: ComboboxItemProp[];
   startElement: React.ReactNode | string;
   async?: boolean;
-  grouped?: boolean
+  grouped?: boolean;
   fetchUrl?: string; // required if async is true
+  addButton?: boolean; 
+  placeholder?: string
+  defaultOpen?: boolean
 }
 
-const ConditionCommandEngine = ({ onSelect, suggestions, startElement, async = false, grouped= false, fetchUrl }: ConditionCommandEngineProps) => {
+const ConditionCommandEngine = ({ onSelect, suggestions, startElement, async = false, grouped= false, fetchUrl, addButton=false, placeholder, defaultOpen }: ConditionCommandEngineProps) => {
   const [detailsObj, setDetailsObj] = useState<Combobox.ValueChangeDetails| null>(null)
   const [conditionValues, setConditionValues] = useState<Record<string, string>>({})
 
   const handleComboboxSelect = (details: Combobox.ValueChangeDetails | null) => {
-    console.log('handleComboboxSelect details', details)
     if (!details) {
       onSelect(null)
       return
@@ -53,9 +51,13 @@ const ConditionCommandEngine = ({ onSelect, suggestions, startElement, async = f
     });
   };
 
-  function handleSubmit() {
-    console.log('handleSubmit conditionValues', conditionValues)
+  useEffect(() => {
+    if(detailsObj && conditionValues) {
+      handleSubmit()
+    }
+  }, [detailsObj, conditionValues])
 
+  function handleSubmit() {
     onSelect({
       ...detailsObj as ExtendedValueChangeDetails,
       conditions: conditionValues,
@@ -64,7 +66,7 @@ const ConditionCommandEngine = ({ onSelect, suggestions, startElement, async = f
   const ComboboxComponent = async ? grouped ? AsyncGroupedMultipleCombobox : AsyncMultipleCombobox : MultipleCombobox;
   return (
     <Group attached w="full" display="flex" alignItems="top">
-      <ComboboxComponent suggestions={suggestions} onSelect={handleComboboxSelect} startElement={startElement} fetchUrl={fetchUrl}>
+      <ComboboxComponent suggestions={suggestions} onSelect={handleComboboxSelect} startElement={startElement} fetchUrl={fetchUrl} placeholder={placeholder} defaultOpen={defaultOpen}>
         {(item, selected) => {
           const isSelected = selected.includes(item.value)
           const conditionValue = conditionValues[item.value] ?? "or"
@@ -99,9 +101,13 @@ const ConditionCommandEngine = ({ onSelect, suggestions, startElement, async = f
           )
         }}
       </ComboboxComponent>
-      <Button bg="bg.subtle" variant="outline" onClick={handleSubmit}>
-        Add
-      </Button>
+      {
+        addButton && (
+          <Button bg="bg.subtle" variant="outline" onClick={handleSubmit}>
+            Add
+          </Button>
+        )
+      }
     </Group>
   );
 };

@@ -1,14 +1,44 @@
-import { Combobox } from "@chakra-ui/react";
-import ConditionCommandEngine from "./condition";
+import { AsyncMultipleCombobox } from "~/components/ui/combobox/async-multiple";
+import { Box, Combobox } from "@chakra-ui/react";
+import { PersonKnownForInterface } from "~/interfaces/people";
+import { ComboboxItemProp } from "~/components/ui/combobox/interfaces/combobox-item";
+import { useEffect, useState } from "react";
 
-type ExtendedValueChangeDetails = Combobox.ValueChangeDetails & {
-  conditions: Record<string, string>;
-};
+const CastCommandEngine = ({ people, onSelect, defaults }: { people: PersonKnownForInterface[] ,onSelect: (details: Combobox.ValueChangeDetails | null) => void, defaults?: string[] }) => {
+  const [peopleList, setPeopleList] = useState<ComboboxItemProp[]>([]);
 
-const CastCommandEngine = ({ onSelect }: { onSelect: (details: ExtendedValueChangeDetails | null) => void }) => {
+  console.log('CastCommandEngine people', people)
+
+  useEffect(() => {
+    if (people) {
+      setPeopleList(people.map((g: {id: number, name: string}) => ({
+        id: g.id,
+        name: g.name,
+        value: g.name,
+      })));
+    }
+  }, []);
 
   return (
-    <ConditionCommandEngine suggestions={[]} onSelect={onSelect} startElement="with_cast" fetchUrl="/resources/cast" async={true}/>
+    <AsyncMultipleCombobox suggestions={peopleList} onSelect={onSelect} startElement="" fetchUrl="/api/cast" placeholder="Cast" defaultOpen={false} colorPalette="blue" defaultTags={defaults}>
+      {(item) => {
+        return (
+          <Box display="flex" justifyItems="space-between" width="100%" alignItems="center">
+            <Box
+              p={2}
+              display="flex"
+              flexDirection="column"
+              rounded="md"
+              width="100%"
+              color="white"
+              cursor="pointer"
+            >
+              <strong>{item.name}</strong>
+            </Box>
+          </Box>
+        )
+      }}
+    </AsyncMultipleCombobox>
   );
 };
 

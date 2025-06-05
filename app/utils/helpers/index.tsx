@@ -29,3 +29,7 @@ export function getFormattedDate({release_date, options, region}: {release_date:
 
   return formatted
 }
+
+export function weightedRating(R: number, v: number, m: number = 1000, C: number= 6.8) {
+  return (v / (v + m)) * R + (m / (v + m)) * C;
+}

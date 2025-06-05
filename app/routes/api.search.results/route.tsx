@@ -8,23 +8,24 @@ export const loader: LoaderFunction = async ({ request } : LoaderFunctionArgs) =
   const query = url.searchParams.get("search");
   const page = url.searchParams.get("page") || "1";
   const sort = url.searchParams.get("sort") || "popularity.desc";
-  const chips = Array.from(url.searchParams.entries())
-  .filter(([key]) => key.startsWith("chips["))
-  .map(([, key]) => {
-    const [type, ids] = key.split(":");
-    return { type, value: ids }; // You can also split again if needed
-  });
+  const filters = url.searchParams.get("filters");
+
+
 
   console.log('search/results query', query)
 
   
-  if (chips && chips.length) {
-    const [ results ] = await Promise.all([
-      await getMoviesByAdvancedFilters({payload: chips, page: page, sort: sort}),
-    ]);
+  if( filters) {
+    const decodedFilters = JSON.parse(atob(filters))
+    console.log('search/results chips', decodedFilters)
 
-  
-    return json({ results, chips, searchParams: url.searchParams.toString() }, { headers });
+    if (decodedFilters && decodedFilters.length) {
+      const [ results ] = await Promise.all([
+        await getMoviesByAdvancedFilters({payload: decodedFilters, page: page, sort: sort}),
+      ]);
+    
+      return json({ results, decodedFilters, searchParams: url.searchParams.toString() }, { headers });
+    }
   }
 
   return json({  }, { headers });

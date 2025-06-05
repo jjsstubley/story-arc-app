@@ -66,3 +66,16 @@ export async function getPeopleTvCreditsById({ person_id }: { person_id: number 
     }
     
 }
+
+export async function getPopularPeople() {
+    const url = `${TMDB_API_BASE_URL}${SEGMENT_ENDPOINT}/popular?language=en-US&page=1`;
+    
+    try {
+        const res = await fetch(url, TMDB_API_OPTIONS)
+        return res.json()
+    } catch (err) {
+        console.error(err)
+        return []
+    }
+    
+}

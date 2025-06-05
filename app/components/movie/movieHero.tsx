@@ -3,7 +3,7 @@ import './styles.css'
 import { TmdbMovieDetailInterface } from "~/interfaces/tdmi-movie-detail";
 import MovieImage from "./movieImage";
 import { Link } from "@remix-run/react";
-import { getFormattedDate } from "~/utils/helpers";
+import { getFormattedDate, weightedRating } from "~/utils/helpers";
 
 const MovieHero = ({movie, height = '400px'} : {movie: TmdbMovieDetailInterface, height: string}) => {
 
@@ -40,13 +40,27 @@ const MovieHero = ({movie, height = '400px'} : {movie: TmdbMovieDetailInterface,
                   ))
                 }
             </Box>
-            <Box display="flex" gap={2} width="300px" alignItems="center">
-              <Box position="relative" width="100%">
-                  <Box position="absolute"  top="0" left="0" zIndex={1} bg="orange.400" height="8px" rounded="md" width={`${(parseFloat(movie.vote_average) / 10) * 100}%`}></Box>
-                  <Box bg="gray.200" height="8px" rounded="md" width="100%"></Box>
+            <Box width="300px" display="flex" flexDirection="column" gap={2} justifyContent="end">
+              <Box display="flex" gap={2} alignItems="center" justifyContent="end">
+                <Box position="relative" width="100%">
+                    <Box position="absolute"  top="0" left="0" zIndex={1} bg="orange.400" height="8px" rounded="md" width={`${(parseFloat(movie.vote_average) / 10) * 100}%`}></Box>
+                    <Box bg="gray.200" height="8px" rounded="md" width="100%"></Box>
+                </Box>
+                <Box width="200px" display="flex" gap={2} alignItems="center">
+                  <Text whiteSpace="nowrap">{parseFloat(movie.vote_average).toFixed(1)} / 10</Text>
+                  <Text whiteSpace="nowrap" fontSize="xs">{movie.vote_count} ratings</Text>
+                </Box>
               </Box>
-              <Text whiteSpace="nowrap">{parseFloat(movie.vote_average).toFixed(1)} / 10</Text>
-              <Text whiteSpace="nowrap" fontSize="xs">{movie.vote_count} ratings</Text>
+              <Box display="flex" gap={2} alignItems="center" justifyContent="end">
+                <Box position="relative" width="100%">
+                    <Box position="absolute"  top="0" left="0" zIndex={1} bg="orange.400" height="8px" rounded="md" width={`${(weightedRating(parseFloat(movie.vote_average), parseInt(movie.vote_count)) / 10) * 100}%`}></Box>
+                    <Box bg="gray.200" height="8px" rounded="md" width="100%"></Box>
+                </Box>
+                <Box width="200px" display="flex" gap={2} alignItems="center">
+                  <Text whiteSpace="nowrap">{weightedRating(parseFloat(movie.vote_average), parseInt(movie.vote_count)).toFixed(1)} / 10</Text>
+                  {/* <Image src="/public/logo.jpg"  width={10} height={10} alt="Brand"/> */}
+                </Box>
+              </Box>
             </Box>
           </Box>
 

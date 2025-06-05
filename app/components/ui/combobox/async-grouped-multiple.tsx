@@ -5,8 +5,6 @@ import {
   Portal,
   InputGroup,
   Box,
-  Wrap,
-  Badge,
   useListCollection,
   useFilter,
   Span,
@@ -16,17 +14,19 @@ import {
 import { ReactNode, useEffect, useState } from "react"
 import { ComboboxItemProp } from "./interfaces/combobox-item";
 import { BaseComboboxProps } from "./interfaces/combobox";
+import ComboTags from "./combo-tags";
 
 
 interface ComboboxProps extends BaseComboboxProps {
     onSelect: (details: Combobox.ValueChangeDetails | null) => void;
     children?: (item: ComboboxItemProp, selected: string[]) => ReactNode
     fetchUrl?: string
+    colorPalette?: string
 }
 
-export const AsyncGroupedMultipleCombobox = ({ suggestions, onSelect, startElement, placeholder = "Type to search", defaultOpen = true, children, fetchUrl }: ComboboxProps) => {
+export const AsyncGroupedMultipleCombobox = ({ suggestions, onSelect, startElement, placeholder = "Type to search", defaultOpen = false, children, fetchUrl, colorPalette = 'orange' }: ComboboxProps) => {
   const [searchValue, setSearchValue] = useState("")
-  const [selectedSkills, setSelectedSkills] = useState<string[]>([])
+  const [tags, setTags] = useState<string[]>([])
   const { contains } = useFilter({ sensitivity: "base" });
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(false)
@@ -41,7 +41,7 @@ export const AsyncGroupedMultipleCombobox = ({ suggestions, onSelect, startEleme
   // }, [searchValue, filter]);
 
   const handleValueChange = (details: Combobox.ValueChangeDetails) => {
-    setSelectedSkills(details.value)
+    setTags(details.value)
     onSelect(details)
   }
 
@@ -52,7 +52,7 @@ export const AsyncGroupedMultipleCombobox = ({ suggestions, onSelect, startEleme
 
     const [ titlesRes, keywordsRes ] = await Promise.all([
       await fetch(`${fetchUrl}?query=${encodeURIComponent(searchValue)}&page=1`),
-      await fetch(`/resources/cast?query=${encodeURIComponent(searchValue)}&page=1`)
+      await fetch(`/api/cast?query=${encodeURIComponent(searchValue)}&page=1`)
     ])
 
     const [keywords, titles] = await Promise.all([
@@ -103,7 +103,7 @@ export const AsyncGroupedMultipleCombobox = ({ suggestions, onSelect, startEleme
     <Combobox.Root
       collection={collection}
       onInputValueChange={(details) => setSearchValue(details.inputValue)}
-      value={selectedSkills}
+      value={tags}
       onValueChange={handleValueChange}
       width="100%"
       openOnClick
@@ -145,7 +145,7 @@ export const AsyncGroupedMultipleCombobox = ({ suggestions, onSelect, startEleme
                   collection.items.filter((i) => i.group === 'keywords').map((item) => (
                     <Combobox.Item item={item} key={item.name}>
                           {children ? (
-                              children(item, selectedSkills)
+                              children(item, tags)
                           ) : (
                           <Box
                               p={2}
@@ -171,7 +171,7 @@ export const AsyncGroupedMultipleCombobox = ({ suggestions, onSelect, startEleme
                   collection.items.filter((i) => i.group === 'cast').map((item) => (
                     <Combobox.Item item={item} key={item.name}>
                           {children ? (
-                              children(item, selectedSkills)
+                              children(item, tags)
                           ) : (
                           <Box
                               p={2}
@@ -196,11 +196,7 @@ export const AsyncGroupedMultipleCombobox = ({ suggestions, onSelect, startEleme
           </Combobox.Content>
         </Combobox.Positioner>
       </Portal>
-      <Wrap gap="2" mt={4}>
-        {selectedSkills.map((skill) => (
-          <Badge colorPalette="orange" key={skill}>{skill}</Badge>
-        ))}
-      </Wrap>
+      <ComboTags tags={tags} colorPalette={colorPalette} />
     </Combobox.Root>
   )
 }

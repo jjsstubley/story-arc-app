@@ -57,7 +57,7 @@ export default function Index() {
         title={tagList.tag.name}   
         callback={async (pageParam, sort) => {
 
-          const res = await fetch(`/resources/tag/${tagList.tag.id}?page=${pageParam}&sort=${sort}`);
+          const res = await fetch(`/api/tag/${tagList.tag.id}?page=${pageParam}&sort=${sort}`);
           const data = await res.json();
 
           return {

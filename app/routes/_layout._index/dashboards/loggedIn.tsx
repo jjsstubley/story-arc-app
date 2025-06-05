@@ -10,7 +10,7 @@ export default function DashboardLoggedIn({ movieLists }: {movieLists: MovieList
 
   const MovieListCategories = [
     {
-      title: 'Movies by Popularity',
+      title: 'Popular Movies',
       data: popularMovies
     },
     {
@@ -33,7 +33,7 @@ export default function DashboardLoggedIn({ movieLists }: {movieLists: MovieList
 
   return (
     <>
-        <Box as="section" display="grid" gap={8} gridColumn={1} flex="1" p={4} pt={0} overflow="hidden">
+        <Box as="section" display="grid" gap={2} gridColumn={1} flex="1" p={4} overflow="hidden">
           {
             MovieListCategories.map((list, index) => (
               <Box key={index }as="section" flex="1" p={4} pt={0} overflow="hidden">

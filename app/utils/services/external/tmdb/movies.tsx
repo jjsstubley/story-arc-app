@@ -95,8 +95,6 @@ export async function getCreditsByMovieId({ movie_id }: { movie_id: number }) {
 
 export async function getWatchProvidersById({ movie_id }: { movie_id: number }) {
   const url = `${TMDB_API_BASE_URL}${SEGMENT_ENDPOINT}/${movie_id}/watch/providers`;
-
-  console.log('getWatchProvidersById url', url)
   
   try {
       const res = await fetch(url, TMDB_API_OPTIONS)

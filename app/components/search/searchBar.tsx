@@ -3,7 +3,6 @@ import {
   Flex,
   Input,
   Tag,
-  Combobox,
   Button
 } from "@chakra-ui/react";
 // import { useOutsideClick } from "@chakra-ui/utils"
@@ -11,16 +10,18 @@ import {
 import { useRef, useState, useEffect } from "react";
 
 import SlashCommandEngine from "./CommandEngines/slash";
-import GenreCommandEngine from "./CommandEngines/genre";
+import GlobalGenreCommandEngine from "./CommandEngines/global-genre";
 
 import { IoIosClose } from "react-icons/io";
 import { GenreInterface } from "~/interfaces/genre";
-import KeywordCommandEngine from "./CommandEngines/keyword";
-import CastCommandEngine from "./CommandEngines/cast";
+import GlobalKeywordCommandEngine from "./CommandEngines/global-keyword";
+import GlobalCastCommandEngine from "./CommandEngines/global-cast";
 import { ComboboxItemProp } from "../ui/combobox/interfaces/combobox-item";
-import { Form, useSearchParams } from "@remix-run/react";
+import {  useSearchParams, useFetcher } from "@remix-run/react";
 import AtCommandEngine from "./CommandEngines/at";
-
+import { ExtendedValueChangeDetails } from "./CommandEngines/interfaces/ExtendedValueChangeDetails";
+import { SuggestionsDataInterface } from "~/interfaces/suggestions";
+import SuggestionsDialog from "./suggestions-dialog";
 
 type Chip = {
   type: "with_keywords" | "with_genres" | "with_cast";
@@ -28,18 +29,17 @@ type Chip = {
   ids?: string;
 };
 
-type ExtendedValueChangeDetails = Combobox.ValueChangeDetails & {
-  conditions: Record<string, string>;
-};
-
-const SearchBar = ({ genres } : { genres: GenreInterface[] } ) => {
+const SearchBar = ({ genres} : { genres: GenreInterface[]} ) => {
   const [searchParams] = useSearchParams();
-  const [inputValue, setInputValue] = useState("");
+  const [query, setQuery] = useState("");
   const [chips, setChips] = useState<Chip[]>([]);
   const [currentChip, setCurrentChip] = useState<Chip | null>(null);
   const [showSlashCommand, setShowSlashCommand] = useState(false)
   const [showAtCommand, setShowAtCommand] = useState(false)
+  const fetcher = useFetcher<SuggestionsDataInterface>()
+  const [isClient, setIsClient] = useState(false);
 
+  useEffect(() => setIsClient(true), []);
   // const [activeToken, setActiveToken] = useState<{
   //   trigger: "/" | "@";
   //   query: string;
@@ -71,7 +71,7 @@ const SearchBar = ({ genres } : { genres: GenreInterface[] } ) => {
     // Optional: restore input value from `search` param
     const input = searchParams.get("search");
     if (input) {
-      setInputValue(input);
+      setQuery(input);
     }
   }, []);
 
@@ -110,7 +110,7 @@ const SearchBar = ({ genres } : { genres: GenreInterface[] } ) => {
       // setActiveToken(token);
     }
 
-    setInputValue(value);
+    setQuery(value);
     
   };
 
@@ -121,7 +121,7 @@ const SearchBar = ({ genres } : { genres: GenreInterface[] } ) => {
   //       type: field.value as Chip["type"],
   //       value: inputValue,
   //     });
-  //     setInputValue("");
+  //     setQuery("");
   //     setActiveToken(null);
   //   }
   // };
@@ -152,7 +152,7 @@ const SearchBar = ({ genres } : { genres: GenreInterface[] } ) => {
   // }
 
   function handleColon() {
-    const colonMatch = inputValue.match(/^\s*(\w+)\s*:\s*(.+)$/);
+    const colonMatch = query.match(/^\s*(\w+)\s*:\s*(.+)$/);
     if (colonMatch) {
       const namespace = colonMatch[1].toLowerCase();
       const value = colonMatch[2];
@@ -172,7 +172,7 @@ const SearchBar = ({ genres } : { genres: GenreInterface[] } ) => {
             value,
           },
         ]);
-        setInputValue("");
+        setQuery("");
         return;
       }
     }
@@ -181,7 +181,7 @@ const SearchBar = ({ genres } : { genres: GenreInterface[] } ) => {
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Backspace") {
-      if (!inputValue.includes("/") && showSlashCommand) {
+      if (!query.includes("/") && showSlashCommand) {
         setShowSlashCommand(false);
       }
     }
@@ -193,7 +193,7 @@ const SearchBar = ({ genres } : { genres: GenreInterface[] } ) => {
       if (currentChip) {
         setChips([...chips, currentChip]);
         setCurrentChip(null);
-        setInputValue("");
+        setQuery("");
         return;
       }
   
@@ -201,7 +201,7 @@ const SearchBar = ({ genres } : { genres: GenreInterface[] } ) => {
     }
   };
   const removeLastChar = () => {
-    setInputValue((prev) => prev.slice(0, -1));
+    setQuery((prev) => prev.slice(0, -1));
   };
 
   const handleTaggingSelect = (selected: ExtendedValueChangeDetails | null) => {
@@ -245,6 +245,16 @@ const SearchBar = ({ genres } : { genres: GenreInterface[] } ) => {
     inputRef.current?.focus();
   }
 
+  const handleSearch = () => {
+    const formData = new FormData();
+    formData.append("query", query);
+
+    fetcher.submit(formData, {
+      method: "post",
+      action: "/api/suggestions",
+    });
+  };
+
   return (
     <Box pb={4} borderBottomWidth="1px" position="relative">
       {currentChip ? (
@@ -266,11 +276,11 @@ const SearchBar = ({ genres } : { genres: GenreInterface[] } ) => {
                   
                   setCurrentChip({
                     type: selectedField?.value as Chip["type"],
-                    value: "", // inputValue will be filled by user next
+                    value: "", // query will be filled by user next
                   });
             
                   setShowSlashCommand(false);
-                  // setInputValue("");
+                  // setQuery("");
                   setTimeout(() => {
                     inputRef.current?.focus();
                   }, 0);
@@ -294,26 +304,20 @@ const SearchBar = ({ genres } : { genres: GenreInterface[] } ) => {
                   
                   // setCurrentChip({
                   //   type: selected?.value as Chip["type"],
-                  //   value: "", // inputValue will be filled by user next
+                  //   value: "", // query will be filled by user next
                   // });
             
                   setShowAtCommand(false);
-                  // setInputValue("");
+                  // setQuery("");
                   setTimeout(() => {
                     inputRef.current?.focus();
                   }, 0);
                 }}
               />
               ) : (
-                <Form method="get" action="/search/results">
-                  {chips.map((chip, index) => (
-                    <Input
-                      key={index}
-                      type="hidden"
-                      name={`chips[${index}]`}
-                      value={`${chip.type}:${chip.ids}:${chip.value}`}
-                    />
-                  ))}
+                // <Form method="post" action="/api/suggestions">
+                  
+
                   <Flex gap={4}>
                     <Input
                       ref={inputRef}
@@ -321,14 +325,23 @@ const SearchBar = ({ genres } : { genres: GenreInterface[] } ) => {
                       variant="subtle"
                       colorPalette="orange"
                       flex={1}
-                      value={inputValue}
+                      value={query}
                       onChange={handleMainInputChange}
                       onKeyDown={handleKeyDown}
                       placeholder="What movie can I help you find. You can search with / or @"
                     />
-                    <Button type="submit">Search</Button>
+                    {
+                      isClient && (
+                        <SuggestionsDialog fetcher={fetcher} query={query}>
+                          <Button onClick={handleSearch}>Search</Button>
+                        </SuggestionsDialog>
+                      )
+                    }
+
                   </Flex>
-                </Form>
+
+                // </Form>
+             
               )
             )
         )}
@@ -356,13 +369,13 @@ const commandEngineMap: Record<Chip["type"],
 (props: { onSelect: (details: ExtendedValueChangeDetails | null) => void; genres?: GenreInterface[] }) => JSX.Element
 > = {
 with_genres: ({ onSelect, genres }) => (
-  <GenreCommandEngine genres={genres!} onSelect={onSelect} />
+  <GlobalGenreCommandEngine genres={genres!} onSelect={onSelect} />
 ),
 with_keywords: ({ onSelect }) => (
-  <KeywordCommandEngine onSelect={onSelect} />
+  <GlobalKeywordCommandEngine onSelect={onSelect} />
 ),
 with_cast: ({ onSelect }) => (
-  <CastCommandEngine onSelect={onSelect} /> // Replace with CastCommandEngine if you have one
+  <GlobalCastCommandEngine onSelect={onSelect} /> // Replace with CastCommandEngine if you have one
 ),
 // Add more mappings here...
 };

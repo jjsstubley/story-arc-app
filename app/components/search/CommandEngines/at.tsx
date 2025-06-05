@@ -8,7 +8,7 @@ type ExtendedValueChangeDetails = Combobox.ValueChangeDetails & {
 const AtCommandEngine = ({ onSelect }: { onSelect: (details: ExtendedValueChangeDetails | null) => void }) => {
 
   return (
-    <ConditionCommandEngine suggestions={[]} onSelect={onSelect} startElement="@" fetchUrl="/resources/keywords" async={true} grouped={true}/>
+    <ConditionCommandEngine suggestions={[]} onSelect={onSelect} startElement="@" fetchUrl="/api/keywords" async={true} grouped={true}/>
   );
 };
 

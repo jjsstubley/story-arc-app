@@ -4,7 +4,7 @@ import { Section } from '~/components/layout/section';
 import { KeywordsInterface } from '~/interfaces/keywords';
 import { MovieListsInterface } from '~/interfaces/movie-lists';
 import { PeopleListInterface } from '~/interfaces/people';
-import { WatchProvidersInterface } from '~/interfaces/provider';
+import { WatchProvidersByProductionInterface } from '~/interfaces/provider';
 import { ReviewListsInterface } from '~/interfaces/review';
 import { TmdbMovieDetailInterface } from '~/interfaces/tdmi-movie-detail';
 import { VideosInterface } from '~/interfaces/videos';
@@ -17,7 +17,7 @@ interface MovieDetailsProps {
     similar: MovieListsInterface;
     reviews: ReviewListsInterface;
     keywords: KeywordsInterface;
-    providers: WatchProvidersInterface;
+    providers: WatchProvidersByProductionInterface;
     videos: VideosInterface;
     credits: PeopleListInterface;
 }
@@ -56,15 +56,28 @@ const MovieDialogBody = ({ movieData } : {movieData: MovieDetailsProps | null}) 
                 </Box>
             </Section>
             <Section title="Cast">
-                <Box>
+                <Box  display="flex" alignItems="center" gap={2}>
+                    <Text>Director:</Text>  
                     {
                         movieData.credits.crew.filter((i) => i.job === 'Director').map((credit, index) => (
-                            <Box key={index} display="flex" alignItems="center" gap={2}>
-                                <Text>Director:</Text>  
-                                <Link to={`/credit/${slugify(credit.name)}_${credit.id}`}>
+                        
+                                <Link key={index} to={`/credit/${slugify(credit.name)}_${credit.id}`}>
+                                    <Text _hover={{ color: 'orange.500'}} whiteSpace="nowrap">{credit.name},</Text>
+                                </Link>
+                            
+                        ))
+                    }
+                </Box>
+        
+                <Box display="flex" alignItems="center" gap={2} mt={2}>
+                    <Text>Original score:</Text>
+                    {
+                        movieData.credits.crew.filter((i) => i.job === 'Original Music Composer').map((credit, index) => (
+                            
+                                <Link key={index} to={`/credit/${slugify(credit.name)}_${credit.id}`}>
                                     <Text _hover={{ color: 'orange.500'}} whiteSpace="nowrap">{credit.name}</Text>
                                 </Link>
-                            </Box>
+                            
                         ))
                     }
                 </Box>

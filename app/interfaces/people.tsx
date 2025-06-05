@@ -1,4 +1,6 @@
 import { BasePersonInterface } from "./base-person"
+import { PaginationInterface } from "./pagination"
+import { TmdbMovieInterface } from "./tdmi-movie"
 
 export interface PeopleListInterface {
     id: number,
@@ -31,3 +33,9 @@ export interface PersonDetailsInterface extends BasePersonInterface  {
     imbd_id: string,
     place_of_birth: string,
 }
+
+export interface PersonKnownForInterface extends BasePersonInterface  {
+    known_for: TmdbMovieInterface[],
+}
+
+export interface PeopleListsInterface extends PaginationInterface<PersonKnownForInterface>{}

@@ -14,12 +14,12 @@ const MovieDialogHeader = ({details, error, loading} : { details: TmdbMovieDetai
             
             <Box position="absolute" right={14} top={2}>
                 <Link to={`/movie/${details?.id}`}>
-                    <IconButton aria-label="Search database" variant="ghost" size="sm">
+                    <IconButton aria-label="Search database" variant="ghost" size="sm" bg="blackAlpha.600" _hover={{bg:"blackAlpha.900"}}>
                         <LuExternalLink />
                     </IconButton>
                 </Link>
             </Box>
-            <Dialog.CloseTrigger asChild >
+            <Dialog.CloseTrigger asChild bg="blackAlpha.600" _hover={{bg:"blackAlpha.900"}}>
                 <CloseButton size="sm" />
             </Dialog.CloseTrigger>
         </Box>

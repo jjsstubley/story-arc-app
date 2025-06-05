@@ -1,4 +1,4 @@
-import { Box, Card, Image } from '@chakra-ui/react';
+import { Box, Card, Image, Text } from '@chakra-ui/react';
 import { TmdbMovieInterface } from '~/interfaces/tdmi-movie';
 import MovieDialog from './movie-dialog';
 import { BsFilm } from "react-icons/bs";
@@ -7,7 +7,7 @@ item.poster_path
     return (
         <MovieDialog item={item}>
             <>
-                <Card.Root width="100%">
+                <Card.Root width="100%" aspectRatio={2 / 3}>
                     <Card.Body gap="2" p={0} overflow="hidden" rounded="md" border="1px solid transparent" 
                         _hover={{
                             border: "1px solid white"
@@ -35,8 +35,8 @@ item.poster_path
                         }
                     </Card.Body>
                 </Card.Root>
-                <Box width="100%" color="white" pt={4}>
-                    {item.title}
+                <Box width="100%" color="white" pt={2} textAlign="left">
+                    <Text fontSize="xs" color="whiteAlpha.600">{item.title}</Text>
                 </Box>
             </>
         </MovieDialog>

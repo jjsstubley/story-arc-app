@@ -5,8 +5,6 @@ import {
   Portal,
   InputGroup,
   Box,
-  Wrap,
-  Badge,
   useListCollection,
   useFilter,
   Span,
@@ -16,24 +14,28 @@ import {
 import { ReactNode, useEffect, useState } from "react"
 import { ComboboxItemProp } from "./interfaces/combobox-item";
 import { BaseComboboxProps } from "./interfaces/combobox";
+import ComboTags from "./combo-tags";
 
 
 interface ComboboxProps extends BaseComboboxProps {
     onSelect: (details: Combobox.ValueChangeDetails | null) => void;
     children?: (item: ComboboxItemProp, selected: string[]) => ReactNode
     fetchUrl?: string
+    colorPalette?: string
+    defaultTags?: string[]
 }
 
-export const AsyncMultipleCombobox = ({ suggestions, onSelect, startElement, placeholder = "Type to search", defaultOpen = true, children, fetchUrl }: ComboboxProps) => {
+export const AsyncMultipleCombobox = ({ suggestions, onSelect, startElement, placeholder = "Type to search", defaultOpen = false, children, fetchUrl, colorPalette="orange", defaultTags }: ComboboxProps) => {
   const [searchValue, setSearchValue] = useState("")
-  const [selectedSkills, setSelectedSkills] = useState<string[]>([])
+  const [tags, setTags] = useState<string[]>(defaultTags ?? [])
   const { contains } = useFilter({ sensitivity: "base" });
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(false)
-
+  console.log('AsyncMultipleCombobox suggestions', suggestions)
   const { collection, set } = useListCollection({
     initialItems: suggestions,
     filter: contains,
+    itemToString: (item) => item.name,
   });
 
   // useEffect(() => {
@@ -41,7 +43,7 @@ export const AsyncMultipleCombobox = ({ suggestions, onSelect, startElement, pla
   // }, [searchValue, filter]);
 
   const handleValueChange = (details: Combobox.ValueChangeDetails) => {
-    setSelectedSkills(details.value)
+    setTags(details.value)
     onSelect(details)
   }
 
@@ -65,22 +67,27 @@ export const AsyncMultipleCombobox = ({ suggestions, onSelect, startElement, pla
   }
 
   useEffect(() => {
-    if (!searchValue) return;
-
-    const handler = setTimeout(() => {
-      getCollection();
-    }, 300); // 300ms debounce delay
+    if (!searchValue) {
+      set(suggestions); // reset to initial items if input is cleared
+      return;
+    }
   
-    return () => {
-      clearTimeout(handler); // Clean up timeout on unmount or value change
-    };
+    const handler = setTimeout(() => {
+      if (fetchUrl) {
+        getCollection(); // async fetch from API
+      } else {
+        collection.filter((item) => contains(item, searchValue)); // local filter on suggestions
+      }
+    }, 300);
+  
+    return () => clearTimeout(handler);
   }, [searchValue])
 
   return (
     <Combobox.Root
       collection={collection}
       onInputValueChange={(details) => setSearchValue(details.inputValue)}
-      value={selectedSkills}
+      value={tags}
       onValueChange={handleValueChange}
       width="100%"
       openOnClick
@@ -118,7 +125,7 @@ export const AsyncMultipleCombobox = ({ suggestions, onSelect, startElement, pla
               collection.items.map((item) => (
                 <Combobox.Item item={item} key={item.name}>
                       {children ? (
-                          children(item, selectedSkills)
+                          children(item, tags)
                       ) : (
                       <Box
                           p={2}
@@ -139,11 +146,8 @@ export const AsyncMultipleCombobox = ({ suggestions, onSelect, startElement, pla
           </Combobox.Content>
         </Combobox.Positioner>
       </Portal>
-      <Wrap gap="2" mt={4}>
-        {selectedSkills.map((skill) => (
-          <Badge colorPalette="orange" key={skill}>{skill}</Badge>
-        ))}
-      </Wrap>
+      <ComboTags tags={tags} colorPalette={colorPalette} />
+
     </Combobox.Root>
   )
 }

@@ -1,14 +1,28 @@
-import { Combobox } from "@chakra-ui/react";
-import ConditionCommandEngine from "./condition";
+import { AsyncMultipleCombobox } from "~/components/ui/combobox/async-multiple";
+import { Box, Combobox } from "@chakra-ui/react";
 
-type ExtendedValueChangeDetails = Combobox.ValueChangeDetails & {
-  conditions: Record<string, string>;
-};
-
-const KeywordCommandEngine = ({ onSelect }: { onSelect: (details: ExtendedValueChangeDetails | null) => void }) => {
+const KeywordCommandEngine = ({ onSelect, defaults }: { onSelect: (details: Combobox.ValueChangeDetails | null) => void, defaults?: string[] }) => {
 
   return (
-    <ConditionCommandEngine suggestions={[]} onSelect={onSelect} startElement="with_keywords" fetchUrl="/resources/keywords" async={true}/>
+    <AsyncMultipleCombobox suggestions={[]} onSelect={onSelect} startElement="" fetchUrl="/api/keywords" placeholder="Keywords" defaultOpen={false} colorPalette="red" defaultTags={defaults}>
+      {(item) => {
+        return (
+          <Box display="flex" justifyItems="space-between" width="100%" alignItems="center">
+            <Box
+              p={2}
+              display="flex"
+              flexDirection="column"
+              rounded="md"
+              width="100%"
+              color="white"
+              cursor="pointer"
+            >
+              <strong>{item.name}</strong>
+            </Box>
+          </Box>
+        )
+      }}
+    </AsyncMultipleCombobox>
   );
 };
 
