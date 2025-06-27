@@ -1,11 +1,18 @@
 
 import { useEffect, useState } from "react";
-import { GenreInterface } from "~/interfaces/genre";
+import { GenreInterface } from "~/interfaces/tmdb/genre";
 import { ComboboxItemProp } from "~/components/ui/combobox/interfaces/combobox-item";
 import { MultipleCombobox } from "~/components/ui/combobox/multiple";
 import { Box, Combobox } from "@chakra-ui/react";
 
-const GenreCommandEngine = ({ onSelect, genres, defaults }: { onSelect: (details: Combobox.ValueChangeDetails | null) => void, genres: GenreInterface[], defaults?: string[] }) => {
+interface ConfigProps { 
+  type: string;
+  key: string;
+  name: string[],
+  value: string;
+}
+
+const GenreCommandEngine = ({ onSelect, genres, defaults, disabled }: { onSelect: (payload: ConfigProps) => void, genres: GenreInterface[], defaults?: string[], disabled: boolean }) => {
   const [genreFields, setGenreFields] = useState<ComboboxItemProp[]>([]);
 
   useEffect(() => {
@@ -18,8 +25,24 @@ const GenreCommandEngine = ({ onSelect, genres, defaults }: { onSelect: (details
     }
   }, []);
 
+  function handleOnSubmit(details: Combobox.ValueChangeDetails | null) { 
+    console.log('handleOnSubmit details', details);
+    if (details) {
+      const transformedValues = details?.items?.map((item) => item.id).join('|') || '';
+
+      const newConfig = {
+        type: 'genre',
+        key: 'with_genres',
+        name: details.value || [],
+        value: transformedValues
+      };
+      console.log('handleOnSubmit config', newConfig);
+      onSelect(newConfig);
+    }
+  }
+
   return (
-    <MultipleCombobox suggestions={genreFields} onSelect={onSelect} startElement="" placeholder="Genre" defaultOpen={false} defaultTags={defaults}>
+    <MultipleCombobox suggestions={genreFields} onSelect={handleOnSubmit} startElement="" placeholder="Genre" defaultOpen={false} defaultTags={defaults} disabled={disabled}>
     {(item) => {
       return (
         <Box display="flex" justifyItems="space-between" width="100%" alignItems="center">

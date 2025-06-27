@@ -40,3 +40,16 @@ export async function getTrendingAll({ time }: { time: 'day' | 'week' }) {
   }
   
 }
+
+export async function getTrendingPeople({ time }: { time: 'day' | 'week' }) {
+    const url = `${TMDB_API_BASE_URL}${SEGMENT_ENDPOINT}/person/${time}?language=en-US`;
+    
+    try {
+        const res = await fetch(url, TMDB_API_OPTIONS)
+        return res.json()
+    } catch (err) {
+        console.error(err)
+        return []
+    }
+    
+  }

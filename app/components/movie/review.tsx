@@ -1,6 +1,6 @@
 import { Avatar, Box, Card } from '@chakra-ui/react';
 // import { Link, useLocation } from "@remix-run/react";
-import { ReviewInterface } from '~/interfaces/review';
+import { ReviewInterface } from '~/interfaces/tmdb/review';
 
 const Review = ({item} : { item: ReviewInterface }) => {
 

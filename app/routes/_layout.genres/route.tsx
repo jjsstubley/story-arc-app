@@ -3,32 +3,23 @@ import { json, LoaderFunctionArgs, LoaderFunction, type MetaFunction } from "@re
 import { getSupabaseServerClient } from "~/utils/supabase.server";
 import GenreDashboard from './dashboards/genreDashboard'
 import { useLoaderData } from "@remix-run/react";
-import { getOfficialMovieGenres } from "~/utils/services/external/tmdb/genres";
-import { getMoviesByGenre } from "~/utils/services/external/tmdb/discover";
-import { GenreInterface } from "~/interfaces/genre";
 
 export const loader: LoaderFunction = async ({ request } : LoaderFunctionArgs) => {
   const headers = new Headers();
   const supabase = getSupabaseServerClient(request, headers);
   const { data: { session } } = await supabase.auth.getSession()
   
-  const [ genres ] = await Promise.all([
-    await getOfficialMovieGenres(),
-  ]);
+  // supabase.functions.invoke('update_genre_backdrops', {
+  //   body: {name: 'Functions'},
+  // })
 
+  const { data: genres } = await supabase
+  .from('genres')
+  .select(`*`);
 
-  // Fetch movies for each genre in parallel
-  const moviesByGenre = await Promise.all(
-    genres.genres.map(async (genre: GenreInterface) => {
-      const movies = await getMoviesByGenre({genre: genre.id}); // Replace with your real fetch
-      return {
-        genre,
-        movies,
-      };
-    })
-  );
+  console.log('loader genres', genres)
 
-  return json({ session, moviesByGenre }, { headers });
+  return json({ session, genres }, { headers });
 };
 
 export const meta: MetaFunction<typeof loader> = () => {
@@ -39,9 +30,9 @@ export const meta: MetaFunction<typeof loader> = () => {
 };
 
 export default function Index() {
-  const { moviesByGenre } = useLoaderData<typeof loader>();
+  const { genres } = useLoaderData<typeof loader>();
 
   return (
-    <GenreDashboard moviesByGenre={moviesByGenre} />
+    <GenreDashboard genres={genres} />
   )
 }

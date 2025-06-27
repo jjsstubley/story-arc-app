@@ -1,0 +1,46 @@
+import { json, LoaderFunctionArgs, LoaderFunction, type MetaFunction } from "@remix-run/node";
+
+import { getSupabaseServerClient } from "~/utils/supabase.server";
+import { useLoaderData } from "@remix-run/react";
+import WatchlistsDashboard from "./dashboards/WatchlistsDashboard";
+
+import { getDefaultWatchlistWMovies } from "~/utils/services/supabase/watchlist.server";
+import { getPopcornWatchlistWMovies } from "~/utils/services/cookies/popcorn-watchlist";
+
+export const loader: LoaderFunction = async ({ request } : LoaderFunctionArgs) => {
+  const headers = new Headers();
+  const supabase = getSupabaseServerClient(request, headers);
+  const { data: { session } } = await supabase.auth.getSession()
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  if (!user) {
+    return json({ error: "Watchlist ID is required"})
+  }
+
+  const watchlists = Promise.all([
+    await getDefaultWatchlistWMovies(user.id, supabase),
+    await getPopcornWatchlistWMovies(request),
+  ])
+
+  return json({ watchlists, session }, { headers });
+};
+
+export const meta: MetaFunction<typeof loader> = () => {
+  return [
+    { title: "Story Arc | Movie | {Movie ID}" },
+    { name: "description", content: "Query-based film search engine" },
+    // {
+    //   rel: "preload",
+    //   as: "image",
+    //   href: `https://image.tmdb.org/t/p/original/${data.watchlist.details.backdrop_path}`,
+    // },
+  ];
+};
+
+export default function Index() {
+  const { watchlists } = useLoaderData<typeof loader>();
+  
+  return (
+    <WatchlistsDashboard watchlist={watchlists} />
+  );
+}

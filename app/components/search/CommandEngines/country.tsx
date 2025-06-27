@@ -3,9 +3,16 @@ import { useEffect, useState } from "react";
 import { ComboboxItemProp } from "~/components/ui/combobox/interfaces/combobox-item";
 import { MultipleCombobox } from "~/components/ui/combobox/multiple";
 import { Box, Combobox } from "@chakra-ui/react";
-import { CountriesInterface } from "~/interfaces/configuration";
+import { CountriesInterface } from "~/interfaces/tmdb/configuration";
 
-const CountryCommandEngine = ({ onSelect, countries, defaults }: { onSelect: (details: Combobox.ValueChangeDetails | null) => void, countries: CountriesInterface[], defaults?: string[] }) => {
+interface ConfigProps { 
+  type: string;
+  key: string;
+  name: string[],
+  value: string;
+}
+
+const CountryCommandEngine = ({ onSelect, countries, defaults }: { onSelect: (payload: ConfigProps) => void, countries: CountriesInterface[], defaults?: string[] }) => {
   const [countryFields, setCountryFields] = useState<ComboboxItemProp[]>([]);
 
   useEffect(() => {
@@ -18,8 +25,23 @@ const CountryCommandEngine = ({ onSelect, countries, defaults }: { onSelect: (de
     }
   }, []);
 
+  function handleOnSubmit(details: Combobox.ValueChangeDetails | null) { 
+    if (details) {
+      const transformedValues = details?.items.map((i) => i.name).join('|') || '';
+
+      const newConfig = {
+        type: 'countries',
+        key: 'with_origin_country',
+        name: details.value || [],
+        value: transformedValues
+      };
+
+      onSelect(newConfig);
+    }
+  }
+
   return (
-    <MultipleCombobox suggestions={countryFields} onSelect={onSelect} startElement="" placeholder="Country" defaultOpen={false} defaultTags={defaults}>
+    <MultipleCombobox suggestions={countryFields} onSelect={handleOnSubmit} startElement="" placeholder="Country" defaultOpen={false} defaultTags={defaults}>
     {(item) => {
       return (
         <Box display="flex" justifyItems="space-between" width="100%" alignItems="center">

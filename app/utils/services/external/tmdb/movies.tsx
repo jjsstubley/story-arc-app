@@ -2,8 +2,8 @@ import { TMDB_API_BASE_URL, TMDB_API_OPTIONS } from "./config";
 
 const SEGMENT_ENDPOINT = '/movie'
 
-export async function getMovieDetailsById({ movie_id }: { movie_id: number }) {
-    const url = `${TMDB_API_BASE_URL}${SEGMENT_ENDPOINT}/${movie_id}?language=en-US`;
+export async function getMovieDetailsById({ movie_id, append_to_response }: { movie_id: number, append_to_response?: string[] }) {
+    const url = `${TMDB_API_BASE_URL}${SEGMENT_ENDPOINT}/${movie_id}?append_to_response=${append_to_response?.join()}&language=en-US`;
     
     try {
         const res = await fetch(url, TMDB_API_OPTIONS)

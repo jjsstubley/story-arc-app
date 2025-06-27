@@ -28,6 +28,7 @@ interface ComboboxProps extends BaseComboboxProps {
 export const AsyncMultipleCombobox = ({ suggestions, onSelect, startElement, placeholder = "Type to search", defaultOpen = false, children, fetchUrl, colorPalette="orange", defaultTags }: ComboboxProps) => {
   const [searchValue, setSearchValue] = useState("")
   const [tags, setTags] = useState<string[]>(defaultTags ?? [])
+  const [tagItems, setTagItems] = useState<string[]>(defaultTags ?? [])
   const { contains } = useFilter({ sensitivity: "base" });
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(false)
@@ -44,8 +45,23 @@ export const AsyncMultipleCombobox = ({ suggestions, onSelect, startElement, pla
 
   const handleValueChange = (details: Combobox.ValueChangeDetails) => {
     setTags(details.value)
+    setTagItems(details.items)
     onSelect(details)
   }
+
+  const handleRemoveTag = (tagToRemove: string) => {
+    const newTags = tags.filter((tag) => tag !== tagToRemove);
+    const updatedItems = tagItems.filter((item) => item.value !== tagToRemove)
+    setTags(newTags);
+  
+    const details: Combobox.ValueChangeDetails = {
+      value: newTags,
+      items: updatedItems,
+    };
+
+    console.log('detauils', details)
+    onSelect(details);
+  };
 
   async function getCollection() {
     if (!searchValue) return;
@@ -87,6 +103,7 @@ export const AsyncMultipleCombobox = ({ suggestions, onSelect, startElement, pla
     <Combobox.Root
       collection={collection}
       onInputValueChange={(details) => setSearchValue(details.inputValue)}
+      defaultValue={defaultTags}
       value={tags}
       onValueChange={handleValueChange}
       width="100%"
@@ -137,7 +154,6 @@ export const AsyncMultipleCombobox = ({ suggestions, onSelect, startElement, pla
                           cursor="pointer"
                       >
                           <strong>{item.name}</strong>
-                          internal multiple
                       </Box>
                       )}
                   <Combobox.ItemIndicator />
@@ -146,7 +162,7 @@ export const AsyncMultipleCombobox = ({ suggestions, onSelect, startElement, pla
           </Combobox.Content>
         </Combobox.Positioner>
       </Portal>
-      <ComboTags tags={tags} colorPalette={colorPalette} />
+      <ComboTags tags={tags} colorPalette={colorPalette} onRemoveTag={handleRemoveTag} />
 
     </Combobox.Root>
   )

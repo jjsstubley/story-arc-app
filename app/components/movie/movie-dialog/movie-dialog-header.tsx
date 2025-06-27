@@ -1,5 +1,5 @@
 import { Box, CloseButton, Dialog,  IconButton } from '@chakra-ui/react';
-import { TmdbMovieDetailInterface } from '~/interfaces/tdmi-movie-detail';
+import { TmdbMovieDetailInterface } from '~/interfaces/tmdb/tdmi-movie-detail';
 import MovieHero from '../movieHero';
 import { LuExternalLink,  } from "react-icons/lu";
 import { Link } from '@remix-run/react';
@@ -11,9 +11,8 @@ const MovieDialogHeader = ({details, error, loading} : { details: TmdbMovieDetai
     return (
         <Box position="relative" flex={1} height="100%">
             { details && <MovieHero movie={details} height="400px" />}
-            
             <Box position="absolute" right={14} top={2}>
-                <Link to={`/movie/${details?.id}`}>
+                <Link to={`/movies/${details?.id}`}>
                     <IconButton aria-label="Search database" variant="ghost" size="sm" bg="blackAlpha.600" _hover={{bg:"blackAlpha.900"}}>
                         <LuExternalLink />
                     </IconButton>

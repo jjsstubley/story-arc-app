@@ -1,6 +1,6 @@
 import { Alert, Badge, Box, GridItem, Heading, Text } from "@chakra-ui/react";
 import { MovieSuggestionInterface } from "~/interfaces/suggestions";
-import MoviePoster from "../movie/poster";
+import MoviePoster from "../movie/previews/poster";
 import { getFormattedDate } from "~/utils/helpers";
 import { Link } from "@remix-run/react";
 import { WiStars } from "react-icons/wi";
@@ -26,7 +26,7 @@ const MovieSearchItem = ({ item }: { item: MovieSuggestionInterface}) => {
             <Box display="flex" gap={2} mt={4}>
                 {
                   item.tags.map((item, index) => (
-                    <Link to={`/genre/${item.toLowerCase()}`} key={index}>
+                    <Link to={`/genres/${item.toLowerCase()}`} key={index}>
                       <Badge size="md" colorPalette="orange"> {item} </Badge>
                     </Link>
                   ))
@@ -35,7 +35,7 @@ const MovieSearchItem = ({ item }: { item: MovieSuggestionInterface}) => {
             <Box display="flex" gap={2} mt={4}>
                 {
                   item.themes.map((item, index) => (
-                    <Link to={`/genre/${item.toLowerCase()}`} key={index}>
+                    <Link to={`/genres/${item.toLowerCase()}`} key={index}>
                       <Badge size="md" colorPalette="red"> {item} </Badge>
                     </Link>
                   ))

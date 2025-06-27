@@ -1,7 +1,7 @@
 import { Box, Image, SimpleGrid, Tabs } from '@chakra-ui/react';
-import { CountryResultInterface } from '~/interfaces/provider';
+import { CountryResultInterface } from '~/interfaces/tmdb/provider';
 
-type providerKeys = 'buy' | 'rent' | 'flatrate'
+type providerKeys = 'buy' | 'rent' | 'flatrate' | 'free';
 
 type providerObjProps = {
     [K in providerKeys]: string;
@@ -14,7 +14,7 @@ interface providerMapProps {
 
 
 const MovieProviders = ({providers} : { providers: CountryResultInterface }) => {
-    const providerObj: providerObjProps = { buy:'Buy', rent: 'Rent', flatrate: 'Flat rate' };
+    const providerObj: providerObjProps = { buy:'Buy', rent: 'Rent', flatrate: 'Flat rate', free: 'Free' };
    
     const providerMap: providerMapProps[] =  Object.keys(providers).filter(key => key !== 'link').map((i) => {
         return {

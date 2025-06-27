@@ -1,7 +1,10 @@
+import { Button } from "@chakra-ui/react";
+import { Form } from "@remix-run/react";
+
 export default function GoogleSignIn() {
     return (
-      <form method="get" action="/auth">
-        <button type="submit">Sign in with Google</button>
-      </form>
+      <Form method="get" action="/auth">
+        <Button type="submit">Log in</Button>
+      </Form>
     );
 }

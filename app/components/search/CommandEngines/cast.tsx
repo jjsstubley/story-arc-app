@@ -1,10 +1,17 @@
 import { AsyncMultipleCombobox } from "~/components/ui/combobox/async-multiple";
 import { Box, Combobox } from "@chakra-ui/react";
-import { PersonKnownForInterface } from "~/interfaces/people";
+import { PersonKnownForInterface } from "~/interfaces/tmdb/people";
 import { ComboboxItemProp } from "~/components/ui/combobox/interfaces/combobox-item";
 import { useEffect, useState } from "react";
 
-const CastCommandEngine = ({ people, onSelect, defaults }: { people: PersonKnownForInterface[] ,onSelect: (details: Combobox.ValueChangeDetails | null) => void, defaults?: string[] }) => {
+interface ConfigProps { 
+  type: string;
+  key: string;
+  name: string[],
+  value: string;
+}
+
+const CastCommandEngine = ({ people, onSelect, defaults }: { people: PersonKnownForInterface[] ,onSelect: (payload: ConfigProps) => void, defaults?: string[] }) => {
   const [peopleList, setPeopleList] = useState<ComboboxItemProp[]>([]);
 
   console.log('CastCommandEngine people', people)
@@ -19,8 +26,23 @@ const CastCommandEngine = ({ people, onSelect, defaults }: { people: PersonKnown
     }
   }, []);
 
+  function handleOnSubmit(details: Combobox.ValueChangeDetails | null) { 
+    if (details) {
+      const transformedValues = details?.items?.map((item) => item.id).join('|') || '';
+
+      const newConfig = {
+        type: 'cast',
+        key: 'with_cast',
+        name: details.value || [],
+        value: transformedValues
+      };
+
+      onSelect(newConfig);
+    }
+  }
+
   return (
-    <AsyncMultipleCombobox suggestions={peopleList} onSelect={onSelect} startElement="" fetchUrl="/api/cast" placeholder="Cast" defaultOpen={false} colorPalette="blue" defaultTags={defaults}>
+    <AsyncMultipleCombobox suggestions={peopleList} onSelect={handleOnSubmit} startElement="" fetchUrl="/api/cast" placeholder="Cast" defaultOpen={false} colorPalette="blue" defaultTags={defaults}>
       {(item) => {
         return (
           <Box display="flex" justifyItems="space-between" width="100%" alignItems="center">

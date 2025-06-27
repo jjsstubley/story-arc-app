@@ -3,9 +3,16 @@ import { useEffect, useState } from "react";
 import { ComboboxItemProp } from "~/components/ui/combobox/interfaces/combobox-item";
 import { MultipleCombobox } from "~/components/ui/combobox/multiple";
 import { Box, Combobox } from "@chakra-ui/react";
-import { LanguagesInterface } from "~/interfaces/configuration";
+import { LanguagesInterface } from "~/interfaces/tmdb/configuration";
 
-const LanguageCommandEngine = ({ onSelect, languages, defaults }: { onSelect: (details: Combobox.ValueChangeDetails | null) => void, languages: LanguagesInterface[], defaults?: string[] }) => {
+interface ConfigProps { 
+  type: string;
+  key: string;
+  name: string[],
+  value: string;
+}
+
+const LanguageCommandEngine = ({ onSelect, languages, defaults }: { onSelect: (payload: ConfigProps) => void, languages: LanguagesInterface[], defaults?: string[] }) => {
   const [languageFields, setLanguageFields] = useState<ComboboxItemProp[]>([]);
 
   useEffect(() => {
@@ -18,8 +25,23 @@ const LanguageCommandEngine = ({ onSelect, languages, defaults }: { onSelect: (d
     }
   }, []);
 
+  function handleOnSubmit(details: Combobox.ValueChangeDetails | null) { 
+    if (details) {
+      const transformedValues = details?.items.map((i) => i.name).join('|') || '';
+
+      const newConfig = {
+        type: 'languages',
+        key: 'with_original_language',
+        name: details.value || [],
+        value: transformedValues
+      };
+
+      onSelect(newConfig);
+    }
+  }
+
   return (
-    <MultipleCombobox suggestions={languageFields} onSelect={onSelect} startElement="" placeholder="Language" defaultOpen={false} defaultTags={defaults}>
+    <MultipleCombobox suggestions={languageFields} onSelect={handleOnSubmit} startElement="" placeholder="Language" defaultOpen={false} defaultTags={defaults}>
     {(item) => {
       return (
         <Box display="flex" justifyItems="space-between" width="100%" alignItems="center">

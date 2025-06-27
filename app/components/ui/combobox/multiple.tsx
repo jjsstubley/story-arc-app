@@ -17,11 +17,24 @@ interface ComboboxProps extends BaseComboboxProps {
     children?: (item: ComboboxItemProp, selected: string[]) => ReactNode
     colorPalette?: string
     defaultTags?: string[]
+    disabled?: boolean
 }
 
-export const MultipleCombobox = ({ suggestions, onSelect, startElement, placeholder = "Type to search", defaultOpen = true, children, colorPalette='orange', defaultTags }: ComboboxProps) => {
+export const MultipleCombobox = ({ 
+    suggestions, 
+    onSelect, 
+    startElement, 
+    placeholder = "Type to search", 
+    defaultOpen = true, 
+    children, 
+    colorPalette='orange', 
+    defaultTags,
+    disabled=false
+   }: ComboboxProps
+) => {
   const [searchValue, setSearchValue] = useState("")
   const [tags, setTags] = useState<string[]>(defaultTags ?? [])
+  const [tagItems, setTagItems] = useState<ComboboxItemProp[]>([])
 
   const filteredItems = useMemo(
     () =>
@@ -38,20 +51,49 @@ export const MultipleCombobox = ({ suggestions, onSelect, startElement, placehol
 
   const handleValueChange = (details: Combobox.ValueChangeDetails) => {
     console.log('handleValueChange details', details)
+    console.log('defaultTags', defaultTags)
     setTags(details.value)
+    setTagItems(details.items)
     onSelect(details)
   }
+
+  const handleRemoveTag = (tagToRemove: string) => {
+    const newTags = tags.filter((tag) => tag !== tagToRemove);
+    const updatedItems = tagItems.filter((item) => item.value !== tagToRemove)
+    setTags(newTags);
+    setTagItems(updatedItems)
+  
+    const details: Combobox.ValueChangeDetails = {
+      value: newTags,
+      items: updatedItems,
+    };
+
+    console.log('detauils', details)
+    onSelect(details);
+  };
+
+  // useEffect(() => {
+  //   if (defaultTags?.length) {
+  //     const details: Combobox.ValueChangeDetails = {
+  //       value: defaultTags,
+  //     }
+  //     onSelect(details)
+  //   }
+  // }, [defaultTags])
+
 
   return (
     <Combobox.Root
       collection={collection}
       onInputValueChange={(details) => setSearchValue(details.inputValue)}
+      defaultValue={defaultTags}
       value={tags}
       onValueChange={handleValueChange}
       width="100%"
       openOnClick
       defaultOpen={defaultOpen}
     //   closeOnSelect
+      disabled={disabled} 
       multiple
     >
       <Combobox.Control>
@@ -86,7 +128,6 @@ export const MultipleCombobox = ({ suggestions, onSelect, startElement, placehol
                         cursor="pointer"
                     >
                         <strong>{item.name}</strong>
-                        internal multiple
                     </Box>
                     )}
                 <Combobox.ItemIndicator />
@@ -95,7 +136,12 @@ export const MultipleCombobox = ({ suggestions, onSelect, startElement, placehol
           </Combobox.Content>
         </Combobox.Positioner>
       </Portal>
-      <ComboTags tags={tags} colorPalette={colorPalette} />
+      <ComboTags 
+        tags={tags} 
+        colorPalette={colorPalette} 
+        onRemoveTag={handleRemoveTag}
+
+      />
     </Combobox.Root>
   )
 }

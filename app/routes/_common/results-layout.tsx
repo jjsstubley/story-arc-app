@@ -1,11 +1,11 @@
 import { Box, Heading, SimpleGrid, Skeleton, useBreakpointValue } from "@chakra-ui/react"
 
-import { MovieListsInterface } from "~/interfaces/movie-lists";
-import MoviePoster from "~/components/movie/poster";
+import { MovieListsInterface } from "~/interfaces/tmdb/movie-lists";
+import MoviePoster from "~/components/movie/previews/poster";
 import { useInfiniteQuery} from '@tanstack/react-query';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { useCallback, useEffect, useRef, useState } from "react";
-import { TmdbMovieInterface } from "~/interfaces/tdmi-movie";
+import { useEffect, useRef, useState } from "react";
+import { TmdbMovieInterface } from "~/interfaces/tmdb/tdmi-movie";
 import SortMenu from "~/components/search/filters/sort-menu";
 import { useLocation } from "@remix-run/react";
 
@@ -64,6 +64,7 @@ interface ResultsLayoutProps {
   payload: MovieListsInterface;
   title: string;
   filters?: FiltersProps[],
+  sort_by: string;
   callback: (pageParam: number, sort: string, filters?: FiltersProps[]) => Promise<{
     results: TmdbMovieInterface[];
     page: number;
@@ -71,14 +72,17 @@ interface ResultsLayoutProps {
   }>;
 }
 
-export default function ResultsLayout({ payload, title, callback, filters }: ResultsLayoutProps) {
+
+export default function ResultsLayout({ payload, title, callback, filters, sort_by }: ResultsLayoutProps) {
   const parentRef = useRef(null);
-  const [sort, setSort] = useState("popularity.desc");
+  const [sort, setSort] = useState(sort_by);
   const location = useLocation();
   const columns = useBreakpointValue({ base: 1, sm: 2, md: 3, lg: 4, xl: 5 }) ?? 1;
   const rowMeasurementRef = useRef<HTMLDivElement | null>(null);
   const [rowHeight, setRowHeight] = useState(250);
-
+  const startPage = Number(new URLSearchParams(location.search).get("page") || 1);
+  // const [featureMovie, setFeatureMovie] = useState<TmdbMovieInterface>(payload.results[0]);
+  
   useEffect(() => {
     // Smooth scroll on URL param changes (e.g., filter updates)
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -94,8 +98,8 @@ export default function ResultsLayout({ payload, title, callback, filters }: Res
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-    isError,
-    error,
+    // isError,
+    // error,
     isLoading,
   } = useInfiniteQuery({
     queryKey: ['results', 'page', 'total_pages', sort, filters],
@@ -111,12 +115,14 @@ export default function ResultsLayout({ payload, title, callback, filters }: Res
       return undefined;
     },
     queryFn: async ({ pageParam = 1 }) => callback(pageParam, sort, filters),
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 
 
   const movies = data.pages.flatMap(page => page.results);
 
-  const movieRows = [];
+  const movieRows: TmdbMovieInterface[][] = [];
   for (let i = 0; i < movies.length; i += columns) {
     movieRows.push(movies.slice(i, i + columns));
   }
@@ -128,48 +134,69 @@ export default function ResultsLayout({ payload, title, callback, filters }: Res
     overscan: 5,
     gap: 8,
     measureElement: (el) => {
-      console.log('measureElement el', el.getBoundingClientRect().height)
       return el.getBoundingClientRect().height
     },
   });
 
-//   const measureElement = useCallback(
-//     (element) => {
-//         if (element) {
-//             rowVirtualizer.measureElement(element.getBoundingClientRect().height);
-//         }
-//     },
-//     [rowVirtualizer]
-// );
 
   useEffect(() => {
     rowVirtualizer.scrollToIndex(0); // scroll to top on filter change
   }, [sort, filters]);
 
+  useEffect(() => {
+    if (!data || data.pages.length === 0) return;
+    const lastPageFetched = data.pages[data.pages.length - 1].page;
+  
+    const url = new URL(window.location.href);
+    url.searchParams.set("page", lastPageFetched.toString());
+    url.searchParams.set("sort", sort);
+    window.history.replaceState(null, "", url.toString());
+  }, [data]);
+
+  useEffect(() => {
+    let currentPage = 1;
+    if (startPage <= 1) return;
+  
+    const loadPages = async () => {
+      while (currentPage < startPage && hasNextPage) {
+        await fetchNextPage();
+        currentPage++;
+      }
+    };
+    loadPages();
+  }, []);
+
   useResizeObserver(rowMeasurementRef, (rect) => {
     const measuredHeight = rect.height;
     if (measuredHeight !== rowHeight) {
-      console.log('Measured height:', measuredHeight);
       setRowHeight(measuredHeight + 20); // or adjust padding here if needed
     }
   });
 
   useEffect(() => {
-    console.log('columns changed, measuring rows');
     rowVirtualizer.scrollToIndex(0);
     rowVirtualizer.measure();
   }, [columns]);
 
   return (
    
-        <Box as="section" ref={parentRef} flex="1" p={4} overflow="hidden" width="100%">
-            <Box as="section" flex="1" overflow="hidden">
-              <Box display="flex" justifyContent="space-between">
-                <Heading as="h3" pb={4}>{title}</Heading>
-              </Box>
-              <Box display="flex" justifyContent="flex-end" mb={8} gap={4}>
-                <Box width="200px">
-                  <SortMenu value={sort} onChange={(val) => setSort(val[0])}/>
+        <Box as="section" ref={parentRef} flex="1" p={4} overflow="auto" width="100%" height="82vh" position="relative">
+               {/* <Box  height="400px" width="100%" mb={8} position="absolute" top={0} left={0}>
+                  <Box display="flex"  position="relative" flex={1} height="100%" rounded="lg">
+                
+                      <FeatureMovie movie={featureMovie}/>
+                   
+                  </Box>
+                </Box> */}
+            <Box as="section" flex="1" overflow="hidden" >
+              <Box display="flex" justifyContent="space-between" alignItems="center">
+                <Box display="flex" justifyContent="space-between">
+                  <Heading as="h3" pb={4}>{title}</Heading>
+                </Box>
+                <Box display="flex" justifyContent="flex-end" mb={8} gap={4}>
+                  <Box width="200px">
+                    <SortMenu value={sort} onChange={(val) => setSort(val[0])}/>
+                  </Box>
                 </Box>
               </Box>
               {
@@ -220,7 +247,7 @@ export default function ResultsLayout({ payload, title, callback, filters }: Res
                               width="100%"
                               transform={`translateY(${virtualRow.start}px)`}
                             >
-                              <Box                    data-index={virtualRow.index}
+                              <Box data-index={virtualRow.index}
                               ref={rowVirtualizer.measureElement}>
                                 <SimpleGrid
                                   columns={columns}

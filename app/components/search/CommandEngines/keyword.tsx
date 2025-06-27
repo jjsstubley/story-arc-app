@@ -1,10 +1,32 @@
 import { AsyncMultipleCombobox } from "~/components/ui/combobox/async-multiple";
 import { Box, Combobox } from "@chakra-ui/react";
 
-const KeywordCommandEngine = ({ onSelect, defaults }: { onSelect: (details: Combobox.ValueChangeDetails | null) => void, defaults?: string[] }) => {
+interface ConfigProps { 
+  type: string;
+  key: string;
+  name: string[],
+  value: string;
+}
+
+const KeywordCommandEngine = ({ onSelect, defaults }: { onSelect: (payload: ConfigProps) => void, defaults?: string[] }) => {
+
+  function handleOnSubmit(details: Combobox.ValueChangeDetails | null) { 
+    if (details) {
+      const transformedValues = details?.items?.map((item) => item.id).join('|') || '';
+
+      const newConfig = {
+        type: 'keywords',
+        key: 'with_keywords',
+        name: details.value || [],
+        value: transformedValues
+      };
+
+      onSelect(newConfig);
+    }
+  }
 
   return (
-    <AsyncMultipleCombobox suggestions={[]} onSelect={onSelect} startElement="" fetchUrl="/api/keywords" placeholder="Keywords" defaultOpen={false} colorPalette="red" defaultTags={defaults}>
+    <AsyncMultipleCombobox suggestions={[]} onSelect={handleOnSubmit} startElement="" fetchUrl="/api/keywords" placeholder="Keywords" defaultOpen={false} colorPalette="red" defaultTags={defaults}>
       {(item) => {
         return (
           <Box display="flex" justifyItems="space-between" width="100%" alignItems="center">

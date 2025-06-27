@@ -17,7 +17,7 @@ type CustomDialogProps = {
 export function CustomDialog({ trigger, header, body, footer, dialogProps }: CustomDialogProps) {
   return (
     <ChakraDialog.Root {...dialogProps}>
-      <ChakraDialog.Trigger>{trigger}</ChakraDialog.Trigger>
+      <ChakraDialog.Trigger asChild>{trigger}</ChakraDialog.Trigger>
       <Portal>
         <ChakraDialog.Backdrop />
         <ChakraDialog.Positioner>

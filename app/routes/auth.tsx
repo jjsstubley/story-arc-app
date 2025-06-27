@@ -9,7 +9,9 @@ export const loader: LoaderFunction = async ({ request }: LoaderFunctionArgs) =>
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google", // Change to "google", "twitter", etc.
-    options: { redirectTo: `${APP_URL}auth/callback` }, // Handle callback
+    options: { 
+      redirectTo: `${APP_URL}auth/callback`,
+    }, // Handle callback
   });
 
   if (error) {

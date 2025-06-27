@@ -1,10 +1,9 @@
 import { Box, Heading, SimpleGrid } from "@chakra-ui/react"
 import { useSearchParams, useNavigate } from "@remix-run/react";
 import { useEffect, useRef } from "react";
-import MoviePoster from "~/components/movie/poster";
+import MoviePoster from "~/components/movie/previews/poster";
 import { PaginationComponent } from "~/components/ui/pagination";
-// import MovieSearchItem from "~/components/search/movieSearchItem";
-import { MovieListsInterface } from "~/interfaces/movie-lists";
+import { MovieListsInterface } from "~/interfaces/tmdb/movie-lists";
 
 export default function ResultsPagination({ results: initialResults }: {results: MovieListsInterface}) {
   const [searchParams] = useSearchParams();

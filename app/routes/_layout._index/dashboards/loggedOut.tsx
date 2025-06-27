@@ -1,22 +1,54 @@
-import {  Box, Container, Flex, Heading } from "@chakra-ui/react"
+import {  Box, Heading } from "@chakra-ui/react"
 
-import GoogleSignIn from "~/components/googleSignIn";
-import { ColorModeButton } from "~/components/ui/color-mode";
-import SearchFeature from "~/components/search/searchFeature";
+import { EmblaCarousel } from "~/components/emblaCarousel";
+import MoviePoster from "~/components/movie/previews/poster";
+import { MovieListsInterface } from "~/interfaces/tmdb/movie-lists";
 
 
-export default function DashboardLoggedOut() {
+export default function DashboardLoggedOut({ movieLists }: {movieLists: MovieListsInterface[]}) {
+  const [popularMovies, moviesNowPlaying, topRatedMovies, trendingMovies, trendingTv ] = movieLists
 
-    return (
-        <Container py={8}>
-          <Flex direction="column" minH="100vh" gap={4}>
-            <Box display="flex" justifyContent="space-between">
-              <Heading as="h1">&#123;&#123; storyARC &#125;&#125; </Heading>
-              <ColorModeButton />
-            </Box>
-            <GoogleSignIn />
-            <SearchFeature />
-          </Flex>
-        </Container>
-      )
+  const MovieListCategories = [
+    {
+      title: 'Popular Movies',
+      data: popularMovies
+    },
+    {
+      title: 'Trending Movies',
+      data: trendingMovies
+    },
+    {
+      title: 'Trending TV Shows',
+      data: trendingTv
+    },
+    {
+      title: 'Now Playing',
+      data: moviesNowPlaying
+    },
+    {
+      title: 'Top Rated Films',
+      data: topRatedMovies
+    }
+  ]
+
+  return (
+    <>
+        <Box as="section" display="grid" gap={2} gridColumn={1} flex="1" p={4} overflow="hidden">
+          {
+            MovieListCategories.map((list, index) => (
+              <Box key={index }as="section" flex="1" p={4} pt={0} overflow="hidden">
+                <Heading as="h3" pb={4}>{list.title}</Heading>
+                <EmblaCarousel>
+                  {
+                    list.data.results.map((item, i) => (
+                      <MoviePoster key={i} item={item}/>
+                    ))
+                  }
+                </EmblaCarousel>
+              </Box> 
+            ))
+          }
+        </Box>
+    </>
+  );
 }

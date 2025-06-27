@@ -1,6 +1,6 @@
 import { Tag, Wrap } from "@chakra-ui/react"
 
-export default function ComboTags({tags, colorPalette} : {tags: string[], colorPalette: string}) {
+export default function ComboTags({tags, colorPalette, onRemoveTag} : {tags: string[], colorPalette: string, onRemove?: (tag: string) => void, onRemoveTag?: (tag: string) => void;}) {
   
     return (
         <Wrap gap="2" mt={2}>
@@ -8,7 +8,7 @@ export default function ComboTags({tags, colorPalette} : {tags: string[], colorP
                 <Tag.Root colorPalette={colorPalette} key={tag}>
                     <Tag.Label>{tag}</Tag.Label>
                     <Tag.EndElement>
-                        <Tag.CloseTrigger />
+                        <Tag.CloseTrigger  onClick={() => onRemoveTag?.(tag)}/>
                     </Tag.EndElement>
                 </Tag.Root>
             ))}

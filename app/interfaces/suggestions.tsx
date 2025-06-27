@@ -1,4 +1,4 @@
-import { TmdbMovieInterface } from "./tdmi-movie";
+import { TmdbMovieInterface } from "./tmdb/tdmi-movie";
 
 export interface MovieSuggestionInterface {
     title: string;

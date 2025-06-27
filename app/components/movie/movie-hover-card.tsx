@@ -1,5 +1,5 @@
 import { Box, Image, Strong, Text } from '@chakra-ui/react';
-import { TmdbMovieInterface } from '~/interfaces/tdmi-movie';
+import { TmdbMovieInterface } from '~/interfaces/tmdb/tdmi-movie';
 import { getFormattedDate } from '~/utils/helpers';
 
 const MovieHoverCard = ({item} : { item: TmdbMovieInterface }) => {

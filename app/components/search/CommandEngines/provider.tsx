@@ -3,9 +3,16 @@ import { useEffect, useState } from "react";
 import { ComboboxItemProp } from "~/components/ui/combobox/interfaces/combobox-item";
 import { MultipleCombobox } from "~/components/ui/combobox/multiple";
 import { Box, Combobox } from "@chakra-ui/react";
-import { FullProviderInterface } from "~/interfaces/provider";
+import { FullProviderInterface } from "~/interfaces/tmdb/provider";
 
-const ProviderCommandEngine = ({ onSelect, providers, defaults }: { onSelect: (details: Combobox.ValueChangeDetails | null) => void, providers: FullProviderInterface[], defaults?: string[] }) => {
+interface ConfigProps { 
+  type: string;
+  key: string;
+  name: string[],
+  value: string;
+}
+
+const ProviderCommandEngine = ({ onSelect, providers, defaults }: { onSelect: (payload: ConfigProps) => void, providers: FullProviderInterface[], defaults?: string[] }) => {
   const [providerFields, setProviderFields] = useState<ComboboxItemProp[]>([]);
 
   useEffect(() => {
@@ -18,8 +25,23 @@ const ProviderCommandEngine = ({ onSelect, providers, defaults }: { onSelect: (d
     }
   }, []);
 
+  function handleOnSubmit(details: Combobox.ValueChangeDetails | null) { 
+    if (details) {
+      const transformedValues = details?.items?.map((item) => item.id).join('|') || '';
+
+      const newConfig = {
+        type: 'providers',
+        key: 'with_watch_providers',
+        name: details.value || [],
+        value: transformedValues
+      };
+
+      onSelect(newConfig);
+    }
+  }
+
   return (
-    <MultipleCombobox suggestions={providerFields} onSelect={onSelect} startElement="" placeholder="Providers" defaultOpen={false} colorPalette="green" defaultTags={defaults}>
+    <MultipleCombobox suggestions={providerFields} onSelect={handleOnSubmit} startElement="" placeholder="Providers" defaultOpen={false} colorPalette="green" defaultTags={defaults}>
     {(item) => {
       return (
         <Box display="flex" justifyItems="space-between" width="100%" alignItems="center">

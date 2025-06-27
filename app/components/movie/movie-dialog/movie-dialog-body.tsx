@@ -1,41 +1,29 @@
 import { Box, Text, Badge } from '@chakra-ui/react';
 import { Link } from '@remix-run/react';
 import { Section } from '~/components/layout/section';
-import { KeywordsInterface } from '~/interfaces/keywords';
-import { MovieListsInterface } from '~/interfaces/movie-lists';
-import { PeopleListInterface } from '~/interfaces/people';
-import { WatchProvidersByProductionInterface } from '~/interfaces/provider';
-import { ReviewListsInterface } from '~/interfaces/review';
-import { TmdbMovieDetailInterface } from '~/interfaces/tdmi-movie-detail';
-import { VideosInterface } from '~/interfaces/videos';
+import { TmdbMovieDetailInterface } from '~/interfaces/tmdb/tdmi-movie-detail';
 import { slugify } from '~/utils/helpers';
 import MovieProviders from '../movie-Providers';
 import { useState } from 'react';
 
-interface MovieDetailsProps {
-    details: TmdbMovieDetailInterface;
-    similar: MovieListsInterface;
-    reviews: ReviewListsInterface;
-    keywords: KeywordsInterface;
-    providers: WatchProvidersByProductionInterface;
-    videos: VideosInterface;
-    credits: PeopleListInterface;
-}
+// interface MovieDetailsProps {
+//     details: TmdbMovieDetailInterface;
+// }
 
-const MovieDialogBody = ({ movieData } : {movieData: MovieDetailsProps | null}) => {
+const MovieDialogBody = ({ movieData } : {movieData: TmdbMovieDetailInterface | null}) => {
     console.log('MovieDialogBody movieData', movieData)
-    const [region] = useState<string>('US')
+    const [region] = useState<string>('AU')
     if (!movieData) return null
 
     return (
         <Box display="flex" flexDirection="column" gap={8}>
             {
-                movieData.keywords.keywords.length && (
+                movieData.keywords?.keywords.length && (
                     <Section title="Keywords">
                         <Box as="section" display="flex" gap={2} mt={4} flexWrap="wrap">
                             {
-                            movieData.keywords.keywords.map((item, index) => (
-                                <Link to={`/tag/${slugify(item.name)}?id=${item.id}`} key={index}>
+                            movieData?.keywords?.keywords.map((item, index) => (
+                                <Link to={`/tags/${slugify(item.name)}?id=${item.id}`} key={index}>
                                     <Badge size="md" colorPalette="red"> {item.name} </Badge>
                                 </Link>
                             ))
@@ -47,9 +35,9 @@ const MovieDialogBody = ({ movieData } : {movieData: MovieDetailsProps | null}) 
             <Section title="Cast">
                 <Box display="flex" gap={1} flexWrap="wrap">
                 {
-                    movieData.credits.cast.map((credit, index) => (
-                        <Link key={index} to={`/credit/${slugify(credit.name)}_${credit.id}`}>
-                            <Text _hover={{ color: 'orange.500'}} whiteSpace="nowrap">{credit.name}{index < movieData.credits.cast.length - 1 && ', '}</Text>
+                    movieData?.credits?.cast.slice(0, 30).map((credit, index) => (
+                        <Link key={index} to={`/credits/${slugify(credit.name)}_${credit.id}`}>
+                            <Text _hover={{ color: 'orange.500'}} whiteSpace="nowrap">{credit.name}{index < 30 - 1 && ', '}</Text>
                         </Link>
                     ))
                 }
@@ -59,9 +47,9 @@ const MovieDialogBody = ({ movieData } : {movieData: MovieDetailsProps | null}) 
                 <Box  display="flex" alignItems="center" gap={2}>
                     <Text>Director:</Text>  
                     {
-                        movieData.credits.crew.filter((i) => i.job === 'Director').map((credit, index) => (
+                        movieData?.credits?.crew.filter((i) => i.job === 'Director').map((credit, index) => (
                         
-                                <Link key={index} to={`/credit/${slugify(credit.name)}_${credit.id}`}>
+                                <Link key={index} to={`/credits/${slugify(credit.name)}_${credit.id}`}>
                                     <Text _hover={{ color: 'orange.500'}} whiteSpace="nowrap">{credit.name},</Text>
                                 </Link>
                             
@@ -72,18 +60,18 @@ const MovieDialogBody = ({ movieData } : {movieData: MovieDetailsProps | null}) 
                 <Box display="flex" alignItems="center" gap={2} mt={2}>
                     <Text>Original score:</Text>
                     {
-                        movieData.credits.crew.filter((i) => i.job === 'Original Music Composer').map((credit, index) => (
+                        movieData?.credits?.crew.filter((i) => i.job === 'Original Music Composer').map((credit, index) => (
                             
-                                <Link key={index} to={`/credit/${slugify(credit.name)}_${credit.id}`}>
-                                    <Text _hover={{ color: 'orange.500'}} whiteSpace="nowrap">{credit.name}</Text>
-                                </Link>
+                            <Link key={index} to={`/credits/${slugify(credit.name)}_${credit.id}`}>
+                                <Text _hover={{ color: 'orange.500'}} whiteSpace="nowrap">{credit.name}</Text>
+                            </Link>
                             
                         ))
                     }
                 </Box>
             </Section>
             {
-                movieData.providers.results[region] && (<MovieProviders providers={movieData.providers.results[region]} />)
+                movieData?.providers?.results[region] && (<MovieProviders providers={movieData?.providers?.results[region]} />)
             }
         </Box>
     );

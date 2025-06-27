@@ -13,7 +13,7 @@ import SlashCommandEngine from "./CommandEngines/slash";
 import GlobalGenreCommandEngine from "./CommandEngines/global-genre";
 
 import { IoIosClose } from "react-icons/io";
-import { GenreInterface } from "~/interfaces/genre";
+import { GenreInterface } from "~/interfaces/tmdb/genre";
 import GlobalKeywordCommandEngine from "./CommandEngines/global-keyword";
 import GlobalCastCommandEngine from "./CommandEngines/global-cast";
 import { ComboboxItemProp } from "../ui/combobox/interfaces/combobox-item";
@@ -256,7 +256,7 @@ const SearchBar = ({ genres} : { genres: GenreInterface[]} ) => {
   };
 
   return (
-    <Box pb={4} borderBottomWidth="1px" position="relative">
+    <Box position="relative" flex="1">
       {currentChip ? (
           commandEngineMap[currentChip.type]?.({ onSelect: handleTaggingSelect, genres })
         ) : (

@@ -1,22 +1,24 @@
-import { Box, Heading, SimpleGrid, Image, Card } from "@chakra-ui/react"
-;
-import { GenreInterface } from "~/interfaces/genre";
-import { MovieListsInterface } from "~/interfaces/movie-lists";
+import { Box, Heading, SimpleGrid, Image, Card } from "@chakra-ui/react";
 import { Link } from "@remix-run/react";
 
-interface MoviesByGenreInterface {
-  genre: GenreInterface,
-  movies: MovieListsInterface
+interface GenreDashboardProps { 
+  id: number,
+  updated_at: string,
+  tmdb_movie_id: string,
+  backdrop_path: string,
+  name: string,
 }
-<div>Logo created by <a href="https://www.designevo.com/" title="Free Online Logo Maker">DesignEvo logo maker</a></div>
-export default function GenreDashboard({ moviesByGenre }: {moviesByGenre: MoviesByGenreInterface[]}) {
+
+export default function GenreDashboard({ genres }: {genres: GenreDashboardProps[]}) {
+  console.log('genres'  , genres)
   return (
     <>
-        <Box as="section" display="grid" gap={8} gridColumn={1} flex="1" p={4} pt={0} overflow="hidden">
-          <SimpleGrid columns={{ base: 1, sm: 1, md: 3, lg: 4 }}gap={4}>
+        <Box as="section" display="grid" gap={4} gridColumn={1} flex="1" p={4} py={8} overflow="hidden">
+          <Heading as="h3" pb={4}>Genres</Heading>
+          <SimpleGrid columns={{ base: 1, sm: 1, md: 3, lg: 4 }} gap={6}>
           {
-            moviesByGenre.map((list: MoviesByGenreInterface, index: number) => (
-                <Link key={index} to={`/genre/${list.genre.name.toLowerCase()}`}>
+            genres.map((genre: GenreDashboardProps, index: number) => (
+                <Link key={index} to={`/genres/${genre.name.toLowerCase()}`}>
                   <Card.Root  width="100%">
                       <Card.Body gap="2" p={0} overflow="hidden" rounded="md" border="1px solid transparent" 
                           _hover={{
@@ -25,7 +27,7 @@ export default function GenreDashboard({ moviesByGenre }: {moviesByGenre: Movies
                       >
                         <Box>
                           <Image 
-                            src={`https://image.tmdb.org/t/p/original/${list.movies.results[Math.floor(Math.random() * 19) + 1].backdrop_path}`}
+                            src={`https://image.tmdb.org/t/p/original/${genre.backdrop_path}`}
                             width="100%" 
                             height="100%" 
                             aspectRatio={3 / 2}
@@ -38,7 +40,7 @@ export default function GenreDashboard({ moviesByGenre }: {moviesByGenre: Movies
                             alt=""/>
                         </Box>
                         <Box display="flex" width="100%" justifyContent="center" alignItems="center" pos="absolute" bottom={0} bg="blackAlpha.700">
-                            <Heading as="h3" letterSpacing="0.2rem" fontFamily="'Urbanist', sans-serif" fontSize="md">{list.genre.name}</Heading>
+                            <Heading as="h3" letterSpacing="0.2rem" fontFamily="'Urbanist', sans-serif" fontSize="md">{genre.name}</Heading>
                         </Box>
                       </Card.Body>
                   </Card.Root>

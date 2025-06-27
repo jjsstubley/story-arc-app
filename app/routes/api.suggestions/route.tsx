@@ -1,5 +1,5 @@
 import { ActionFunction, json } from "@remix-run/node"
-import { getSuggestions } from "~/utils/services/external/openai/"
+import { getSuggestions } from "~/utils/services/ai/"
 import {SuggestionsDataInterface} from '~/interfaces/suggestions'
 
 export const action: ActionFunction = async ({ request }) => {
