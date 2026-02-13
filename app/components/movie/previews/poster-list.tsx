@@ -3,7 +3,7 @@ import { TmdbMovieSummaryInterface } from '~/interfaces/tmdb/movie/summary';
 import BasePoster from '~/components/ui/base-poster';
 import MediaTriggerWrapper from '~/components/media/media-trigger-wrapper';
 
-const MoviePosterList = ({item, variant = 'info-panel'} : { item: TmdbMovieSummaryInterface, variant?: 'dialog' | 'info-panel' }) => {
+const MoviePosterList = ({item, variant = 'info-panel', inDialog = false} : { item: TmdbMovieSummaryInterface, variant?: 'dialog' | 'info-panel' | 'sheet', inDialog?: boolean }) => {
 
     const poster = (
         <>
@@ -17,8 +17,10 @@ const MoviePosterList = ({item, variant = 'info-panel'} : { item: TmdbMovieSumma
         </>
     );
 
+    const effectiveVariant = inDialog ? 'sheet' : variant;
+
     return (
-        <MediaTriggerWrapper media={{ type: 'movie', data: item }} variant={item.media_type === 'tv' ? 'link' : variant}>
+        <MediaTriggerWrapper media={{ type: 'movie', data: item }} variant={item.media_type === 'tv' ? 'link' : effectiveVariant}>
             {poster}
         </MediaTriggerWrapper>
     );

@@ -3,6 +3,7 @@ import { TmdbMovieSummaryInterface } from '~/interfaces/tmdb/movie/summary'
 import { TmdbTVSeriesSummaryInterface } from '~/interfaces/tmdb/tv/series/summary'
 import { TmdbCollectionsInterface } from '~/interfaces/tmdb/tmdb-collections'
 import MovieDialog from '~/components/movie/movie-dialog'
+import MovieSheet from '~/components/movie/movie-sheet'
 import MediaPanelTrigger from '~/components/media/info-panel/trigger'
 import CollectionPanelTrigger from '~/components/collections/info-panel/trigger'
 import TVSeriesPanelTrigger from '~/components/tv/series/info-panel/trigger'
@@ -24,10 +25,23 @@ type MediaItem =
 type MediaTriggerWrapperProps = {
   media: MediaItem
   children: ReactNode
-  variant?: 'dialog' | 'info-panel' | 'link'
+  variant?: 'dialog' | 'info-panel' | 'link' | 'sheet'
 }
 
 export default function MediaTriggerWrapper({ media, children, variant = 'info-panel' }: MediaTriggerWrapperProps) {
+  // Early return for sheet variant (only movies support sheets currently)
+  if (variant === 'sheet') {
+    if (media.type === 'movie') {
+      return (
+        <MovieSheet item={media.data}>
+          {children}
+        </MovieSheet>
+      )
+    }
+    // For non-movie types, fall back to info-panel
+    variant = 'info-panel'
+  }
+
   // Early return for dialog variant (only movies support dialogs currently)
   if (variant === 'dialog') {
     if (media.type === 'movie') {

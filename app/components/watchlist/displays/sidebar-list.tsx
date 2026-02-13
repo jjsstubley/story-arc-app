@@ -12,7 +12,7 @@ import { useState } from "react"
 export const SideBarWatchlist = ({ watchlist, inDialog=false, filter='all' }: {watchlist: WatchlistInterface, inDialog: boolean, filter: string }) => {
   const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
   const columns = [
-    { key: "movie", header: "", width: 100, render: (item: WatchlistItemInterface) => <MoviePosterList item={item.movie as unknown as TmdbMovieSummaryInterface}/> },
+    { key: "movie", header: "", width: 100, render: (item: WatchlistItemInterface) => <MoviePosterList item={item.movie as unknown as TmdbMovieSummaryInterface} inDialog={inDialog} /> },
     { key: "watched", header: "", width: 10, render: (item: WatchlistItemInterface) => <Watched item={item} watchlistId={watchlist.id} isHovered={hoveredItemId === item.id} /> },
     { key: "action", header: "", width: 10, render: (item: WatchlistItemInterface) => <MenuActions item={item} watchlistId={watchlist.id} isDefault={watchlist.is_default} inDialog={inDialog} /> },
   ]
