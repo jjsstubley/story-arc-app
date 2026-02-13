@@ -1,6 +1,6 @@
 // app/routes/api/temp-watchlist.tsx
 import { ActionFunctionArgs, json, type LoaderFunctionArgs } from "@remix-run/node";
-import { deleteWatchlistById, getDefaultWatchlist, updateWatchlistById } from "~/utils/services/supabase/watchlist.server";
+import { deleteWatchlistById, getDefaultWatchlistWMovies, updateWatchlistById } from "~/utils/services/supabase/watchlist.server";
 import { getSupabaseServerClient } from "~/utils/supabase.server";
 
 
@@ -14,7 +14,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     return json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const watchlist = await getDefaultWatchlist(user.id, supabase);
+  const watchlist = await getDefaultWatchlistWMovies(user.id, supabase);
 
   return json({ watchlist }, { headers });
 }

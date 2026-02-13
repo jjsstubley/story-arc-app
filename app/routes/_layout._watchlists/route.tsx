@@ -6,6 +6,7 @@ import WatchlistsDashboard from "./dashboards/WatchlistsDashboard";
 
 import { getDefaultWatchlistWMovies } from "~/utils/services/supabase/watchlist.server";
 import { getPopcornWatchlistWMovies } from "~/utils/services/cookies/popcorn-watchlist";
+import { WatchlistInterface } from "~/interfaces/watchlist";
 
 export const loader: LoaderFunction = async ({ request } : LoaderFunctionArgs) => {
   const headers = new Headers();
@@ -41,6 +42,6 @@ export default function Index() {
   const { watchlists } = useLoaderData<typeof loader>();
   
   return (
-    <WatchlistsDashboard watchlist={watchlists} />
+    <WatchlistsDashboard watchlists={watchlists as WatchlistInterface[]} />
   );
 }

@@ -1,15 +1,15 @@
 import {  Badge, Box, Flex, Heading, SimpleGrid, Text } from "@chakra-ui/react";
-import './styles.css'
-import MovieImage from "../movie/movieImage";
+import '~/styles.css'
 import { Link } from "@remix-run/react";
 import { getFormattedDate } from "~/utils/helpers";
 import { WatchlistInterface } from "~/interfaces/watchlist";
+import MediaImage from "../media/common/movie-image";
 
 const WatchlistHero = ({watchlist, height = '00px'} : {watchlist: WatchlistInterface, height?: string}) => {
 
     if (!watchlist) return (<Box width="100%" height={height} backgroundColor="gray.900" rounded="md"></Box>)
     return (
-      <Box p={4} backgroundColor="gray.900">
+      <Box backgroundColor="transparent" bgGradient="to-b" rounded="md" gradientFrom="orange.900" gradientTo="transparent" pb={6}>
         <Flex alignItems="end">
         <Box color="white" p={4} flex={1}>
           {/* Text and Data */}
@@ -44,7 +44,7 @@ const WatchlistHero = ({watchlist, height = '00px'} : {watchlist: WatchlistInter
             <SimpleGrid columns={2}>
               {
                 watchlist.watchlist_items.slice(0,4).map((i, index) => (
-                  <MovieImage key={index} backdrop_path={i.movie.backdrop_path} height="100px" />
+                  <MediaImage key={index} backdrop_path={i.movie.backdrop_path} height="100px" />
                 ))
               }
             </SimpleGrid>

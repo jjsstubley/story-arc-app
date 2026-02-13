@@ -3,11 +3,12 @@ import { TMDB_API_BASE_URL, TMDB_API_OPTIONS } from "./config";
 const SEGMENT_ENDPOINT = '/search'
 
 export async function getMovieBySearchQuery({ title, year }: { title: string, year?: string }) {
-    const url = `${TMDB_API_BASE_URL}${SEGMENT_ENDPOINT}/movie?query=${title}&include_adult=false&language=en-US&year=${year}&page=1`;
-    
+    const url = `${TMDB_API_BASE_URL}${SEGMENT_ENDPOINT}/movie?query=${title}&include_adult=false&language=en-US&${year ? `year=${year}` : ''}&page=1`;
+    console.log('url', url)
     try {
         const res = await fetch(url, TMDB_API_OPTIONS)
-        return res.json()
+        const data = await res.json()
+        return data
     } catch (err) {
         console.error(err)
         return []
@@ -31,7 +32,7 @@ export async function getBestMovieMatch({ title, year }: { title: string, year: 
     return bestMatch
 }
 
-export async function getTVBySearchQuery({ title, year }: { title: string, year: string }) {
+export async function getTVBySearchQuery({ title, year }: { title: string, year?: string }) {
   const url = `${TMDB_API_BASE_URL}${SEGMENT_ENDPOINT}/tv?query=${title}&include_adult=false&language=en-US&year=${year}&page=1`;
   
   try {
@@ -77,6 +78,32 @@ export async function getKeywordBySearchQuery({ query, page }: { query: string, 
 
 export async function getPersonBySearchQuery({ query, page }: { query: string, page: number }) {
   const url = `${TMDB_API_BASE_URL}${SEGMENT_ENDPOINT}/person?query=${query}&include_adult=false&page=${page}`;
+  
+  try {
+      const res = await fetch(url, TMDB_API_OPTIONS)
+      return res.json()
+  } catch (err) {
+      console.error(err)
+      return []
+  }
+  
+}
+
+export async function getCollectionsBySearchQuery({ query, page }: { query: string, page: number }) {
+  const url = `${TMDB_API_BASE_URL}${SEGMENT_ENDPOINT}/collection?query=${query}&include_adult=false&page=${page}`;
+  
+  try {
+      const res = await fetch(url, TMDB_API_OPTIONS)
+      const data = await res.json()
+      return data
+  } catch (err) {
+      console.error(err)
+      return []
+  }
+}
+
+export async function getCompaniesBySearchQuery({ query, page }: { query: string, page: number }) {
+  const url = `${TMDB_API_BASE_URL}${SEGMENT_ENDPOINT}/company?query=${query}&include_adult=false&page=${page}`;
   
   try {
       const res = await fetch(url, TMDB_API_OPTIONS)

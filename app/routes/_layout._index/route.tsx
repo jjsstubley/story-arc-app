@@ -8,6 +8,8 @@ import { getMoviesByPopularity, getMoviesByTopRated, getMoviesNowPlaying } from 
 import { getTrendingMovies, getTrendingPeople, getTrendingTvShows } from "~/utils/services/external/tmdb/trending";
 import { getMovieDetailsById } from "~/utils/services/external/tmdb/movies";
 import { CollectionItemInterface, CollectionsInterface } from "~/interfaces/collections";
+import { MovieListsInterface } from "~/interfaces/tmdb/movie-lists";
+import { TrendingMoviesInterface, TrendingTVSeriesListsInterface } from "~/interfaces/tmdb/trending";
 
 export const loader: LoaderFunction = async ({ request } : LoaderFunctionArgs) => {
   const headers = new Headers();
@@ -68,7 +70,13 @@ export const loader: LoaderFunction = async ({ request } : LoaderFunctionArgs) =
     await getMoviesByTopRated({page: 1}),
     await getTrendingMovies({time: 'day'}),
     await getTrendingTvShows({time: 'day'}),
-  ]);
+  ]) as [
+    MovieListsInterface,
+    MovieListsInterface,
+    MovieListsInterface,
+    TrendingMoviesInterface,
+    TrendingTVSeriesListsInterface
+  ];
 
   const trendingPeople = await getTrendingPeople({time: 'day'});
 
@@ -88,7 +96,7 @@ export default function Index() {
   console.log('Index session', session)
   if (!session) {
     return (
-      <DashboardLoggedOut movieLists={movieLists}/>
+      <DashboardLoggedOut movieLists={movieLists} trendingPeople={trendingPeople} collections={collectionsWithMovies}/>
     )
   }
   return (

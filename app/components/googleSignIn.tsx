@@ -4,7 +4,7 @@ import { Form } from "@remix-run/react";
 export default function GoogleSignIn() {
     return (
       <Form method="get" action="/auth">
-        <Button type="submit">Log in</Button>
+        <Button type="submit" width="100%">Log in</Button>
       </Form>
     );
 }

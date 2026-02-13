@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
-import { TmdbMovieInterface } from '~/interfaces/tmdb/tdmi-movie';
-import { TmdbMovieDetailInterface } from '~/interfaces/tmdb/tdmi-movie-detail';
+import { TmdbMovieSummaryInterface } from '~/interfaces/tmdb/movie/summary';
+import { TmdbMovieDetailWAppendsProps } from '~/interfaces/tmdb/movie/detail';
 
 import { CustomDialog } from '../../custom-dialog';
 import MovieDialogHeader from './movie-dialog-header';
 import MovieDialogBody from './movie-dialog-body';
 
-const MovieDialog = ({item, children} : { item: TmdbMovieInterface, children: React.ReactNode; }) => {
+const MovieDialog = ({item, children} : { item: TmdbMovieSummaryInterface, children: React.ReactNode; }) => {
     const [open, setOpen] = useState(false);
-    const [movieDetails, setMovieDetails] = useState<TmdbMovieDetailInterface | null>(null);
+    const [movieDetails, setMovieDetails] = useState<TmdbMovieDetailWAppendsProps | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 

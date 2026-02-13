@@ -1,10 +1,10 @@
 import { Box, CloseButton, Dialog,  IconButton } from '@chakra-ui/react';
-import { TmdbMovieDetailInterface } from '~/interfaces/tmdb/tdmi-movie-detail';
-import MovieHero from '../movieHero';
+import MovieHero from '../hero';
 import { LuExternalLink,  } from "react-icons/lu";
 import { Link } from '@remix-run/react';
+import { TmdbMovieDetailWAppendsProps } from '~/interfaces/tmdb/movie/detail';
 
-const MovieDialogHeader = ({details, error, loading} : { details: TmdbMovieDetailInterface | null, error: string | null, loading: boolean }) => {
+const MovieDialogHeader = ({details, error, loading} : { details: TmdbMovieDetailWAppendsProps | null, error: string | null, loading: boolean }) => {
 
     if (loading && !details) return (<Box height="300px" width="100%" display="flex" alignItems="center" justifyContent="center">loading....</Box>)
     if (error) return (<Box height="300px" width="100%" display="flex" alignItems="center" justifyContent="center">An error occured: {error}</Box>)

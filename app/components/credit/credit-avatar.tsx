@@ -1,7 +1,7 @@
 import { Box, Image, Text } from '@chakra-ui/react';
 import { IoIosPerson } from 'react-icons/io';
-import { PersonKnownForInterface } from '~/interfaces/tmdb/people';
-const CreditAvatar = ({item} : { item: PersonKnownForInterface }) => {
+import { PersonSummaryForInterface } from '~/interfaces/tmdb/people/summary';
+const CreditAvatar = ({item} : { item: PersonSummaryForInterface }) => {
     return (
         // <MovieDialog item={item}>
             <Box rounded="full" width="120px">

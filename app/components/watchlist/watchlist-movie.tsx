@@ -1,9 +1,9 @@
 import { AbsoluteCenter, Box, HStack, ProgressCircle } from '@chakra-ui/react';
-import { TmdbMovieInterface } from '~/interfaces/tmdb/tdmi-movie';
+import { TmdbMovieSummaryInterface } from '~/interfaces/tmdb/movie/summary';
 import MovieDialog from '../movie/movie-dialog';
-import WatchListDropdown from '../user-actions/watchlist-dropdown';
+import WatchListDropdown from '../user-actions/watchlist/dropdown';
 
-const WatchlistMovie = ({item} : { item: TmdbMovieInterface }) => {
+const WatchlistMovie = ({item} : { item: TmdbMovieSummaryInterface }) => {
 
     return (
         <MovieDialog item={item}>
@@ -34,7 +34,7 @@ const WatchlistMovie = ({item} : { item: TmdbMovieInterface }) => {
                 </HStack>
 
                 <Box position="absolute" bottom={2} right={2}>
-                    <ProgressCircle.Root size="sm" value={(parseFloat(item.vote_average) / 10) * 100}>
+                    <ProgressCircle.Root size="sm" value={(parseFloat(item.vote_average.toString()) / 10) * 100}>
                         <ProgressCircle.Circle >
                             <ProgressCircle.Track/>
                             <ProgressCircle.Range />

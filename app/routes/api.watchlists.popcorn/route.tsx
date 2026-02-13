@@ -1,11 +1,9 @@
 import { LoaderFunctionArgs, json } from "@remix-run/node";
-import { getPopcornWatchlist, serializePopcornWatchlistCookie } from "~/utils/services/cookies/popcorn-watchlist";
-import { getMovieDetailsById } from "~/utils/services/external/tmdb/movies";
+import { getPopcornWatchlist, getPopcornWatchlistWMovies, serializePopcornWatchlistCookie } from "~/utils/services/cookies/popcorn-watchlist";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   console.log('api/watchlist/popcorn')
   const cookie = await getPopcornWatchlist(request)
-
   console.log('api/watchlist/popcorn cookie', cookie)
 
   if (!cookie) {
@@ -21,19 +19,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
     );
   }
 
-  const movies = await Promise.all(
-    cookie.movieIds.map((id: number) =>
-      getMovieDetailsById({ movie_id: id }).catch(() => null)
-    )
-  );
-
-  // Filter out failed fetches
-  const validMovies = movies.filter(Boolean);
+  const watchlist = await getPopcornWatchlistWMovies(request);
 
   return json({
     exists: true,
     expired: false,
-    movieIds: cookie.movieIds ?? [],
-    movies: validMovies,
+    watchlist,
   });
 }

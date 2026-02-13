@@ -7,6 +7,8 @@ import ReactQueryProvider from "~/components/providers/react-query-provider";
 
 import { handleSearchRequest } from "~/utils/loaders/search-request";
 import { getSupabaseServerClient } from "~/utils/supabase.server";
+import { encodeValues } from "~/utils/helpers";
+import { RequestFilterProps } from "~/components/search/filter-search";
 
 
 export const loader: LoaderFunction = async ({ request }) => {
@@ -45,11 +47,11 @@ export default function Index() {
         sort_by={sort}
         callback={async (pageParam, sort, filters) => {
           const newParams = new URLSearchParams(searchParams);
-          const stringifiedFilters = JSON.stringify(filters)
-          const serializedFilters = btoa(stringifiedFilters) 
+
+          const serializedFilters = encodeValues(filters as RequestFilterProps[]) 
           newParams.set("page", pageParam.toString());
           newParams.set("sort", sort.toString());
-          newParams.set('filters', serializedFilters)
+          newParams.set('filters', serializedFilters || '')
 
           const res = await fetch(`/api/search/results?${newParams}`);
           const data = await res.json();

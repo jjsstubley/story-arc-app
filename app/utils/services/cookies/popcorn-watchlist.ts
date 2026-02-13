@@ -83,7 +83,7 @@ export async function getPopcornWatchlistWMovies(request: Request) {
     id: "popcorn", // or generate with uuidv4()
     user_id: "anonymous",
     created_at: watchlist_items[0].added_at,
-    updated_at: Date.now().toLocaleString(),
+    updated_at: new Date(Date.now()).toISOString(),
     name: "Popcorn Watchlist",
     descriptions: null,
     tags: [],

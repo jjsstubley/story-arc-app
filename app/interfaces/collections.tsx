@@ -1,4 +1,4 @@
-import { TmdbMovieInterface } from "./tmdb/tdmi-movie"
+import { TmdbMovieSummaryInterface } from "./tmdb/movie/summary"
 
 export interface CollectionsInterface {
     id: string,
@@ -21,5 +21,5 @@ export interface CollectionItemInterface {
     position: number,
     notes: string | null,
     source: string | null,
-    movie: TmdbMovieInterface
+    movie: TmdbMovieSummaryInterface
 }

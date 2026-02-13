@@ -32,6 +32,7 @@ export async function getDefaultWatchlistWMovies(userId: string, supabase: Supab
     .select(`*,
       watchlist_items (
         id,
+        tmdb_id,
         tmdb_movie_id,
         is_seen,
         added_at
@@ -44,7 +45,9 @@ export async function getDefaultWatchlistWMovies(userId: string, supabase: Supab
   if (error && error.code !== "PGRST116") throw error; // PGRST116 = no rows found
   if (!data) return null
 
-  const items = data.watchlist_items || [];
+  const items = (data.watchlist_items || []).sort((a: WatchlistItemInterface, b: WatchlistItemInterface) => 
+    new Date(b.added_at).getTime() - new Date(a.added_at).getTime()
+  );
 
   const enrichedItems = await Promise.all(
     items.map(async (item: WatchlistItemInterface) => {

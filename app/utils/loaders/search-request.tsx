@@ -1,6 +1,7 @@
 // utils/movie-search.ts
 import { getMoviesByAdvancedFilters } from "~/utils/services/external/tmdb/discover";
 import { getMovieProviders } from "~/utils/services/external/tmdb/watch-providers"; // optional, for main loader
+import { decodeValues } from "../helpers";
 
 export async function handleSearchRequest(request: Request, options?: { includeProviders?: boolean, includeSession?: boolean }) {
   const url = new URL(request.url);
@@ -11,8 +12,7 @@ export async function handleSearchRequest(request: Request, options?: { includeP
 
   let decodedFilters = [];
   if (filters) {
-    decodedFilters = JSON.parse(atob(filters));
-    console.log('Decoded filters:', decodedFilters);
+    decodedFilters = decodeValues(filters);
   }
 
   const resultsPromise = getMoviesByAdvancedFilters({ payload: decodedFilters, page, sort });

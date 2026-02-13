@@ -1,6 +1,7 @@
 import { Box, Card, Image, Text } from '@chakra-ui/react';
-import { CastInterface, CrewInterface } from '~/interfaces/tmdb/people';
 import { IoIosPerson } from "react-icons/io";
+import { CastInterface } from '~/interfaces/tmdb/people/cast';
+import { CrewInterface } from '~/interfaces/tmdb/people/crew';
 
 const CreditProfile = ({item , role} : { item: CastInterface | CrewInterface, role: string }) => {
     return (
@@ -19,10 +20,9 @@ const CreditProfile = ({item , role} : { item: CastInterface | CrewInterface, ro
                                     width="100%" 
                                     height="100%" 
                                     objectFit="cover" 
-                                    transition="transform 0.3s ease"
                                     filter= 'grayscale(100%)'
                                     _hover={{
-                                    transform: "scale(1.05)",
+                        
                                     cursor: "pointer",
                                     filter: 'grayscale(0%)'
                                     }}
@@ -46,9 +46,9 @@ const CreditProfile = ({item , role} : { item: CastInterface | CrewInterface, ro
 
                 </Card.Body>
             </Card.Root>
-            <Box width="100%" color="white" pt={4}>
+            {/* <Box width="100%" color="white" pt={4}>
                 {item.name}
-            </Box>
+            </Box> */}
         </Box>
     );
 };

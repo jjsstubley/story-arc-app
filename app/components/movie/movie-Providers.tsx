@@ -1,4 +1,4 @@
-import { Box, Image, SimpleGrid, Tabs } from '@chakra-ui/react';
+import { Avatar, Box, Card, HStack, SimpleGrid, Stack, Tabs, Text } from '@chakra-ui/react';
 import { CountryResultInterface } from '~/interfaces/tmdb/provider';
 
 type providerKeys = 'buy' | 'rent' | 'flatrate' | 'free';
@@ -38,17 +38,27 @@ const MovieProviders = ({providers} : { providers: CountryResultInterface }) => 
             {
                 providerMap.map((provider: providerMapProps, index: number) => (
                     <Tabs.Content key={index} value={provider.key}>
-                            <Box py={4} rounded="lg" overflow="hidden">
+                        <Box py={4} rounded="lg" overflow="hidden">
                             <SimpleGrid
-                                columns={{ base: 1, sm: 2, md: 3, lg: 4 }}
+                                columns={1}
                                 gap={4}
-                                mt={4}
                                 >
                                 {providers[provider.key as providerKeys]?.length && providers[provider.key as providerKeys]?.map((item, index) => (
-                                    <Box key={index} display="flex" gap={2} bg="whiteAlpha.50" color="white" p={2} rounded="lg" alignItems="center">
-                                        <Image src={`https://image.tmdb.org/t/p/w300/${item.logo_path}`} objectFit="cover" width="40px" rounded="xl"/>
-                                        <strong>{item.provider_name}</strong>
-                                    </Box>
+                                    <Card.Root key={index} variant="elevated" colorPalette="orange">
+                                        <Card.Body>
+                                          <HStack gap="3">
+                                            <Avatar.Root >
+                                              <Avatar.Image src={`https://image.tmdb.org/t/p/w300/${item.logo_path}`} rounded="lg"/>
+                                              <Avatar.Fallback name={item.provider_name} />
+                                            </Avatar.Root>
+                                            <Stack gap="0">
+                                              <Text fontWeight="semibold" textStyle="sm">
+                                                {item.provider_name}
+                                              </Text>
+                                            </Stack>
+                                          </HStack>
+                                        </Card.Body>
+                                    </Card.Root>
                                 ))}
                             </SimpleGrid>
                         </Box>

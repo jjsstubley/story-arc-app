@@ -1,4 +1,7 @@
-import { TmdbMovieDetailInterface } from "~/interfaces/tdmi-movie-detail";
+import { TmdbMovieDetailWAppendsProps } from "~/interfaces/tmdb/movie/detail";
+import { TVSeriesDetailsInterface } from "~/interfaces/tmdb/tv/series/details";
+import LZString from 'lz-string';
+import { RequestFilterProps } from "~/components/search/filter-search";
 
 export function slugify(str: string): string {
     return str
@@ -42,14 +45,14 @@ export function joinStringBy(arr: string[], separator: string = ', ') {
 
 type Tag = "Critically Acclaimed" | "Respected Gem" | "Hidden Gem" | "Cult Film" | "Underrated" | "Overrated" | "Breakout Indie" | "None";
 
-export function getMovieTags(movie: TmdbMovieDetailInterface, options: {
+export function getMovieTags(movie: TmdbMovieDetailWAppendsProps | TVSeriesDetailsInterface, options: {
   globalAverageRating: number; // C
   minimumVotes: number;        // m
 }): Tag[] {
   const { vote_average: R, vote_count: v } = movie;
   const { globalAverageRating: C = 6.8, minimumVotes: m = 100} = options;
-  const voteAvg = parseFloat(R)
-  const voteCount = parseFloat(v)
+  const voteAvg = parseFloat(R.toString())
+  const voteCount = parseFloat(v.toString())
 
   const WR = weightedRating(voteAvg, voteCount, m, C);
   const tags: Tag[] = [];
@@ -82,3 +85,64 @@ export function getMovieTags(movie: TmdbMovieDetailInterface, options: {
 
   return tags.length > 0 ? tags : [];
 }
+
+export function formatReadableNumber(value: number, precision=1) {
+  return convertToIntlStandardNumber(value, { locale: 'en', notation: 'compact', compactDisplay: 'short', maximumFractionDigits: precision });
+}
+
+export interface NumberFormatOptions {
+  locale?: string;
+  minimumFractionDigits?: number;
+  maximumFractionDigits?: number;
+  notation?: 'standard' | 'scientific' | 'engineering' | 'compact';
+  style?: 'currency' | 'decimal' | 'percent' | 'unit';
+  compactDisplay?: 'short' | 'long';
+  currency?: string;
+}
+
+export function convertToIntlStandardNumber(value: number, options: NumberFormatOptions = {}): string {
+  const {
+    locale = 'en-US',
+    minimumFractionDigits = 0,
+    maximumFractionDigits = 0,
+    notation = 'standard',
+    style = 'decimal',
+    compactDisplay = 'short',
+    currency = 'USD'
+  } = options;
+
+  const formatOptions: Intl.NumberFormatOptions = {
+    minimumFractionDigits,
+    maximumFractionDigits,
+    notation
+  };
+
+  if (notation === 'standard') {
+    formatOptions.style = style;
+  }
+
+  if (notation === 'compact') {
+    formatOptions.compactDisplay = compactDisplay;
+  }
+
+  if (style === 'currency') {
+    formatOptions.currency = currency;
+  }
+
+  return new Intl.NumberFormat(locale, formatOptions).format(value);
+}
+
+
+// In your filter search component
+export const encodeValues = (filters: RequestFilterProps[]) => {
+  console.log('encodeValues filters', filters)
+  if (filters && !filters.length) return;
+  
+  const json = JSON.stringify(filters);
+  return LZString.compressToEncodedURIComponent(json);
+};
+
+export const decodeValues = (encoded: string) => {
+  const decompressed = LZString.decompressFromEncodedURIComponent(encoded);
+  return JSON.parse(decompressed);
+};

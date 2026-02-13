@@ -8,12 +8,14 @@ import { Box } from "@chakra-ui/react";
 type EmblaCarouselProps = PropsWithChildren<{
   options?: EmblaOptionsType;
   flex?: string
+  minW?: string
 }>;
 
 export const EmblaCarousel = ({
   children,
   options = { loop: false, dragFree: true },
-  flex='0 0 200px'
+  flex='0 0 200px',
+  minW='0'
 }: EmblaCarouselProps) => {
   const [emblaRef, emblaApi] = useEmblaCarousel(options);
 
@@ -36,7 +38,7 @@ export const EmblaCarousel = ({
       <Box className={`embla__viewport`} ref={emblaRef}  width="100%">
         <Box className="embla__container" display="flex" width="100%" gap={2} >
           {React.Children.map(children, (child) => (
-            <Box className={`embla__slide`} px={2} minW="0" flex={flex}>{child}</Box>
+            <Box className={`embla__slide`} px={2} minW={minW} flex={flex}>{child}</Box>
           ))}
         </Box>
       </Box>

@@ -1,8 +1,8 @@
 import { Box, Image, Strong, Text } from '@chakra-ui/react';
-import { TmdbMovieInterface } from '~/interfaces/tmdb/tdmi-movie';
+import { TmdbMovieSummaryInterface } from '~/interfaces/tmdb/movie/summary';
 import { getFormattedDate } from '~/utils/helpers';
 
-const MovieHoverCard = ({item} : { item: TmdbMovieInterface }) => {
+const MovieHoverCard = ({item} : { item: TmdbMovieSummaryInterface }) => {
 
     return (
         <Box display="flex">
@@ -18,10 +18,10 @@ const MovieHoverCard = ({item} : { item: TmdbMovieInterface }) => {
             <Box p={4}>
                 <Strong>{item.title}</Strong> 
                 <Box position="relative" width="100%" my={2}>
-                    <Box position="absolute"  top="0" left="0" zIndex={1} bg="orange.400" height="8px" rounded="md" width={`${(parseFloat(item.vote_average) / 10) * 100}%`}></Box>
+                    <Box position="absolute"  top="0" left="0" zIndex={1} bg="orange.400" height="8px" rounded="md" width={`${(parseFloat(item.vote_average.toString()) / 10) * 100}%`}></Box>
                     <Box bg="gray.200" height="8px" rounded="md" width="100%"></Box>
                 </Box>
-                <Text>{parseFloat(item.vote_average).toFixed(1)} / 10</Text>
+                <Text>{parseFloat(item.vote_average.toString()).toFixed(1)} / 10</Text>
                 <Text mt={4}>Released { getFormattedDate({release_date: item.release_date, options: {year: 'numeric', month: 'long',day: 'numeric'}, region:'en-US'}) }</Text>
             </Box>
         </Box>

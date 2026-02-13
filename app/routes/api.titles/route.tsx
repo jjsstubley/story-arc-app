@@ -13,5 +13,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 
   const data = await getMovieBySearchQuery({ title: query })
+  console.log('loader data', data)
   return json(data)
 }

@@ -1,4 +1,5 @@
-import { TmdbMovieDetailInterface } from "./tmdb/tdmi-movie-detail"
+import { TmdbMovieDetailWAppendsProps } from "./tmdb/movie/detail"
+import { TmdbTVSeriesDetailWAppendsProps } from "./tmdb/tv/series/details"
 
 export interface WatchlistInterface {
     id: string,
@@ -15,13 +16,16 @@ export interface WatchlistInterface {
     shared_with: string
     watchlist_items: WatchlistItemInterface[]
 }
-
+ 
 export interface WatchlistItemInterface {
     id: string,
     tmdb_movie_id: number,
+    tmdb_id: number,
     user_id: string,
     added_at: string,
     watchlist_id: string,
-    is_seen: boolean
-    movie: TmdbMovieDetailInterface
+    is_seen: boolean,
+    media_type: string,
+    movie: TmdbMovieDetailWAppendsProps,
+    series: TmdbTVSeriesDetailWAppendsProps
 }

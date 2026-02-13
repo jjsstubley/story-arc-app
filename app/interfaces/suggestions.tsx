@@ -1,4 +1,4 @@
-import { TmdbMovieInterface } from "./tmdb/tdmi-movie";
+import { TmdbMovieSummaryInterface } from "./tmdb/movie/summary";
 
 export interface MovieSuggestionInterface {
     title: string;
@@ -6,7 +6,7 @@ export interface MovieSuggestionInterface {
     reason: string;
     themes: string[];
     tags: string[];
-    tmdbData?: TmdbMovieInterface
+    tmdbData?: TmdbMovieSummaryInterface
 }
   
 interface ResultsDataInterface {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Box, Button, Heading, Input, Separator } from "@chakra-ui/react";
+import {  Box, Button, Input } from "@chakra-ui/react";
 import { Form, useLocation, useNavigate } from "@remix-run/react";
 
 import GenreCommandEngine from "./CommandEngines/genre";
@@ -17,25 +17,24 @@ import SortMenu from "./filters/sort-menu";
 
 import { GenreInterface } from "~/interfaces/tmdb/genre";
 import { FullProviderInterface } from "~/interfaces/tmdb/provider";
-import { PersonKnownForInterface } from "~/interfaces/tmdb/people";
 import { CountriesInterface, LanguagesInterface } from "~/interfaces/tmdb/configuration";
-import TitleCommandEngine from "./CommandEngines/title";
 
 import { PresetCards } from "./preset-cards";
 import RuntimeSlider from "./sliders/runtime";
-
+import { PersonSummaryForInterface } from "~/interfaces/tmdb/people/summary";
+import { encodeValues } from "~/utils/helpers";
 
 interface FilterOptionsProps {
     genres: GenreInterface[], 
     providers: FullProviderInterface[], 
-    people: PersonKnownForInterface[], 
+    people: PersonSummaryForInterface[], 
     regions: CountriesInterface[], 
     languages: LanguagesInterface[]
     defaults?: RequestFilterProps[]
     sort_by?: string
 }
 
-interface RequestFilterProps {
+export interface RequestFilterProps {
     key: string,
     type: string,
     name?: string[],
@@ -103,19 +102,13 @@ const FilterSearch = ({genres, providers, people, regions, languages, defaults, 
         return updated;
       });
     };
-  
-    function encodeValues () {
-      if (!filters.length) return;
-  
-      const json = JSON.stringify(filters)
-      return btoa(json) 
-    }
+
   
   
     function triggerSearchUpdate() { 
       const newParams = new URLSearchParams(location.search);
   
-      const serializedFilters = encodeValues() 
+      const serializedFilters = encodeValues(filters) 
   
       newParams.set("page", '1');
       newParams.set("sort", sort.toString());
@@ -130,7 +123,7 @@ const FilterSearch = ({genres, providers, people, regions, languages, defaults, 
     }
   
     useEffect(() => {
-        if (isHydrated && (location.pathname === '/search/results' || location.pathname.includes('/genres/'))) {
+        if (isHydrated && (location.pathname === '/search/results' || location.pathname.includes('/genres/') || location.pathname.includes('/search/lists'))) {
             triggerSearchUpdate()
         } else {
             setIsHydrated(true);
@@ -138,48 +131,38 @@ const FilterSearch = ({genres, providers, people, regions, languages, defaults, 
     }, [filters, sort]);
     
   return (
-    <Box display="flex" flexDirection="column" gap={4} mb={8}>
-        <Box mb={4}>
-            <Heading as="h3" >By Title</Heading>
-        </Box>
-        <TitleCommandEngine />
-        <Separator variant="solid" />
-        <Box mb={4}>
-            <Heading as="h3" >By Filters</Heading>
-        </Box>
-        <Box display="flex" flexDirection="column" gap={4}>
-            <GenreCommandEngine genres={genres} onSelect={(i) => updateFilters(i) } defaults={getDefault('with_genres')?.name} disabled={getDefault('with_genres')?.disabled || false}/>
-            <KeywordCommandEngine onSelect={(i) => updateFilters(i) } defaults={getDefault('with_keywords')?.name} />
-            <CastCommandEngine people={people} onSelect={(i) => updateFilters(i) } defaults={getDefault('with_cast')?.name}/>
-        
-            <Box mb={8}>
-                <RatingAvgSlider onValueChange={(e) => updateSliderFilter('ratingAvg', e)} defaults={defaults?.filter((i) => i.type.includes('ratingAvg'))}/>
-            </Box>
-            <Box mb={8}>
-                <RatingCountSlider onValueChange={(e) => updateSliderFilter('ratingCount', e)} defaults={defaults?.filter((i) => i.type.includes('ratingCount'))}/>
-            </Box>
-            <Box mb={8}>
-                <ReleaseYearSlider onValueChange={(e) => updateSliderFilter('releaseYear', e)} defaults={defaults?.filter((i) => i.type.includes('releaseYear'))}/>
-            </Box>
-            <Box mb={8}>
-                <RuntimeSlider onValueChange={(e) => updateSliderFilter('runtime', e)} defaults={defaults?.filter((i) => i.type.includes('runtime'))}/>
-            </Box>
-            <ProviderCommandEngine providers={providers} onSelect={(i) => updateFilters(i) } defaults={getDefault( 'with_watch_providers')?.name}/>
-            <CountryCommandEngine countries={regions} onSelect={(i) => updateFilters(i) } defaults={getDefault('with_origin_country')?.name}/>
-            <LanguageCommandEngine languages={languages} onSelect={(i) => updateFilters(i) } defaults={getDefault('with_original_language')?.name}/>
-            <SortMenu value={sort} label='Sort by' onChange={(val) => setSort(val[0])}/>
-            <PresetCards />
-            <Box mt={8}>
-                <Form
-                method="get"
-                action="/search/results"
-                >
-                    <Input type="hidden" name="sort" value={sort} />
-                    <Input type="hidden" name="filters" value={encodeValues()} />
-                    <Button type="submit" width="100%">Search</Button>
-                </Form>
-            </Box>
-        </Box>
+    <Box display="flex" flexDirection="column" gap={4}>
+      <GenreCommandEngine genres={genres} onSelect={(i) => updateFilters(i) } defaults={getDefault('with_genres')?.name} disabled={getDefault('with_genres')?.disabled || false}/>
+      <KeywordCommandEngine onSelect={(i) => updateFilters(i) } defaults={getDefault('with_keywords')?.name} />
+      <CastCommandEngine people={people} onSelect={(i) => updateFilters(i) } defaults={getDefault('with_cast')?.name}/>
+
+      <Box mb={8}>
+          <RatingAvgSlider onValueChange={(e) => updateSliderFilter('ratingAvg', e)} defaults={defaults?.filter((i) => i.type.includes('ratingAvg'))}/>
+      </Box>
+      <Box mb={8}>
+          <RatingCountSlider onValueChange={(e) => updateSliderFilter('ratingCount', e)} defaults={defaults?.filter((i) => i.type.includes('ratingCount'))}/>
+      </Box>
+      <Box mb={8}>
+          <ReleaseYearSlider onValueChange={(e) => updateSliderFilter('releaseYear', e)} defaults={defaults?.filter((i) => i.type.includes('releaseYear'))}/>
+      </Box>
+      <Box mb={8}>
+          <RuntimeSlider onValueChange={(e) => updateSliderFilter('runtime', e)} defaults={defaults?.filter((i) => i.type.includes('runtime'))}/>
+      </Box>
+      <ProviderCommandEngine providers={providers} onSelect={(i) => updateFilters(i) } defaults={getDefault( 'with_watch_providers')?.name}/>
+      <CountryCommandEngine countries={regions} onSelect={(i) => updateFilters(i) } defaults={getDefault('with_origin_country')?.name}/>
+      <LanguageCommandEngine languages={languages} onSelect={(i) => updateFilters(i) } defaults={getDefault('with_original_language')?.name}/>
+      <SortMenu value={sort} label='Sort by' onChange={(val) => setSort(val[0])}/>
+      <PresetCards />
+      <Box mt={8}>
+          <Form
+          method="get"
+          action="/search/lists"
+          >
+              <Input type="hidden" name="sort" value={sort} />
+              <Input type="hidden" name="filters" value={encodeValues(filters)} />
+              <Button type="submit" width="100%">Search</Button>
+          </Form>
+      </Box>
     </Box>
   );
 };

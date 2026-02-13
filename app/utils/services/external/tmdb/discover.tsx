@@ -24,14 +24,11 @@ export async function getMoviesByAdvancedFilters({ payload, page, sort=defaultSo
         sort_by: sort,
     });
 
-    console.log('getMoviesByAdvancedFilters payload', payload)
     if (payload && payload.length > 0) { 
         payload.forEach((i) => {
             params.append(i.key, i.value)
         })
     }
-
-    console.log('getMoviesByAdvancedFilters params', params.toString())
 
     if (provider) {
         params.append('with_watch_providers', provider)

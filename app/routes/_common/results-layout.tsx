@@ -5,7 +5,7 @@ import MoviePoster from "~/components/movie/previews/poster";
 import { useInfiniteQuery} from '@tanstack/react-query';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useEffect, useRef, useState } from "react";
-import { TmdbMovieInterface } from "~/interfaces/tmdb/tdmi-movie";
+import { TmdbMovieSummaryInterface } from "~/interfaces/tmdb/movie/summary";
 import SortMenu from "~/components/search/filters/sort-menu";
 import { useLocation } from "@remix-run/react";
 
@@ -66,7 +66,7 @@ interface ResultsLayoutProps {
   filters?: FiltersProps[],
   sort_by: string;
   callback: (pageParam: number, sort: string, filters?: FiltersProps[]) => Promise<{
-    results: TmdbMovieInterface[];
+    results: TmdbMovieSummaryInterface[];
     page: number;
     total_pages: number;
   }>;
@@ -81,7 +81,7 @@ export default function ResultsLayout({ payload, title, callback, filters, sort_
   const rowMeasurementRef = useRef<HTMLDivElement | null>(null);
   const [rowHeight, setRowHeight] = useState(250);
   const startPage = Number(new URLSearchParams(location.search).get("page") || 1);
-  // const [featureMovie, setFeatureMovie] = useState<TmdbMovieInterface>(payload.results[0]);
+  // const [featureMovie, setFeatureMovie] = useState<TmdbMovieSummaryInterface>(payload.results[0]);
   
   useEffect(() => {
     // Smooth scroll on URL param changes (e.g., filter updates)
@@ -122,7 +122,7 @@ export default function ResultsLayout({ payload, title, callback, filters, sort_
 
   const movies = data.pages.flatMap(page => page.results);
 
-  const movieRows: TmdbMovieInterface[][] = [];
+  const movieRows: TmdbMovieSummaryInterface[][] = [];
   for (let i = 0; i < movies.length; i += columns) {
     movieRows.push(movies.slice(i, i + columns));
   }

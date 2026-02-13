@@ -72,10 +72,10 @@ export const AsyncMultipleCombobox = ({ suggestions, onSelect, startElement, pla
     const data = await response.json()
     console.log('getCollection data', data)
     // if (!response.ok) setError(data.error)
-    const items = data.results.map((k: { name: string; id: number }) => ({
+    const items = data.results.map((k: { name?: string; title?: string; id: number }) => ({
       id: k.id,
-      name: k.name,
-      value: k.name,
+      name: k.name || k.title,
+      value: k.name || k.title,
     }))
 
     set(items)

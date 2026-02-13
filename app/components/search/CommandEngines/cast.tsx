@@ -1,8 +1,8 @@
 import { AsyncMultipleCombobox } from "~/components/ui/combobox/async-multiple";
 import { Box, Combobox } from "@chakra-ui/react";
-import { PersonKnownForInterface } from "~/interfaces/tmdb/people";
 import { ComboboxItemProp } from "~/components/ui/combobox/interfaces/combobox-item";
 import { useEffect, useState } from "react";
+import { PersonSummaryForInterface } from "~/interfaces/tmdb/people/summary";
 
 interface ConfigProps { 
   type: string;
@@ -11,7 +11,7 @@ interface ConfigProps {
   value: string;
 }
 
-const CastCommandEngine = ({ people, onSelect, defaults }: { people: PersonKnownForInterface[] ,onSelect: (payload: ConfigProps) => void, defaults?: string[] }) => {
+const CastCommandEngine = ({ people, onSelect, defaults }: { people: PersonSummaryForInterface[] ,onSelect: (payload: ConfigProps) => void, defaults?: string[] }) => {
   const [peopleList, setPeopleList] = useState<ComboboxItemProp[]>([]);
 
   console.log('CastCommandEngine people', people)

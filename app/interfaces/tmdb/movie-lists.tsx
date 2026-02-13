@@ -1,11 +1,11 @@
 import { PaginationInterface } from "../pagination";
-import { TmdbMovieInterface } from "./tdmi-movie";
+import { TmdbMovieSummaryInterface } from "./movie/summary";
 
 interface DatesInterface {
     maximum: string,
     minimum: string
 }
   
-export interface MovieListsInterface  extends PaginationInterface<TmdbMovieInterface>{
+export interface MovieListsInterface extends PaginationInterface<TmdbMovieSummaryInterface>{
     dates?: DatesInterface;
 }

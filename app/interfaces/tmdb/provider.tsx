@@ -25,7 +25,7 @@ export interface CountryResultInterface {
 }
   
 export interface WatchProvidersByProductionInterface {
-    id: number;
+    id?: number;
     results: {
       [countryCode: string]: CountryResultInterface;
     };

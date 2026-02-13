@@ -1,24 +1,30 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getDefaultWatchlist } from "./watchlist.server";
 
+const collection = 'watchlist_items'
+
 export async function addMovieToWatchlist(watchlistId: string, tmdbId: number, userId: string, supabase: SupabaseClient) {
   console.log('addMovieToWatchlist watchlistId', watchlistId)
   console.log('addMovieToWatchlist tmdbId', tmdbId)
   const { error } = await supabase
-    .from("watchlist_items")
-    .insert({ watchlist_id: watchlistId, tmdb_movie_id: tmdbId, user_id: userId });
+    .from(collection)
+    .insert({ watchlist_id: watchlistId, tmdb_id: tmdbId, tmdb_movie_id: tmdbId, user_id: userId });
 
   if (error && error.code !== "23505") throw error; // 23505 = unique violation
+  console.log('addMovieToWatchlist all good')
 }
 
 export async function removeMovieFromWatchlist(watchlistId: string, tmdbId: number, supabase: SupabaseClient) {
+  console.log('removeMovieFromWatchlist watchlistId', watchlistId)
+  console.log('removeMovieFromWatchlist tmdbId', tmdbId)
   const { error } = await supabase
-    .from("watchlist_items")
+    .from(collection)
     .delete()
     .eq("watchlist_id", watchlistId)
-    .eq("tmdb_movie_id", tmdbId);
+    .eq("tmdb_id", tmdbId);
 
   if (error) throw error;
+  console.log('removeMovieFromWatchlist all good')
 }
 
 export async function isMovieInWatchlist(
@@ -29,15 +35,45 @@ export async function isMovieInWatchlist(
   console.log('isMovieInWatchlist watchlistId', watchlistId)
   console.log('isMovieInWatchlist tmdbId', tmdbId)
   const { data, error } = await supabase
-    .from("watchlist_items")
+    .from(collection)
     .select("id")
     .eq("watchlist_id", watchlistId)
-    .eq("tmdb_movie_id", tmdbId)
+    .eq("tmdb_id", tmdbId)
     .maybeSingle();
 
   if (error) throw error;
 
   return Boolean(data);
+}
+
+export async function updateWatchlistItem(
+  watchlistId: string, 
+  tmdbId: number, 
+  updates: {
+    notes?: string;
+    position?: number;
+    source?: string;
+    added_at?: string;
+    is_seen?: boolean;
+  }, 
+  supabase: SupabaseClient
+) {
+  console.log('updateWatchlistItem watchlistId', watchlistId);
+  console.log('updateWatchlistItem tmdbId', tmdbId);
+  console.log('updateWatchlistItem updates', updates);
+
+  const { data, error } = await supabase
+    .from(collection)
+    .update(updates)
+    .eq("watchlist_id", watchlistId)
+    .eq("tmdb_id", tmdbId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  
+  console.log('updateWatchlistItem all good');
+  return data;
 }
 
 
