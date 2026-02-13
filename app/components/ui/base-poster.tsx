@@ -1,7 +1,7 @@
 import { Box, Card, Icon, Image } from '@chakra-ui/react';
 import { BsFilm } from "react-icons/bs";
 
-const BasePoster = ({file, title, cardProps, aspectRatio = 2 / 3, icon = BsFilm } : { file: string, title: string, cardProps?: React.ComponentProps<typeof Card.Root>; aspectRatio?: number; icon?: React.ElementType; }) => {
+const BasePoster = ({file, title, cardProps, aspectRatio = 2 / 3, icon = BsFilm, placeholderBg } : { file: string, title: string, cardProps?: React.ComponentProps<typeof Card.Root>; aspectRatio?: number; icon?: React.ElementType; placeholderBg?: string; }) => {
     return (
         <Card.Root width="100%" aspectRatio={aspectRatio}>
             <Card.Body 
@@ -30,7 +30,7 @@ const BasePoster = ({file, title, cardProps, aspectRatio = 2 / 3, icon = BsFilm 
                             objectFit="cover" 
                             alt={title}/>
                     ) : (
-                        <Box width="100%" height="100%" p={12} aspectRatio={aspectRatio} display="flex" alignItems="flex-start" justifyContent="center" bg="gray.700">
+                        <Box width="100%" height="100%" p={12} aspectRatio={aspectRatio} display="flex" alignItems="flex-start" justifyContent="center" bg={placeholderBg || "gray.700"}>
                             <Icon as={icon} size="xl"/>
                         </Box>
                     )

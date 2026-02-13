@@ -1,7 +1,11 @@
 import { Box, Image, Text } from '@chakra-ui/react';
 import { IoIosPerson } from 'react-icons/io';
 import { PersonSummaryForInterface } from '~/interfaces/tmdb/people/summary';
+import { getSubtleBackgroundColor } from '~/utils/helpers';
+
 const CreditAvatar = ({item} : { item: PersonSummaryForInterface }) => {
+    const placeholderColor = getSubtleBackgroundColor(item.id || item.name);
+    
     return (
         // <MovieDialog item={item}>
             <Box rounded="full" width="120px">
@@ -24,7 +28,7 @@ const CreditAvatar = ({item} : { item: PersonSummaryForInterface }) => {
                             }}
                             alt={item.name}/>
                     ) : (
-                        <Box width="100%" height="100%" rounded="full" p={4} display="flex" alignItems="flex-start" justifyContent="center" bg="gray.700">
+                        <Box width="100%" height="100%" rounded="full" p={4} display="flex" alignItems="flex-start" justifyContent="center" bg={placeholderColor}>
                             <IoIosPerson size="xl"/>
                         </Box>
                     )

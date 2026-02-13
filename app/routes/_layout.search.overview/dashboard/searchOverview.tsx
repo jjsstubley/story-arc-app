@@ -1,4 +1,4 @@
-import { Box, Heading } from "@chakra-ui/react"
+import { Box, Heading, Text } from "@chakra-ui/react"
 import CreditAvatar from "~/components/credit/credit-avatar";
 
 import { EmblaCarousel } from "~/components/emblaCarousel";
@@ -23,7 +23,8 @@ export default function SearchOverview({ movies, keywords, people, collections, 
           <Heading as="h1" pb={4}>Results for &quot;{query}&quot;</Heading>
           <Box display="flex" justifyContent="space-between" flexWrap="wrap" gap={4}>
             <Box>
-              <Heading as="h3" pb={4}>Top Result</Heading>
+              <Heading as="h3" pb={2}>Top Result</Heading>
+              <Text fontSize="sm" color="whiteAlpha.600" mb={4}>Most popular match</Text>
               <Box>
                 {movies.results.sort((a: TmdbMovieSummaryInterface, b: TmdbMovieSummaryInterface) => b.popularity - a.popularity)[0] && <TopResult movie={movies.results.sort((a: TmdbMovieSummaryInterface, b: TmdbMovieSummaryInterface) => b.popularity - a.popularity)[0]} />}
               </Box>
@@ -32,7 +33,8 @@ export default function SearchOverview({ movies, keywords, people, collections, 
             {
               movies.results.length > 1 && (
                 <Box minW="300px" as="section" flex="1" p={4} pt={0} overflow="hidden">
-                  <Heading as="h3" pb={4}>Matches</Heading>
+                  <Heading as="h3" pb={2}>Matches</Heading>
+                  <Text fontSize="sm" color="whiteAlpha.600" mb={4}>Additional results</Text>
                   <Box overflow="auto" maxHeight="300px">
                     <Movielist items={movies.results.slice(1, movies.results.length) as TmdbMovieSummaryInterface[]} />
                   </Box>
@@ -44,7 +46,8 @@ export default function SearchOverview({ movies, keywords, people, collections, 
           {
             people.results.length > 0 && (
               <Box as="section" flex="1" p={4} pt={0} overflow="hidden">
-                <Heading as="h3" pb={4}>Credits</Heading>
+                <Heading as="h3" pb={2}>Credits</Heading>
+                <Text fontSize="sm" color="whiteAlpha.600" mb={4}>Cast & crew</Text>
                 <EmblaCarousel flex="0 0 140px">
                   {people.results.sort((a: PersonSummaryForInterface, b: PersonSummaryForInterface) => b.popularity - a.popularity).map((item: PersonSummaryForInterface, i: number) => (
                     <CreditAvatar key={i} item={item as PersonSummaryForInterface}/>
@@ -56,7 +59,8 @@ export default function SearchOverview({ movies, keywords, people, collections, 
           {
             collections.results.length > 0 && (
               <Box as="section" flex="1" p={4} pt={0} overflow="hidden">
-                <Heading as="h3" pb={4}>Collections</Heading>
+                <Heading as="h3" pb={2}>Collections</Heading>
+                <Text fontSize="sm" color="whiteAlpha.600" mb={4}>Film collections</Text>
                 <Box overflow="auto" maxHeight="300px">
                   <Collectionlist items={collections.results} />
                 </Box>
@@ -66,7 +70,8 @@ export default function SearchOverview({ movies, keywords, people, collections, 
           {
             companies.results.length > 0 && ( 
               <Box as="section" flex="1" p={4} pt={0} overflow="hidden">
-                <Heading as="h3" pb={4}>Companies</Heading>
+                <Heading as="h3" pb={2}>Companies</Heading>
+                <Text fontSize="sm" color="whiteAlpha.600" mb={4}>Production companies</Text>
                 <Box overflow="auto" maxHeight="300px">
                   <Companylist items={companies.results} />
                 </Box>
@@ -77,7 +82,8 @@ export default function SearchOverview({ movies, keywords, people, collections, 
           {
             keywords.results.length > 0 && (
               <Box as="section" flex="1" p={4} pt={0} overflow="hidden">
-                <Heading as="h3" pb={4}>Keywords</Heading>
+                <Heading as="h3" pb={2}>Keywords</Heading>
+                <Text fontSize="sm" color="whiteAlpha.600" mb={4}>Related tags</Text>
                 <Box overflow="auto" maxHeight="300px">
                   <Keywordlist items={keywords.results} />
                 </Box>

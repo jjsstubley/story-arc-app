@@ -1,4 +1,4 @@
-import { Box } from "@chakra-ui/react";
+import { Box, Text, HStack } from "@chakra-ui/react";
 import '~/styles.css'
 
 import { TmdbMovieSummaryInterface } from "~/interfaces/tmdb/movie/summary";
@@ -8,6 +8,8 @@ import ArkHeader from "~/components/ui/ark-header";
 import RatingCard from "../rating-card";
 import { useEffect, useState } from "react";
 import { TmdbMovieDetailWAppendsProps } from "~/interfaces/tmdb/movie/detail";
+import { getFormattedDate } from "~/utils/helpers";
+import WatchListDropdown from "~/components/user-actions/watchlist/dropdown";
 
 import MediaTriggerWrapper from "~/components/media/media-trigger-wrapper";
 
@@ -43,15 +45,30 @@ const TopResult = ({movie, height = '300px', variant='info-panel'} : {movie: Tmd
         >
           {/* Text and Data */}
           
-          <Box display="flex" gap={4} alignItems="end">
-            <ArkHeader
-              fontSize="2xl"
-            >
-              {movie.title}
-            </ArkHeader>
+          <Box display="flex" gap={4} alignItems="start" justifyContent="space-between">
+            <Box flex={1}>
+              <ArkHeader
+                fontSize="2xl"
+              >
+                {movie.title}
+              </ArkHeader>
+              {movie.release_date && (
+                <Text mt={2} fontSize="sm" color="whiteAlpha.700">
+                  Released {getFormattedDate({release_date: movie.release_date, options: {year: 'numeric', month: 'long', day: 'numeric'}, region:'en-US'})}
+                </Text>
+              )}
+            </Box>
+            <Box onClick={(e) => e.stopPropagation()}>
+              <WatchListDropdown movieId={movie.id} />
+            </Box>
           </Box>
 
-          {/* <Text mt={4}>Released { getFormattedDate({release_date: movie.release_date, options: {year: 'numeric', month: 'long',day: 'numeric'}, region:'en-US'}) }</Text> */}
+          {movie.overview && (
+            <Text fontSize="sm" color="whiteAlpha.800" noOfLines={3}>
+              {movie.overview}
+            </Text>
+          )}
+
           {movieDetails && <Box display="flex"><RatingCard movie={movieDetails} /></Box>}
         </Box>
       </Box>  
