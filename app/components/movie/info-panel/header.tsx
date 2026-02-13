@@ -1,7 +1,8 @@
-import { Box, CloseButton, Image } from "@chakra-ui/react";
+import { Box, CloseButton, Image, HStack } from "@chakra-ui/react";
 import RatingCard from "../rating-card";
 import BasePoster from "~/components/ui/base-poster";
 import { TmdbMovieDetailWAppendsProps } from "~/interfaces/tmdb/movie/detail";
+import FavouriteToggleWrapper from "~/components/user-actions/favourites/favourite-toggle-wrapper";
 
 const InfoPanelHeader = ({movie, onClose} : { movie: TmdbMovieDetailWAppendsProps, onClose: () => void }) => {
   
@@ -31,7 +32,13 @@ const InfoPanelHeader = ({movie, onClose} : { movie: TmdbMovieDetailWAppendsProp
             <Box position="absolute" bottom={4} left={4} zIndex={2}>
                 <RatingCard movie={movie} />
             </Box>
-            <CloseButton variant="subtle" onClick={onClose} position="absolute" top={4} left={4} zIndex={2}/>
+            <HStack position="absolute" top={4} right={4} zIndex={2} gap={2}>
+                <FavouriteToggleWrapper 
+                    movieId={movie.id} 
+                    movieTitle={movie.title}
+                />
+                <CloseButton variant="subtle" onClick={onClose} />
+            </HStack>
         </Box>
     );
 };

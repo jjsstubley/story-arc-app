@@ -3,12 +3,14 @@
 import { Box, Heading, Separator, Accordion, Stack, Text} from "@chakra-ui/react";
 import { FaPenFancy } from "react-icons/fa6";
 import { IoBookmark } from "react-icons/io5";
-import { FaTv, FaUser } from "react-icons/fa";
+import { FaTv, FaUser, FaStar, FaComment } from "react-icons/fa";
 import { GiFilmSpool } from "react-icons/gi";
 import InfoPanelHeader from "./header";
 import InfoPanelMetadata from "./metadata";
 import WatchListCheckboxCards from "~/components/user-actions/watchlist/checkbox-cards";
 import { MdOutlinePassword } from "react-icons/md";
+import RatingSection from "~/components/user-actions/ratings/rating-section";
+import ReviewsSection from "~/components/user-actions/reviews/reviews-section";
 
 
 import ProvidersSection from "~/components/media/info-panel/sections/providers";
@@ -50,7 +52,21 @@ export function MovieInfoPanel({ movie, onClose }: { movie: TmdbMovieDetailWAppe
             icon: <IoBookmark color="whiteAlpha.600" />,
             description: 'Build and organise your lists',
             content: <WatchListCheckboxCards movieId={movie.id} />
-        },  
+        },
+        {
+            title: 'Rating',
+            value: 'rating',
+            icon: <FaStar color="whiteAlpha.600" />,
+            description: 'Rate this movie',
+            content: <RatingSection movieId={movie.id} />
+        },
+        {
+            title: 'Reviews',
+            value: 'reviews',
+            icon: <FaComment color="whiteAlpha.600" />,
+            description: 'Read and write reviews',
+            content: <ReviewsSection movieId={movie.id} />
+        },
         {
             title: 'Providers',
             value: 'providers',
