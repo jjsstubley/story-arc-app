@@ -22,6 +22,7 @@ import PopcornDialog from "~/components/user-actions/popcorn/popcorn-dialog";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import ArcSidePanel from "~/components/sidepanel/arc-side-panel";
 import { decodeValues } from "~/utils/helpers";
+import { getAllUserCollections } from "~/utils/services/supabase/collections.server";
 
 export const loader: LoaderFunction = async ({ request } : LoaderFunctionArgs) => {
   const headers = new Headers();
@@ -68,6 +69,16 @@ export const loader: LoaderFunction = async ({ request } : LoaderFunctionArgs) =
     await getPopcornWatchlistWMovies(request)
   ]);
 
+  // Fetch user collections if logged in
+  let userCollections = [];
+  if (session?.user) {
+    try {
+      userCollections = await getAllUserCollections(session.user.id, supabase);
+    } catch (error) {
+      console.error("Failed to fetch user collections:", error);
+    }
+  }
+
   const filterOptions = {
     genres: genres.genres,
     providers: providers.results,
@@ -77,7 +88,8 @@ export const loader: LoaderFunction = async ({ request } : LoaderFunctionArgs) =
     sort_by: sort,
     collections,
     defaults: decodedFilters,
-    watchlists: popcornWatchlist ? [popcornWatchlist] : []
+    watchlists: popcornWatchlist ? [popcornWatchlist] : [],
+    userCollections
   }
 
   return json({ session, filterOptions }, { headers });

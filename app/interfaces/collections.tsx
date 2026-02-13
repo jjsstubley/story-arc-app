@@ -21,5 +21,6 @@ export interface CollectionItemInterface {
     position: number,
     notes: string | null,
     source: string | null,
+    is_watched: boolean,
     movie: TmdbMovieSummaryInterface
 }

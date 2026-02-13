@@ -4,6 +4,7 @@ import { Link } from "@remix-run/react";
 import { getFormattedDate } from "~/utils/helpers";
 import { CollectionsInterface } from "~/interfaces/collections";
 import MediaImage from "../media/common/movie-image";
+import ForkCollectionDialog from "./fork-collection-dialog";
 // import BackButton from "../backButton";
 
 const CollectionsHero = ({collection, height = '00px'} : {collection: CollectionsInterface, height?: string}) => {
@@ -32,7 +33,12 @@ const CollectionsHero = ({collection, height = '00px'} : {collection: Collection
               <Box display="flex" gap={4} alignItems="start">
                 <Heading as="h1" lineHeight={1}  size="4xl"  fontWeight={600}>{collection.name}</Heading>
                 {/* <small>{movie.runtime} mins</small> */}
-                <Button>Add Collection</Button>
+                {collection.is_system_generated && (
+                  <ForkCollectionDialog
+                    sourceCollection={collection}
+                    trigger={<Button>Add Collection</Button>}
+                  />
+                )}
               </Box>
               {/* <WatchListDropdown movieId={movie.id}/> */}
               {/* This shows up only once user have mark as seen */}

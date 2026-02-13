@@ -5,6 +5,7 @@ import { RiFireFill } from "react-icons/ri";
 
 import DefaultWatchlist from "../../watchlist/default-watchlist";
 import { useState } from "react";
+import CollectionsList from "~/components/collections/displays/collections-list";
 
 export default function LibraryNavSection() {
 
@@ -37,14 +38,29 @@ export default function LibraryNavSection() {
             </Button>
         </ButtonGroup>
         <Separator orientation="horizontal" borderColor="whiteAlpha.500" width="100%" my={4} />
-        <Stack gap="1">
-            <Box display="flex" gap={4} alignItems="center">
+        {filter === 'collections' ? (
+          <>
+            <Stack gap="1" mb={4}>
+              <Box display="flex" gap={4} alignItems="center">
+                <RiFireFill color="whiteAlpha.600" />
+                <Heading as="h3" color="whiteAlpha.600" size="sm"> Your Collections </Heading>
+              </Box>
+              <Text fontSize="xs" color="fg.muted">Collections you&apos;ve created or forked</Text>
+            </Stack>
+            <CollectionsList />
+          </>
+        ) : (
+          <>
+            <Stack gap="1">
+              <Box display="flex" gap={4} alignItems="center">
                 <RiFireFill color="whiteAlpha.600" />
                 <Heading as="h3" color="whiteAlpha.600" size="sm"> All Saved items </Heading>
-            </Box>
-            <Text fontSize="xs" color="fg.muted">Movies you&apos;ve save to watch for another time</Text>
-        </Stack>
-        <DefaultWatchlist filter={filter} />
+              </Box>
+              <Text fontSize="xs" color="fg.muted">Movies you&apos;ve save to watch for another time</Text>
+            </Stack>
+            <DefaultWatchlist filter={filter} />
+          </>
+        )}
         {/* <Accordion.Root collapsible defaultValue={["watchlist"]}>
             {sections.map((section) => (
                 <Accordion.Item key={section.value} value={section.value}>

@@ -13,6 +13,7 @@ import { LiaCompass } from "react-icons/lia";
 import SearchNavSection from "./sections/search-nav-section";
 import LibraryNavSection from "./sections/library-nav-section";
 import { IoLibrary } from "react-icons/io5";
+import { CollectionsInterface } from "~/interfaces/collections";
 
 interface RequestFilterProps {
   key: string,
@@ -31,6 +32,7 @@ interface FilterOptionsProps {
   sort_by?: string
   collections?: { id: string, name: string }[]
   watchlists?: WatchlistInterface[]
+  userCollections?: CollectionsInterface[]
 }
 
 const ArcSidePanel = ({filters, session} : {filters: FilterOptionsProps, session: Session}) => {
