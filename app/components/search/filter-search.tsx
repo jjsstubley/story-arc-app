@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import {  Box, Button, Input } from "@chakra-ui/react";
 import { Form, useLocation, useNavigate } from "@remix-run/react";
 
@@ -51,6 +51,8 @@ const FilterSearch = ({genres, providers, people, regions, languages, defaults, 
     const [filters, setFilters] = useState<RequestFilterProps[]>(defaults || []);
   
     const [sort, setSort] = useState(sort_by || "popularity.desc");
+    const defaultsRef = useRef<string>('');
+    const sortByRef = useRef<string>('');
   
   
     function getDefault(key: string) {
@@ -106,7 +108,7 @@ const FilterSearch = ({genres, providers, people, regions, languages, defaults, 
 
   
   
-    function triggerSearchUpdate() { 
+    const triggerSearchUpdate = useCallback(() => { 
       const newParams = new URLSearchParams(location.search);
   
       const serializedFilters = encodeValues(filters) 
@@ -121,15 +123,37 @@ const FilterSearch = ({genres, providers, people, regions, languages, defaults, 
   
       navigate(`${location.pathname}?${newParams.toString()}`, { replace: true });
       window.scrollTo({ top: 0, behavior: "smooth" });
-    }
+    }, [filters, sort, location.search, location.pathname, navigate]);
   
+    // Sync state with URL parameters on refresh (URL → state)
+    // This mirrors the pattern: triggerSearchUpdate() writes state → URL, this reads URL → state
+    useEffect(() => {
+        const defaultsString = JSON.stringify(defaults || []);
+        if (defaultsString !== defaultsRef.current) {
+            defaultsRef.current = defaultsString;
+            if (defaults) {
+                setFilters(defaults);
+            } else {
+                setFilters([]);
+            }
+        }
+    }, [defaults]);
+
+    useEffect(() => {
+        if (sort_by && sort_by !== sortByRef.current) {
+            sortByRef.current = sort_by;
+            setSort(sort_by);
+        }
+    }, [sort_by]);
+
+    // Update URL when filters or sort change (state → URL)
     useEffect(() => {
         if (isHydrated && (location.pathname === '/search/results' || location.pathname.includes('/genres/') || location.pathname.includes('/search/lists'))) {
             triggerSearchUpdate()
         } else {
             setIsHydrated(true);
         }
-    }, [filters, sort]);
+    }, [isHydrated, location.pathname, triggerSearchUpdate]);
     
   return (
     <Box display="flex" flexDirection="column" gap={4}>

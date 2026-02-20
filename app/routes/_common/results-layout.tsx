@@ -8,6 +8,8 @@ import { useEffect, useRef, useState } from "react";
 import { TmdbMovieSummaryInterface } from "~/interfaces/tmdb/movie/summary";
 import SortMenu from "~/components/search/filters/sort-menu";
 import { useLocation } from "@remix-run/react";
+import { RequestFilterProps } from "~/components/search/filter-search";
+import ActiveFiltersDisplay from "~/components/search/active-filters-display";
 
 function useIntersectionObserver(callback: () => void) {
   const ref = useRef<HTMLDivElement | null>(null);
@@ -56,16 +58,12 @@ export function useResizeObserver(
   }, [ref, callback]);
 }
 
-interface FiltersProps {
-  type: string,
-  value: number
-}
 interface ResultsLayoutProps {
   payload: MovieListsInterface;
   title: string;
-  filters?: FiltersProps[],
+  filters?: RequestFilterProps[],
   sort_by: string;
-  callback: (pageParam: number, sort: string, filters?: FiltersProps[]) => Promise<{
+  callback: (pageParam: number, sort: string, filters?: RequestFilterProps[]) => Promise<{
     results: TmdbMovieSummaryInterface[];
     page: number;
     total_pages: number;
@@ -199,6 +197,7 @@ export default function ResultsLayout({ payload, title, callback, filters, sort_
                   </Box>
                 </Box>
               </Box>
+              <ActiveFiltersDisplay filters={filters} />
               {
                 !isLoading && movies.length === 0 && (
                   
@@ -258,12 +257,22 @@ export default function ResultsLayout({ payload, title, callback, filters, sort_
                                   // ref={(element) => measureElement(element)}
                                 >
                                   {
-                                    items?.map((item, colIndex: number) => (
-                                      <Box data-index={virtualRow.index} key={`${rowIndex}-${colIndex}`} width="100%" ref={rowVirtualizer.measureElement}>
-                                        <MoviePoster key={item.id ?? `${rowIndex}-${colIndex}`} item={item} />
-                                      </Box>  
-                                    )) ?? (
-                                      <Skeleton height="200px" rounded="md" ref={loadMoreRef} />
+                                    items ? (
+                                      items.map((item, colIndex: number) => (
+                                        <Box data-index={virtualRow.index} key={`${rowIndex}-${colIndex}`} width="100%" ref={rowVirtualizer.measureElement}>
+                                          <MoviePoster key={item.id ?? `${rowIndex}-${colIndex}`} item={item} />
+                                        </Box>  
+                                      ))
+                                    ) : (
+                                      // Render a full row of placeholders matching the column count
+                                      Array.from({ length: columns }).map((_, colIndex) => (
+                                        <Skeleton 
+                                          key={`loading-${rowIndex}-${colIndex}`} 
+                                          height="200px" 
+                                          rounded="md" 
+                                          ref={colIndex === 0 ? loadMoreRef : undefined}
+                                        />
+                                      ))
                                     )
                                   }
                                 </SimpleGrid>
