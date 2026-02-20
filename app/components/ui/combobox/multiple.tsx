@@ -18,6 +18,7 @@ interface ComboboxProps extends BaseComboboxProps {
     colorPalette?: string
     defaultTags?: string[]
     disabled?: boolean
+    hideTags?: boolean
 }
 
 export const MultipleCombobox = ({ 
@@ -29,7 +30,8 @@ export const MultipleCombobox = ({
     children, 
     colorPalette='orange', 
     defaultTags,
-    disabled=false
+    disabled=false,
+    hideTags=false
    }: ComboboxProps
 ) => {
   const [searchValue, setSearchValue] = useState("")
@@ -136,12 +138,13 @@ export const MultipleCombobox = ({
           </Combobox.Content>
         </Combobox.Positioner>
       </Portal>
-      <ComboTags 
-        tags={tags} 
-        colorPalette={colorPalette} 
-        onRemoveTag={handleRemoveTag}
-
-      />
+      {!hideTags && (
+        <ComboTags 
+          tags={tags} 
+          colorPalette={colorPalette} 
+          onRemoveTag={handleRemoveTag}
+        />
+      )}
     </Combobox.Root>
   )
 }

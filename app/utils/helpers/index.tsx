@@ -148,6 +148,29 @@ export const decodeValues = (encoded: string) => {
 };
 
 /**
+ * Parse grouped value: "2,4|5,3,56|28" → [{items: [2,4]}, {items: [5,3,56]}, {items: [28]}]
+ * Format: comma (,) = AND within group, pipe (|) = OR between groups
+ */
+export function parseGroupedValue(value: string): Array<{items: number[]}> {
+  if (!value) return [];
+  const groups = value.split('|');
+  return groups.map((group) => ({
+    items: group.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id))
+  }));
+}
+
+/**
+ * Serialize grouped value: [{items: [2,4]}, {items: [5,3,56]}, {items: [28]}] → "2,4|5,3,56|28"
+ * Format: comma (,) = AND within group, pipe (|) = OR between groups
+ */
+export function serializeGroupedValue(groups: Array<{items: number[]}>): string {
+  return groups
+    .filter(group => group.items.length > 0)
+    .map(group => group.items.join(','))
+    .join('|');
+}
+
+/**
  * Converts HSL to RGB
  */
 function hslToRgb(h: number, s: number, l: number): [number, number, number] {

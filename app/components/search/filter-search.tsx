@@ -132,8 +132,8 @@ const FilterSearch = ({genres, providers, people, regions, languages, defaults, 
     
   return (
     <Box display="flex" flexDirection="column" gap={4}>
-      <GenreCommandEngine genres={genres} onSelect={(i) => updateFilters(i) } defaults={getDefault('with_genres')?.name} disabled={getDefault('with_genres')?.disabled || false}/>
-      <KeywordCommandEngine onSelect={(i) => updateFilters(i) } defaults={getDefault('with_keywords')?.name} />
+      <GenreCommandEngine genres={genres} onSelect={(i) => updateFilters(i) } defaults={getDefault('with_genres')?.name} defaultValue={getDefault('with_genres') || undefined} disabled={getDefault('with_genres')?.disabled || false}/>
+      <KeywordCommandEngine onSelect={(i) => updateFilters(i) } defaults={getDefault('with_keywords')?.name} defaultValue={getDefault('with_keywords') || undefined} />
       <CastCommandEngine people={people} onSelect={(i) => updateFilters(i) } defaults={getDefault('with_cast')?.name}/>
 
       <Box mb={8}>

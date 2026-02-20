@@ -23,9 +23,10 @@ interface ComboboxProps extends BaseComboboxProps {
     fetchUrl?: string
     colorPalette?: string
     defaultTags?: string[]
+    hideTags?: boolean
 }
 
-export const AsyncMultipleCombobox = ({ suggestions, onSelect, startElement, placeholder = "Type to search", defaultOpen = false, children, fetchUrl, colorPalette="orange", defaultTags }: ComboboxProps) => {
+export const AsyncMultipleCombobox = ({ suggestions, onSelect, startElement, placeholder = "Type to search", defaultOpen = false, children, fetchUrl, colorPalette="orange", defaultTags, hideTags=false }: ComboboxProps) => {
   const [searchValue, setSearchValue] = useState("")
   const [tags, setTags] = useState<string[]>(defaultTags ?? [])
   const [tagItems, setTagItems] = useState<ComboboxItemProp[]>([])
@@ -172,8 +173,9 @@ export const AsyncMultipleCombobox = ({ suggestions, onSelect, startElement, pla
           </Combobox.Content>
         </Combobox.Positioner>
       </Portal>
-      <ComboTags tags={tags} colorPalette={colorPalette} onRemoveTag={handleRemoveTag} />
-
+      {!hideTags && (
+        <ComboTags tags={tags} colorPalette={colorPalette} onRemoveTag={handleRemoveTag} />
+      )}
     </Combobox.Root>
   )
 }
