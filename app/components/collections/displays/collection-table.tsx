@@ -44,20 +44,6 @@ export const CollectionTable = ({ collection }: {collection: CollectionsInterfac
       )
     },
     { 
-      key: "tags", 
-      header: "Tags", 
-      width: 200, 
-      render: () => (
-        <Box display="flex" gap={2} flexWrap="wrap">
-          {collection.tags.map((tag, index) => (
-            <Link to={`/keywords/${tag.toLowerCase()}`} key={index}>
-              <Badge size="sm" colorPalette="orange">{tag}</Badge>
-            </Link>
-          ))}
-        </Box>
-      )
-    },
-    { 
       key: "watched", 
       header: "Watched", 
       width: 10, 
