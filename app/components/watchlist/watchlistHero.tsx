@@ -8,8 +8,14 @@ import BlurredPlaceholder from "../media/common/blurred-placeholder";
 import EditWatchlistDialog from "./edit-watchlist-dialog";
 import { usePosterGradientColor } from "~/hooks/use-poster-gradient-color";
 import { HiPencil } from "react-icons/hi";
+import { forwardRef } from "react";
 
-const WatchlistHero = ({watchlist, height = '00px'} : {watchlist: WatchlistInterface, height?: string}) => {
+interface WatchlistHeroProps {
+  watchlist: WatchlistInterface;
+  height?: string;
+}
+
+const WatchlistHero = forwardRef<HTMLHeadingElement, WatchlistHeroProps>(({watchlist, height = '00px'}, ref) => {
     const firstMovie = watchlist?.watchlist_items?.[0];
     const gradientColor = usePosterGradientColor(
       firstMovie?.movie?.id,
@@ -66,7 +72,7 @@ const WatchlistHero = ({watchlist, height = '00px'} : {watchlist: WatchlistInter
               {/* Text and Data */}
               <Box display="flex" gap={4} alignItems="center" >
                 <Box display="flex" gap={2} alignItems="end" flex={1}>
-                  <Heading as="h1" lineHeight={1}  size="4xl"  fontWeight={600}>{watchlist.name}</Heading>
+                  <Heading ref={ref} as="h1" lineHeight={1}  size="4xl"  fontWeight={600}>{watchlist.name}</Heading>
                 </Box>
                 <EditWatchlistDialog 
                   watchlist={watchlist}
@@ -121,6 +127,8 @@ const WatchlistHero = ({watchlist, height = '00px'} : {watchlist: WatchlistInter
         </Box>
       </Box>
     );
-};
+});
+
+WatchlistHero.displayName = 'WatchlistHero';
 
 export default WatchlistHero;
