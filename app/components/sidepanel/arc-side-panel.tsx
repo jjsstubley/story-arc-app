@@ -13,6 +13,7 @@ import SearchNavSection from "./sections/search-nav-section";
 import LibraryNavSection from "./sections/library-nav-section";
 import { IoLibrary } from "react-icons/io5";
 import { CollectionsInterface } from "~/interfaces/collections";
+import SidebarSignupCard from "~/components/auth/sidebar-signup-card";
 
 interface RequestFilterProps {
   key: string,
@@ -73,7 +74,7 @@ const ArcSidePanel = ({filters, session} : {filters: FilterOptionsProps, session
   ]       
   return (
     <Box as="nav" w={{ base: "100%", md: "25%" }} minWidth="300px" height="calc(100vh - 100px)" overflow="hidden" display="flex" flexDirection="column">
-      <Box flex="1" mt={2} overflow="hidden" display="flex" flexDirection="column">
+      <Box flex="1"  overflow="hidden" display="flex" flexDirection="column">
         <Accordion.Root defaultValue={["search"]} spaceY={2} height="100%" >
             {sections.map((section) => (
                 <Accordion.Item key={section.value} value={section.value}  bgColor="bg.muted" rounded="lg"  w="full">
@@ -107,7 +108,7 @@ const ArcSidePanel = ({filters, session} : {filters: FilterOptionsProps, session
         </Accordion.Root>
       </Box>
       {/* Account section - fixed at bottom */}
-      {session && (
+      {session ? (
         <Box 
           flexShrink={0}
           mt={2}
@@ -122,6 +123,8 @@ const ArcSidePanel = ({filters, session} : {filters: FilterOptionsProps, session
             className="user-account-dropdown" 
           />
         </Box>
+      ) : (
+        <SidebarSignupCard />
       )}
     </Box>
   );
