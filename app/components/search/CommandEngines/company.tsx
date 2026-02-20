@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { AsyncMultipleCombobox } from "~/components/ui/combobox/async-multiple";
 import ComboTags from "~/components/ui/combobox/combo-tags";
 import { Box, Combobox, SegmentGroup } from "@chakra-ui/react";
@@ -22,44 +22,58 @@ const CompanyCommandEngine = ({ onSelect, defaults, defaultValue, withoutDefault
   const [mode, setMode] = useState<'Include' | 'Exclude'>('Include');
   const [items, setItems] = useState<ComboboxItemProp[]>([]);
   const [flatTags, setFlatTags] = useState<string[]>([]);
+  const isInitializedRef = useRef<boolean>(false);
+  const lastModeRef = useRef<'Include' | 'Exclude'>(mode);
 
-  // Initialize items from defaults based on mode
+  // Initialize items from defaults based on mode (only on initial mount or mode change)
+  // After initialization, local state is the source of truth
   useEffect(() => {
-    const currentDefaults = mode === 'Include' ? defaults : withoutDefaults;
-    const currentDefaultValue = mode === 'Include' ? defaultValue : withoutDefaultValue;
+    // Reset initialization when mode changes
+    if (lastModeRef.current !== mode) {
+      isInitializedRef.current = false;
+      lastModeRef.current = mode;
+    }
     
-    if (currentDefaultValue?.value && typeof currentDefaultValue.value === 'string') {
-      // Parse pipe-separated IDs: "123|456|789"
-      const ids = currentDefaultValue.value.split('|').filter(id => id.trim() !== '').map(id => parseInt(id.trim()));
-      const names = currentDefaultValue.name || [];
+    // Only sync from defaults on initial mount or when mode changes
+    // After initialization, don't overwrite state when defaults change due to URL updates
+    if (!isInitializedRef.current) {
+      const currentDefaults = mode === 'Include' ? defaults : withoutDefaults;
+      const currentDefaultValue = mode === 'Include' ? defaultValue : withoutDefaultValue;
       
-      const newItems: ComboboxItemProp[] = ids.map((id, index) => ({
-        id: id,
-        name: names[index] || `Company ${id}`,
-        value: names[index] || `Company ${id}`
-      }));
-      
-      setItems(newItems);
-      setFlatTags(newItems.map(i => i.name));
-    } else if (currentDefaults && currentDefaults.length > 0) {
-      // Fallback: use defaults as flat list
-      setFlatTags(currentDefaults);
-      const newItems: ComboboxItemProp[] = currentDefaults.map((name, index) => {
-        // Try to extract ID from name if it's in format "Name|ID" or just use index
-        const parts = name.split('|');
-        const id = parts.length > 1 ? parseInt(parts[1]) : index;
-        return {
+      if (currentDefaultValue?.value && typeof currentDefaultValue.value === 'string') {
+        // Parse pipe-separated IDs: "123|456|789"
+        const ids = currentDefaultValue.value.split('|').filter(id => id.trim() !== '').map(id => parseInt(id.trim()));
+        const names = currentDefaultValue.name || [];
+        
+        const newItems: ComboboxItemProp[] = ids.map((id, index) => ({
           id: id,
-          name: parts[0] || name,
-          value: parts[0] || name
-        };
-      });
-      
-      setItems(newItems);
-    } else {
-      // Clear if no defaults for current mode
-      setItems([]);
-      setFlatTags([]);
+          name: names[index] || `Company ${id}`,
+          value: names[index] || `Company ${id}`
+        }));
+        
+        setItems(newItems);
+        setFlatTags(newItems.map(i => i.name));
+      } else if (currentDefaults && currentDefaults.length > 0) {
+        // Fallback: use defaults as flat list
+        setFlatTags(currentDefaults);
+        const newItems: ComboboxItemProp[] = currentDefaults.map((name, index) => {
+          // Try to extract ID from name if it's in format "Name|ID" or just use index
+          const parts = name.split('|');
+          const id = parts.length > 1 ? parseInt(parts[1]) : index;
+          return {
+            id: id,
+            name: parts[0] || name,
+            value: parts[0] || name
+          };
+        });
+        
+        setItems(newItems);
+      } else {
+        // Clear if no defaults for current mode
+        setItems([]);
+        setFlatTags([]);
+      }
+      isInitializedRef.current = true;
     }
   }, [mode, defaultValue, defaults, withoutDefaultValue, withoutDefaults]);
 

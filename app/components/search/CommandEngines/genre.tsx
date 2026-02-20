@@ -1,5 +1,5 @@
 
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { GenreInterface } from "~/interfaces/tmdb/genre";
 import { ComboboxItemProp } from "~/components/ui/combobox/interfaces/combobox-item";
 import { MultipleCombobox } from "~/components/ui/combobox/multiple";
@@ -29,6 +29,8 @@ const GenreCommandEngine = ({ onSelect, genres, defaults, disabled, defaultValue
   const [items, setItems] = useState<ComboboxItemProp[]>([]);
   const [operators, setOperators] = useState<('and' | 'or')[]>([]);
   const [flatTags, setFlatTags] = useState<string[]>([]);
+  const isInitializedRef = useRef<boolean>(false);
+  const lastModeRef = useRef<'Include' | 'Exclude'>(mode);
 
   // Create lookup map for genre IDs to names
   const genreMap = useMemo(() => {
@@ -107,40 +109,52 @@ const GenreCommandEngine = ({ onSelect, genres, defaults, disabled, defaultValue
     return groups;
   };
 
-  // Initialize items and operators from defaults based on mode
+  // Initialize items and operators from defaults based on mode (only on initial mount or mode change)
+  // After initialization, local state is the source of truth
   useEffect(() => {
-    const currentDefaults = mode === 'Include' ? defaults : withoutDefaults;
-    const currentDefaultValue = mode === 'Include' ? defaultValue : withoutDefaultValue;
+    // Reset initialization when mode changes
+    if (lastModeRef.current !== mode) {
+      isInitializedRef.current = false;
+      lastModeRef.current = mode;
+    }
     
-    if (currentDefaultValue?.value && typeof currentDefaultValue.value === 'string') {
-      // Parse the grouped value string
-      const parsed = parseGroupedValue(currentDefaultValue.value);
-      const { items: newItems, operators: newOperators } = groupsToItemsAndOperators(parsed);
-      setItems(newItems);
-      setOperators(newOperators);
-      setFlatTags(newItems.map(i => i.name));
-    } else if (currentDefaults && currentDefaults.length > 0) {
-      // Fallback: use defaults as flat list (all OR)
-      setFlatTags(currentDefaults);
-      const newItems: ComboboxItemProp[] = currentDefaults
-        .map(name => {
-          const genre = genres.find(g => g.name === name);
-          return genre ? {
-            id: genre.id,
-            name: genre.name,
-            value: genre.name
-          } : null;
-        })
-        .filter((item): item is { id: number; name: string; value: string } => item !== null);
+    // Only sync from defaults on initial mount or when mode changes
+    // After initialization, don't overwrite state when defaults change due to URL updates
+    if (!isInitializedRef.current) {
+      const currentDefaults = mode === 'Include' ? defaults : withoutDefaults;
+      const currentDefaultValue = mode === 'Include' ? defaultValue : withoutDefaultValue;
       
-      setItems(newItems);
-      // Default: all OR operators
-      setOperators(newItems.length > 1 ? new Array(newItems.length - 1).fill('or') : []);
-    } else {
-      // Clear if no defaults for current mode
-      setItems([]);
-      setOperators([]);
-      setFlatTags([]);
+      if (currentDefaultValue?.value && typeof currentDefaultValue.value === 'string') {
+        // Parse the grouped value string
+        const parsed = parseGroupedValue(currentDefaultValue.value);
+        const { items: newItems, operators: newOperators } = groupsToItemsAndOperators(parsed);
+        setItems(newItems);
+        setOperators(newOperators);
+        setFlatTags(newItems.map(i => i.name));
+      } else if (currentDefaults && currentDefaults.length > 0) {
+        // Fallback: use defaults as flat list (all OR)
+        setFlatTags(currentDefaults);
+        const newItems: ComboboxItemProp[] = currentDefaults
+          .map(name => {
+            const genre = genres.find(g => g.name === name);
+            return genre ? {
+              id: genre.id,
+              name: genre.name,
+              value: genre.name
+            } : null;
+          })
+          .filter((item): item is { id: number; name: string; value: string } => item !== null);
+        
+        setItems(newItems);
+        // Default: all OR operators
+        setOperators(newItems.length > 1 ? new Array(newItems.length - 1).fill('or') : []);
+      } else {
+        // Clear if no defaults for current mode
+        setItems([]);
+        setOperators([]);
+        setFlatTags([]);
+      }
+      isInitializedRef.current = true;
     }
   }, [mode, defaultValue, defaults, withoutDefaultValue, withoutDefaults, genres, genreMap, groupsToItemsAndOperators]);
 

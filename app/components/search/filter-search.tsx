@@ -125,19 +125,25 @@ const FilterSearch = ({genres, providers, people, regions, languages, defaults, 
       window.scrollTo({ top: 0, behavior: "smooth" });
     }, [filters, sort, location.search, location.pathname, navigate]);
   
-    // Sync state with URL parameters on refresh (URL → state)
-    // This mirrors the pattern: triggerSearchUpdate() writes state → URL, this reads URL → state
+    // Sync state with URL parameters on initial mount only (URL → state)
+    // After hydration, local state is the source of truth and updates URL via triggerSearchUpdate
     useEffect(() => {
         const defaultsString = JSON.stringify(defaults || []);
         if (defaultsString !== defaultsRef.current) {
             defaultsRef.current = defaultsString;
-            if (defaults) {
-                setFilters(defaults);
-            } else {
-                setFilters([]);
+            // Only sync from defaults on initial mount (before hydration)
+            // After hydration, local state controls the URL updates
+            if (!isHydrated) {
+                if (defaults) {
+                    setFilters(defaults);
+                } else {
+                    setFilters([]);
+                }
             }
+            // If already hydrated, just update the ref to track latest defaults
+            // but don't overwrite state to prevent resetting filters
         }
-    }, [defaults]);
+    }, [defaults, isHydrated]);
 
     useEffect(() => {
         if (sort_by && sort_by !== sortByRef.current) {

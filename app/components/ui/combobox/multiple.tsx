@@ -7,7 +7,7 @@ import {
   InputGroup,
   Box,
 } from "@chakra-ui/react"
-import { ReactNode, useMemo, useState } from "react"
+import { ReactNode, useMemo, useState, useEffect } from "react"
 import { ComboboxItemProp } from "./interfaces/combobox-item";
 import { BaseComboboxProps } from "./interfaces/combobox";
 import ComboTags from "./combo-tags";
@@ -74,14 +74,21 @@ export const MultipleCombobox = ({
     onSelect(details);
   };
 
-  // useEffect(() => {
-  //   if (defaultTags?.length) {
-  //     const details: Combobox.ValueChangeDetails = {
-  //       value: defaultTags,
-  //     }
-  //     onSelect(details)
-  //   }
-  // }, [defaultTags])
+  // Sync tags from defaultTags whenever it changes
+  // This ensures the combobox always reflects the command engine's flatTags state
+  useEffect(() => {
+    if (defaultTags !== undefined) {
+      setTags(defaultTags);
+      // Convert defaultTags strings to ComboboxItemProp format by finding matching items in suggestions
+      const matchedItems: ComboboxItemProp[] = defaultTags
+        .map(tag => {
+          const foundItem = suggestions.find(item => item.name === tag);
+          return foundItem || { id: 0, name: tag, value: tag };
+        })
+        .filter((item): item is ComboboxItemProp => item !== null);
+      setTagItems(matchedItems);
+    }
+  }, [defaultTags, suggestions]);
 
 
   return (

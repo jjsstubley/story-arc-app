@@ -40,12 +40,15 @@ export const AsyncMultipleCombobox = ({ suggestions, onSelect, startElement, pla
     itemToString: (item) => item.name,
   });
 
-  // Sync tags when defaultTags changes
+  // Sync tags from defaultTags whenever it changes
+  // This ensures the combobox always reflects the command engine's flatTags state
+  // Since command engines only update flatTags from defaults on initial mount,
+  // after initialization flatTags only changes when user adds/removes tags, so syncing is safe
   useEffect(() => {
-    if (defaultTags) {
+    if (defaultTags !== undefined) {
       setTags(defaultTags);
       // Convert defaultTags strings to ComboboxItemProp format
-      setTagItems(defaultTags.map(tag => ({ id: parseInt(tag), name: tag, value: tag })));
+      setTagItems(defaultTags.map(tag => ({ id: parseInt(tag) || 0, name: tag, value: tag })));
     }
   }, [defaultTags]);
 

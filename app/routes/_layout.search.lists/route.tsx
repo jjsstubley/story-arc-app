@@ -15,15 +15,11 @@ export const loader: LoaderFunction = async ({ request }) => {
   const supabase = getSupabaseServerClient(request, headers);
   const { data: { session } } = await supabase.auth.getSession()
 
-  if (!filters) {
-    return json({ session, results: [], decodedFilters: [] }, { headers });
-  }
-
   const {
     results,
     decodedFilters,
 
-  } = await handleSearchLists(filters);
+  } = await handleSearchLists(filters || '');
 
   return json({ session, results, decodedFilters }, { headers });
 };

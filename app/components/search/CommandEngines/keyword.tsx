@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { AsyncMultipleCombobox } from "~/components/ui/combobox/async-multiple";
 import ComboTagsGrouped from "~/components/ui/combobox/combo-tags-grouped";
 import { Box, Combobox, SegmentGroup } from "@chakra-ui/react";
@@ -24,6 +24,8 @@ const KeywordCommandEngine = ({ onSelect, defaults, defaultValue, withoutDefault
   const [items, setItems] = useState<ComboboxItemProp[]>([]);
   const [operators, setOperators] = useState<('and' | 'or')[]>([]);
   const [flatTags, setFlatTags] = useState<string[]>([]);
+  const isInitializedRef = useRef<boolean>(false);
+  const lastModeRef = useRef<'Include' | 'Exclude'>(mode);
 
   // Convert groups to flat items + operators
   const groupsToItemsAndOperators = useCallback((groups: Array<{items: number[]}>): { items: ComboboxItemProp[], operators: ('and' | 'or')[] } => {
@@ -91,35 +93,47 @@ const KeywordCommandEngine = ({ onSelect, defaults, defaultValue, withoutDefault
     return groups;
   };
 
-  // Initialize items and operators from defaults based on mode
+  // Initialize items and operators from defaults based on mode (only on initial mount or mode change)
+  // After initialization, local state is the source of truth
   useEffect(() => {
-    const currentDefaults = mode === 'Include' ? defaults : withoutDefaults;
-    const currentDefaultValue = mode === 'Include' ? defaultValue : withoutDefaultValue;
+    // Reset initialization when mode changes
+    if (lastModeRef.current !== mode) {
+      isInitializedRef.current = false;
+      lastModeRef.current = mode;
+    }
     
-    if (currentDefaultValue?.value && typeof currentDefaultValue.value === 'string') {
-      // Parse the grouped value string
-      const parsed = parseGroupedValue(currentDefaultValue.value);
-      const { items: newItems, operators: newOperators } = groupsToItemsAndOperators(parsed);
-      setItems(newItems);
-      setOperators(newOperators);
-      setFlatTags(newItems.map(i => i.name));
-    } else if (currentDefaults && currentDefaults.length > 0) {
-      // Fallback: use defaults as flat list (all OR)
-      setFlatTags(currentDefaults);
-      const newItems: ComboboxItemProp[] = currentDefaults.map(name => ({
-        id: parseInt(name) || 0,
-        name: name,
-        value: name
-      }));
+    // Only sync from defaults on initial mount or when mode changes
+    // After initialization, don't overwrite state when defaults change due to URL updates
+    if (!isInitializedRef.current) {
+      const currentDefaults = mode === 'Include' ? defaults : withoutDefaults;
+      const currentDefaultValue = mode === 'Include' ? defaultValue : withoutDefaultValue;
       
-      setItems(newItems);
-      // Default: all OR operators
-      setOperators(newItems.length > 1 ? new Array(newItems.length - 1).fill('or') : []);
-    } else {
-      // Clear if no defaults for current mode
-      setItems([]);
-      setOperators([]);
-      setFlatTags([]);
+      if (currentDefaultValue?.value && typeof currentDefaultValue.value === 'string') {
+        // Parse the grouped value string
+        const parsed = parseGroupedValue(currentDefaultValue.value);
+        const { items: newItems, operators: newOperators } = groupsToItemsAndOperators(parsed);
+        setItems(newItems);
+        setOperators(newOperators);
+        setFlatTags(newItems.map(i => i.name));
+      } else if (currentDefaults && currentDefaults.length > 0) {
+        // Fallback: use defaults as flat list (all OR)
+        setFlatTags(currentDefaults);
+        const newItems: ComboboxItemProp[] = currentDefaults.map(name => ({
+          id: parseInt(name) || 0,
+          name: name,
+          value: name
+        }));
+        
+        setItems(newItems);
+        // Default: all OR operators
+        setOperators(newItems.length > 1 ? new Array(newItems.length - 1).fill('or') : []);
+      } else {
+        // Clear if no defaults for current mode
+        setItems([]);
+        setOperators([]);
+        setFlatTags([]);
+      }
+      isInitializedRef.current = true;
     }
   }, [mode, defaultValue, defaults, withoutDefaultValue, withoutDefaults, groupsToItemsAndOperators]);
 
