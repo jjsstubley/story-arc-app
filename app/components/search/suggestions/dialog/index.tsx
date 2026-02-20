@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import { CustomDialog } from '../../../custom-dialog';
 import {  SuggestionsDataInterface } from '~/interfaces/suggestions';
@@ -8,8 +8,14 @@ import SuggestionsResults from '../results';
 
 
 const SuggestionsDialog = ({fetcher, query, children} : { fetcher: ReturnType<typeof useFetcher<SuggestionsDataInterface>>, query: string, children: React.ReactNode;}) => {
-    // const location = useLocation();
     const [open, setOpen] = useState(false);
+
+    // Open dialog when data is loaded or error occurs
+    useEffect(() => {
+        if (fetcher.data && (fetcher.data.result || fetcher.data.error)) {
+            setOpen(true);
+        }
+    }, [fetcher.data]);
 
     return (
         <CustomDialog 
@@ -23,7 +29,7 @@ const SuggestionsDialog = ({fetcher, query, children} : { fetcher: ReturnType<ty
             }}
             trigger={ children }
             header={ <SuggestionsDialogHeader query={query} />}
-            body={ <SuggestionsResults fetcher={fetcher}/>}
+            body={ <SuggestionsResults fetcher={fetcher} query={query} />}
         />
     );
 };

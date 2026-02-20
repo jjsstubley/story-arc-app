@@ -11,8 +11,13 @@ const SuggestionsInput = () => {
   const [query, setQuery] = useState("");
 
   const handleSearch = () => {
+    // Validate query before submitting
+    if (!query || query.trim().length === 0) {
+      return; // Don't submit empty queries
+    }
+
     const formData = new FormData();
-    formData.append("query", query);
+    formData.append("query", query.trim());
 
     fetcher.submit(formData, {
       method: "post",
@@ -47,7 +52,13 @@ const SuggestionsInput = () => {
       />
 
       <SuggestionsDialog fetcher={fetcher} query={query}>
-        <Button onClick={handleSearch}>Recommend</Button>
+        <Button 
+          onClick={handleSearch}
+          disabled={!query || query.trim().length === 0 || fetcher.state === "submitting"}
+          loading={fetcher.state === "submitting"}
+        >
+          {fetcher.state === "submitting" ? "Searching..." : "Recommend"}
+        </Button>
       </SuggestionsDialog>
     </Flex>
   );

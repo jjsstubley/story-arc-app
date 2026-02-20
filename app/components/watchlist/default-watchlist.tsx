@@ -28,9 +28,13 @@ export default function DefaultWatchlist({filter='all'}: {filter: string}) {
   useEffect(() => {
     fetchWatchlist();
   }, [])
+
+  const handleDelete = () => {
+    fetchWatchlist();
+  }
    
   return (
-    watchlist ? <SideBarWatchlist watchlist={watchlist} inDialog={false} filter={filter} /> : (
+    watchlist ? <SideBarWatchlist watchlist={watchlist} inDialog={false} filter={filter} onDelete={handleDelete} /> : (
       <EmptyWatchlist title="The Default List is empty" description="Add movies to your Default List to get started." />   
     )
   )

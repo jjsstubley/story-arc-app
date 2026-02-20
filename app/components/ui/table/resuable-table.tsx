@@ -47,15 +47,19 @@ interface ReusableTableProps<T> {
         onMouseLeave={() => setHoveredItemId?.(null)}
       >
         {selection && (
-          <Table.Cell>
+          <Table.Cell onClick={(e) => e.stopPropagation()}>
             <TableCheckbox
               checked={selection.selectedIds.includes(selection.getId(item))}
               onCheckedChange={(changes) => {
-                selection.onSelectionChange(
-                  changes.checked
-                    ? [...selection.selectedIds, selection.getId(item)]
-                    : selection.selectedIds.filter((id) => id !== selection.getId(item)),
-                );
+                const itemId = selection.getId(item);
+                // Ensure we only update this specific item
+                if (changes.checked) {
+                  if (!selection.selectedIds.includes(itemId)) {
+                    selection.onSelectionChange([...selection.selectedIds, itemId]);
+                  }
+                } else {
+                  selection.onSelectionChange(selection.selectedIds.filter((id) => id !== itemId));
+                }
               }}
               ariaLabel="Select row"
             />

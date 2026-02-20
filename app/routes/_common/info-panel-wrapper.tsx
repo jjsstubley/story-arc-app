@@ -61,10 +61,10 @@ export default function InfoPanelWrapper() {
             <TVSeriesInfoPanel series={selectedMedia.data as TmdbTVSeriesDetailWAppendsProps} onClose={closePanel} />
         )}
         {selectedMedia?.type === 'tv-season' && selectedMedia?.data && (
-            <TVSeasonInfoPanel season={selectedMedia.data as TVSeasonDetailsInterface} onClose={closePanel} />
+            <TVSeasonInfoPanel season={selectedMedia.data as TVSeasonDetailsInterface} onClose={closePanel} seriesId={selectedMedia.seriesId} />
         )}
         {selectedMedia?.type === 'tv-episode' && selectedMedia?.data && (
-            <TVEpisodeInfoPanel episode={selectedMedia.data as TVEpisodeDetailsInterface} onClose={closePanel} />
+            <TVEpisodeInfoPanel episode={selectedMedia.data as TVEpisodeDetailsInterface} onClose={closePanel} seriesId={selectedMedia.seriesId} />
         )}
         {selectedMedia?.type === 'collection' && selectedMedia?.data && (
             <CollectionInfoPanel collection={selectedMedia.data as TmdbCollectionsInterface} onClose={closePanel} />

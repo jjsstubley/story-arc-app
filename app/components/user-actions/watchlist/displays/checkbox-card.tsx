@@ -3,13 +3,13 @@ import { useEffect, useState } from "react";
 import { useWatchlistContext } from "~/components/providers/watchlist-context";
 import { checkWatchlist, toggleWatchlist } from "../services";
 
-    export default function WatchListCheckboxCard({ watchlistId, label, description, movieId, addon } : { watchlistId: string, label: string, description: string, movieId: number, addon?: string }) {
+    export default function WatchListCheckboxCard({ watchlistId, label, description, movieId, addon, mediaType } : { watchlistId: string, label: string, description: string, movieId: number, addon?: string, mediaType?: string }) {
     // const [isAddedToWatchlist, setIsAddedToWatchlist] = useState<boolean>(false);
     const { updateWatchlist, setIsOtherWatchlistsOpen } = useWatchlistContext();
     const [selected, setSelected] = useState<boolean>(false);
 
     const updateList = async (watchlistId: string) => {
-        const response = await toggleWatchlist(watchlistId, movieId, selected);
+        const response = await toggleWatchlist(watchlistId, movieId, selected, mediaType || 'movie');
         if (!response) {
             console.error("Failed to update watchlist");
             setSelected(false)

@@ -6,14 +6,14 @@ import { IoBookmark } from "react-icons/io5";
 
 import InfoPanelHeader from "./header";
 import InfoPanelMetadata from "./metadata";
-import WatchListCheckboxCards from "~/components/user-actions/watchlist/checkbox-cards";
+import TVEpisodesCheckboxCards from "~/components/user-actions/watchlist/tv-episodes-checkbox-cards";
 
 
 
 import { TVEpisodeDetailsInterface } from "~/interfaces/tmdb/tv/episode/details";
 import OverviewSection from "~/components/media/info-panel/sections/overview";
 // No "use client" directive needed
-export function TVEpisodeInfoPanel({ episode, onClose }: { episode: TVEpisodeDetailsInterface, onClose: () => void }) {
+export function TVEpisodeInfoPanel({ episode, onClose, seriesId }: { episode: TVEpisodeDetailsInterface, onClose: () => void, seriesId?: number }) {
     // ✅ Server-side data fetching
 
     const sections = [
@@ -31,7 +31,7 @@ export function TVEpisodeInfoPanel({ episode, onClose }: { episode: TVEpisodeDet
             value: 'watchlists',
             icon: <IoBookmark color="whiteAlpha.600" />,
             description: 'Build and organise your lists',
-            content: <WatchListCheckboxCards movieId={episode.id} />
+            content: seriesId ? <TVEpisodesCheckboxCards seriesId={seriesId} seasonNumber={episode.season_number} episodeNumber={episode.episode_number} /> : null
         },  
     ]
 

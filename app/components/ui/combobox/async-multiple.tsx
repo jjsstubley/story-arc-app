@@ -28,7 +28,7 @@ interface ComboboxProps extends BaseComboboxProps {
 export const AsyncMultipleCombobox = ({ suggestions, onSelect, startElement, placeholder = "Type to search", defaultOpen = false, children, fetchUrl, colorPalette="orange", defaultTags }: ComboboxProps) => {
   const [searchValue, setSearchValue] = useState("")
   const [tags, setTags] = useState<string[]>(defaultTags ?? [])
-  const [tagItems, setTagItems] = useState<string[]>(defaultTags ?? [])
+  const [tagItems, setTagItems] = useState<ComboboxItemProp[]>([])
   const { contains } = useFilter({ sensitivity: "base" });
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(false)
@@ -38,6 +38,15 @@ export const AsyncMultipleCombobox = ({ suggestions, onSelect, startElement, pla
     filter: contains,
     itemToString: (item) => item.name,
   });
+
+  // Sync tags when defaultTags changes
+  useEffect(() => {
+    if (defaultTags) {
+      setTags(defaultTags);
+      // Convert defaultTags strings to ComboboxItemProp format
+      setTagItems(defaultTags.map(tag => ({ id: parseInt(tag), name: tag, value: tag })));
+    }
+  }, [defaultTags]);
 
   // useEffect(() => {
   //   filter(searchValue);
@@ -51,8 +60,9 @@ export const AsyncMultipleCombobox = ({ suggestions, onSelect, startElement, pla
 
   const handleRemoveTag = (tagToRemove: string) => {
     const newTags = tags.filter((tag) => tag !== tagToRemove);
-    const updatedItems = tagItems.filter((item) => item.value !== tagToRemove)
+    const updatedItems = tagItems.filter((item) => item.value !== tagToRemove);
     setTags(newTags);
+    setTagItems(updatedItems);
   
     const details: Combobox.ValueChangeDetails = {
       value: newTags,
@@ -126,8 +136,8 @@ export const AsyncMultipleCombobox = ({ suggestions, onSelect, startElement, pla
         </Combobox.IndicatorGroup>
       </Combobox.Control>
       <Portal>
-        <Combobox.Positioner>
-          <Combobox.Content>
+        <Combobox.Positioner style={{ zIndex: 1500 }}>
+          <Combobox.Content style={{ zIndex: 1500 }}>
             <Combobox.Empty>No items found</Combobox.Empty>
             {loading ? (
               <HStack p="2">

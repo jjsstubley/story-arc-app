@@ -10,6 +10,7 @@ import { TVEpisodeDetailsInterface } from "~/interfaces/tmdb/tv/episode/details"
 export type MediaItem = {
   type: 'movie' | 'tv' | 'credit' | 'collection' | 'company' | 'tv-series' | 'tv-season' | 'tv-episode'
   data: TmdbMovieDetailWAppendsProps | TmdbTVSeriesDetailWAppendsProps | TmdbCollectionsInterface | TVSeasonDetailsInterface | TVEpisodeDetailsInterface // You can make this more specific with discriminated unions if needed
+  seriesId?: number // For tv-season and tv-episode
 }
 
 const MediaPanelContext = createContext<{

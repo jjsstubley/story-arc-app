@@ -75,10 +75,106 @@ export async function getWatchlistById(watchlist_id: string, userId: string, sup
     .from("watchlists")
     .select("*")
     .eq("user_id", userId)
-    .eq("watchlist_id", watchlist_id);
+    .eq("id", watchlist_id)
+    .single();
 
   if (error) throw error;
   return data;
+}
+
+export async function getAllWatchlistsWMovies(userId: string, supabase: SupabaseClient) {
+  const { data, error } = await supabase
+    .from("watchlists")
+    .select(`*,
+      watchlist_items (
+        id,
+        tmdb_id,
+        tmdb_movie_id,
+        is_seen,
+        added_at,
+        media_type
+      )
+    `)
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  if (!data) return [];
+
+  const watchlistsWithMovies = await Promise.all(
+    data.map(async (watchlist) => {
+      const items = (watchlist.watchlist_items || []).sort((a: WatchlistItemInterface, b: WatchlistItemInterface) => 
+        new Date(b.added_at).getTime() - new Date(a.added_at).getTime()
+      );
+      
+      const enrichedItems = await Promise.all(
+        items.map(async (item: WatchlistItemInterface) => {
+          try {
+            const movie = await getMovieDetailsById({ movie_id: item.tmdb_movie_id });
+            return {
+              ...item,
+              movie,
+            };
+          } catch (e) {
+            console.warn(`Failed to fetch movie ${item.tmdb_movie_id}`, e);
+            return item;
+          }
+        })
+      );
+
+      return {
+        ...watchlist,
+        watchlist_items: enrichedItems
+      };
+    })
+  );
+
+  return watchlistsWithMovies;
+}
+
+export async function getWatchlistByIdWMovies(watchlistId: string, userId: string, supabase: SupabaseClient) {
+  const { data, error } = await supabase
+    .from("watchlists")
+    .select(`*,
+      watchlist_items (
+        id,
+        tmdb_id,
+        tmdb_movie_id,
+        is_seen,
+        added_at,
+        media_type
+      )
+    `)
+    .eq("id", watchlistId)
+    .eq("user_id", userId)
+    .single();
+
+  if (error && error.code !== "PGRST116") throw error; // PGRST116 = no rows found
+  if (!data) return null;
+
+  const items = (data.watchlist_items || []).sort((a: WatchlistItemInterface, b: WatchlistItemInterface) => 
+    new Date(b.added_at).getTime() - new Date(a.added_at).getTime()
+  );
+
+  const enrichedItems = await Promise.all(
+    items.map(async (item: WatchlistItemInterface) => {
+      try {
+        const movie = await getMovieDetailsById({ movie_id: item.tmdb_movie_id });
+        return {
+          ...item,
+          movie,
+        };
+      } catch (e) {
+        console.warn(`Failed to fetch movie ${item.tmdb_movie_id}`, e);
+        return item;
+      }
+    })
+  );
+
+  return {
+    ...data,
+    watchlist_items: enrichedItems
+  };
 }
 
 type CreateWatchlistOptions = {
@@ -135,7 +231,7 @@ export async function updateWatchlistById(
   const { data, error } = await supabase
     .from("watchlists")
     .update(updates)
-    .eq("watchlist_id", watchlist_id)
+    .eq("id", watchlist_id)
     .eq("user_id", userId)
     .select()
     .single(); // to get the updated row
@@ -154,7 +250,7 @@ export async function deleteWatchlistById(
     .from("watchlists")
     .delete()
     .eq("user_id", userId)
-    .eq("watchlist_id", watchlist_id);
+    .eq("id", watchlist_id);
 
   if (error) throw error;
 

@@ -3,12 +3,13 @@ import { getDefaultWatchlist } from "./watchlist.server";
 
 const collection = 'watchlist_items'
 
-export async function addMovieToWatchlist(watchlistId: string, tmdbId: number, userId: string, supabase: SupabaseClient) {
+export async function addMovieToWatchlist(watchlistId: string, tmdbId: number, userId: string, supabase: SupabaseClient, mediaType: string = 'movie') {
   console.log('addMovieToWatchlist watchlistId', watchlistId)
   console.log('addMovieToWatchlist tmdbId', tmdbId)
+  console.log('addMovieToWatchlist mediaType', mediaType)
   const { error } = await supabase
     .from(collection)
-    .insert({ watchlist_id: watchlistId, tmdb_id: tmdbId, tmdb_movie_id: tmdbId, user_id: userId });
+    .insert({ watchlist_id: watchlistId, tmdb_id: tmdbId, tmdb_movie_id: tmdbId, user_id: userId, media_type: mediaType });
 
   if (error && error.code !== "23505") throw error; // 23505 = unique violation
   console.log('addMovieToWatchlist all good')
@@ -77,10 +78,17 @@ export async function updateWatchlistItem(
 }
 
 
-export async function toggleMovieInDefaultWatchlist(userId: string, movieId: number, supabase: SupabaseClient) {
+export async function toggleMovieInDefaultWatchlist(userId: string, movieId: number, supabase: SupabaseClient, mediaType: string = 'movie') {
   const watchlist = await getDefaultWatchlist(userId, supabase);
   const alreadyAdded = await isMovieInWatchlist(watchlist.id, movieId, supabase);
   return alreadyAdded
     ? await removeMovieFromWatchlist(watchlist.id, movieId, supabase)
-    : await addMovieToWatchlist(watchlist.id, movieId, userId, supabase);
+    : await addMovieToWatchlist(watchlist.id, movieId, userId, supabase, mediaType);
+}
+
+export async function toggleMovieInWatchlist(watchlistId: string, movieId: number, userId: string, supabase: SupabaseClient, mediaType: string = 'movie') {
+  const alreadyAdded = await isMovieInWatchlist(watchlistId, movieId, supabase);
+  return alreadyAdded
+    ? await removeMovieFromWatchlist(watchlistId, movieId, supabase)
+    : await addMovieToWatchlist(watchlistId, movieId, userId, supabase, mediaType);
 }

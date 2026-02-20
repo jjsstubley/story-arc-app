@@ -18,7 +18,17 @@ export async function action({ request, params }: ActionFunctionArgs) {
     return json({ error: "Movie ID is required" }, { status: 400 });
   } 
 
-  const watchlist = await toggleMovieInDefaultWatchlist(user.id, parseInt(movieId), supabase);
+  // Get media_type from request body if provided, default to 'movie'
+  let body;
+  let mediaType = 'movie';
+  try {
+    body = await request.json().catch(() => ({}));
+    mediaType = body.media_type || 'movie';
+  } catch {
+    // No body provided, use default
+  }
+
+  const watchlist = await toggleMovieInDefaultWatchlist(user.id, parseInt(movieId), supabase, mediaType);
 
   return json({ watchlist }, { headers });
 }

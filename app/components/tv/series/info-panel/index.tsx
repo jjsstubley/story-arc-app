@@ -7,7 +7,7 @@ import { FaTv } from "react-icons/fa";
 import { GiFilmSpool } from "react-icons/gi";
 import InfoPanelHeader from "./header";
 import InfoPanelMetadata from "./metadata";
-import WatchListCheckboxCards from "~/components/user-actions/watchlist/checkbox-cards";
+import TVSeriesCheckboxCards from "~/components/user-actions/watchlist/tv-series-checkbox-cards";
 import { MdOutlinePassword } from "react-icons/md";
 
 
@@ -49,7 +49,7 @@ export function TVSeriesInfoPanel({ series, onClose }: { series: TmdbTVSeriesDet
             value: 'watchlists',
             icon: <IoBookmark color="whiteAlpha.600" />,
             description: 'Build and organise your lists',
-            content: <WatchListCheckboxCards movieId={series.id} />
+            content: <TVSeriesCheckboxCards seriesId={series.id} />
         },  
         {
             title: 'Providers',

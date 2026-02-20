@@ -171,3 +171,5 @@ const CinematicPlaceholder = ({ type, title, aspectRatio = 2 / 3 }: CinematicPla
 
 export default CinematicPlaceholder;
 
+
+

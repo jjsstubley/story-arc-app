@@ -6,6 +6,7 @@ import { RiFireFill } from "react-icons/ri";
 import DefaultWatchlist from "../../watchlist/default-watchlist";
 import { useState } from "react";
 import CollectionsList from "~/components/collections/displays/collections-list";
+import SavedSeriesList from "~/components/tv-series/saved-series-list";
 
 export default function LibraryNavSection() {
 
@@ -48,6 +49,17 @@ export default function LibraryNavSection() {
               <Text fontSize="xs" color="fg.muted">Collections you&apos;ve created or forked</Text>
             </Stack>
             <CollectionsList />
+          </>
+        ) : filter === 'tv' ? (
+          <>
+            <Stack gap="1" mb={4}>
+              <Box display="flex" gap={4} alignItems="center">
+                <RiFireFill color="whiteAlpha.600" />
+                <Heading as="h3" color="whiteAlpha.600" size="sm"> TV Series </Heading>
+              </Box>
+              <Text fontSize="xs" color="fg.muted">TV series you&apos;ve saved</Text>
+            </Stack>
+            <SavedSeriesList />
           </>
         ) : (
           <>

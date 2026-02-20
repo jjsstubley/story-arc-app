@@ -4,7 +4,7 @@ import { getSupabaseServerClient } from "~/utils/supabase.server";
 import { useLoaderData } from "@remix-run/react";
 import WatchlistDashboard from "./dashboards/WatchlistDashboard";
 
-import { getDefaultWatchlistWMovies } from "~/utils/services/supabase/watchlist.server";
+import { getDefaultWatchlistWMovies, getWatchlistByIdWMovies } from "~/utils/services/supabase/watchlist.server";
 import { getPopcornWatchlistWMovies } from "~/utils/services/cookies/popcorn-watchlist";
 
 export const loader: LoaderFunction = async ({ request, params } : LoaderFunctionArgs) => {
@@ -15,24 +15,31 @@ export const loader: LoaderFunction = async ({ request, params } : LoaderFunctio
   const { data: { user } } = await supabase.auth.getUser()
   
   if (!user) {
-    return json({ error: "Watchlist ID is required"})
+    return json({ error: "Unauthorized" }, { status: 401, headers });
+  }
+
+  if (!id) {
+    return json({ error: "Watchlist ID is required" }, { status: 400, headers });
   }
 
   if (id === 'default') {
     const watchlist = await getDefaultWatchlistWMovies(user.id, supabase)
-
     return json({ session, watchlist }, { headers });
   }
 
   if (id === 'popcorn') {
     const watchlist = await getPopcornWatchlistWMovies(request)
-
-    console.log('watchlist', watchlist)
-
     return json({ session, watchlist }, { headers });
   }
 
-  return json({ session }, { headers });
+  // Handle regular watchlist IDs
+  const watchlist = await getWatchlistByIdWMovies(id, user.id, supabase);
+  
+  if (!watchlist) {
+    return json({ error: "Watchlist not found" }, { status: 404, headers });
+  }
+
+  return json({ session, watchlist }, { headers });
 };
 
 export const meta: MetaFunction<typeof loader> = () => {

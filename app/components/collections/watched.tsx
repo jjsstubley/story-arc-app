@@ -4,10 +4,12 @@ import { useState } from "react";
 import MovieActionsDialog from "../user-actions/watchlist/watched-actions-modal";
 import { FaCircleCheck } from "react-icons/fa6";
 
-export default function CollectionWatched({ item, collectionId, isHovered } : { item: CollectionItemInterface, collectionId: string, isHovered: boolean }) {
+export default function CollectionWatched({ item, collectionId } : { item: CollectionItemInterface, collectionId: string, isHovered: boolean }) {
     const [isWatched, setIsWatched] = useState(item.is_watched || false);
     
-    async function updateCollectionItem() {
+    async function updateCollectionItem(e: React.MouseEvent) {
+        e.stopPropagation();
+        
         try {
             const response = await fetch(`/api/collections/${collectionId}/movies/${item.movie_id}/watched`, {
                 method: "POST",
@@ -27,19 +29,25 @@ export default function CollectionWatched({ item, collectionId, isHovered } : { 
         }
     }
 
+    const movieTitle = item.movie?.title || `Movie ${item.movie_id}`;
+
     return (
-        <MovieActionsDialog>
+        <MovieActionsDialog 
+            movieId={item.movie_id} 
+            movieTitle={movieTitle}
+            isInWatchlist={true}
+        >
             <Box 
-                onClick={() => updateCollectionItem()}
-                opacity={isWatched || isHovered ? 1 : 0}
-                transition="all 0.2s ease"
+                onClick={updateCollectionItem}
                 cursor="pointer"
-                transform={isHovered ? "scale(1.1)" : "scale(1)"}
-                _hover={{
-                    transform: "scale(1.2)",
-                }}
+                display="flex"
+                p={1}
+                rounded="md"
+                textAlign="center"
+                justifyContent="center"
+                alignItems="center"
             >
-                {isWatched ? <FaCircleCheck color="green" /> : <FaCircleCheck color="green" />}
+                <FaCircleCheck color={isWatched ? "green" : "gray"} size={20} />
             </Box>
         </MovieActionsDialog>
     );

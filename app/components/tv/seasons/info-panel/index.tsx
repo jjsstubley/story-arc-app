@@ -6,13 +6,13 @@ import { IoBookmark } from "react-icons/io5";
 
 import InfoPanelHeader from "./header";
 import InfoPanelMetadata from "./metadata";
-import WatchListCheckboxCards from "~/components/user-actions/watchlist/checkbox-cards";
+import TVSeasonsCheckboxCards from "~/components/user-actions/watchlist/tv-seasons-checkbox-cards";
 import Episodes from "./sections/episodes";
 
 import { TVSeasonDetailsInterface } from "~/interfaces/tmdb/tv/season/details";
 import OverviewSection from "~/components/media/info-panel/sections/overview";
 // No "use client" directive needed
-export function TVSeasonInfoPanel({ season, onClose }: { season: TVSeasonDetailsInterface, onClose: () => void }) {
+export function TVSeasonInfoPanel({ season, onClose, seriesId }: { season: TVSeasonDetailsInterface, onClose: () => void, seriesId?: number }) {
     // ✅ Server-side data fetching
 
     const sections = [
@@ -29,14 +29,14 @@ export function TVSeasonInfoPanel({ season, onClose }: { season: TVSeasonDetails
             value: 'episodes',
             icon: <FaVideo color="whiteAlpha.600" />,
             description: 'Episodes in this season',
-            content: <Episodes episodes={season.episodes} seriesId={season.id} />
+            content: <Episodes episodes={season.episodes} seriesId={seriesId || season.id} />
         },
         {
             title: 'Watchlists',
             value: 'watchlists',
             icon: <IoBookmark color="whiteAlpha.600" />,
             description: 'Build and organise your lists',
-            content: <WatchListCheckboxCards movieId={season.id} />
+            content: seriesId ? <TVSeasonsCheckboxCards seriesId={seriesId} seasonNumber={season.season_number} /> : null
         },  
     ]
 

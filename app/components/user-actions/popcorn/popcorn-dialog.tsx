@@ -37,7 +37,7 @@ export default function PopcornDialog({watchlists}: {watchlists: WatchlistInterf
   return (
     <Dialog.Root size="lg" motionPreset="slide-in-bottom">
       <Dialog.Trigger asChild>
-        <Button position="fixed" variant="outline" bgColor="orange.700/50" colorScheme="orange" bottom={10} right={20} borderRadius="full"  boxShadow="lg" zIndex={1000} onClick={() => {
+        <Button position="fixed" variant="outline" bgColor="orange.700" colorScheme="orange" bottom={5} right={11}  zIndex={1000} onClick={() => {
             console.log('Test')
           }}>
             <LuPopcorn color="whiteAlpha.600" />

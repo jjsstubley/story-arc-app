@@ -16,7 +16,8 @@ const TvSeasonPanelTrigger = ({item, children, seriesId} : { item: TVSeasonSumma
 
         const mediaItem = {
             type: 'tv-season',
-            data: data.movieDetails as TVSeasonDetailsInterface
+            data: data.movieDetails as TVSeasonDetailsInterface,
+            seriesId: seriesId
         }
 
         openPanel(mediaItem as MediaItem)

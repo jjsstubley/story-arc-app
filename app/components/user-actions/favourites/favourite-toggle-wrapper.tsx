@@ -32,3 +32,5 @@ export default function FavouriteToggleWrapper({ movieId, movieTitle }: Favourit
   return <FavouriteToggle movieId={movieId} movieTitle={movieTitle} isInWatchlist={isInWatchlist} />;
 }
 
+
+

@@ -33,6 +33,15 @@ export default function LibraryTab() {
             <Button p={2} size="sm" rounded="full" variant={filter === 'tv' ? 'solid' : 'outline'} onClick={() => setFilter('tv')}>
                 TV Series
             </Button>
+            <Button p={2} size="sm" rounded="full" variant={filter === 'tv-series' ? 'solid' : 'outline'} onClick={() => setFilter('tv-series')}>
+                Saved Series
+            </Button>
+            <Button p={2} size="sm" rounded="full" variant={filter === 'tv-seasons' ? 'solid' : 'outline'} onClick={() => setFilter('tv-seasons')}>
+                Saved Seasons
+            </Button>
+            <Button p={2} size="sm" rounded="full" variant={filter === 'tv-episodes' ? 'solid' : 'outline'} onClick={() => setFilter('tv-episodes')}>
+                Saved Episodes
+            </Button>
             <Button p={2} size="sm" rounded="full" variant={filter === 'collections' ? 'solid' : 'outline'} onClick={() => setFilter('collections')}>
                 Collections
             </Button>

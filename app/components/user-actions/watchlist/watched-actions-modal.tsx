@@ -6,86 +6,143 @@ import {
   Text, 
   Box, 
   Portal,
-  CloseButton
+  CloseButton,
+  Heading
 } from "@chakra-ui/react";
-import { LuHeart, LuStar, LuClock } from "react-icons/lu";
+import { LuHeart, LuStar } from "react-icons/lu";
+import { useState } from "react";
+import FavouriteDialog from "../favourites/favourite-dialog";
+import ReviewForm from "../reviews/review-form";
+import RatingSelector from "../ratings/rating-selector";
 
-export default function MovieActionsDialog({children}: {children: React.ReactNode}) {
+interface MovieActionsDialogProps {
+  children: React.ReactNode;
+  movieId: number;
+  movieTitle: string;
+  isInWatchlist?: boolean;
+}
+
+export default function MovieActionsDialog({children, movieId, movieTitle, isInWatchlist = true}: MovieActionsDialogProps) {
+  const [favouriteDialogOpen, setFavouriteDialogOpen] = useState(false);
+  const [reviewFormOpen, setReviewFormOpen] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  const handleFavouriteSuccess = () => {
+    setFavouriteDialogOpen(false);
+    setDialogOpen(false);
+  };
+
+  const handleReviewSuccess = () => {
+    setReviewFormOpen(false);
+    setDialogOpen(false);
+  };
 
   return (
-    <Dialog.Root size="lg">
+    <>
+      <Dialog.Root open={dialogOpen} onOpenChange={(e) => setDialogOpen(e.open)} size="lg">
         <Dialog.Trigger asChild>
-            {children}
+          {children}
         </Dialog.Trigger>
         <Portal>
-        <Dialog.Backdrop />
-        <Dialog.Positioner>
+          <Dialog.Backdrop />
+          <Dialog.Positioner>
             <Dialog.Content>
-                <Dialog.Header>
-                    <Dialog.Title>Share your thoughts or add to your favorites</Dialog.Title>
-                </Dialog.Header>
-                <Dialog.Body>
-                    <VStack gap={4} align="stretch">
-                        {/* Favorites Section */}
-                        <Box p={4} border="1px solid" borderColor="gray.200" rounded="md">
-                            <HStack justify="space-between" align="center">
-                                <VStack align="start" gap={1}>
-                                    <Text fontWeight="semibold">Add to Favorites</Text>
-                                    <Text fontSize="sm" color="gray.600">
-                                    Save this movie to your favorites list
-                                    </Text>
-                                </VStack>
-                                <Button variant="outline" colorScheme="pink" width="170px">
-                                    <LuHeart color="pink" /> Add to Favorites
-                                </Button>
-                            </HStack>
-                        </Box>
-
-                        {/* Review Section */}
-                        <Box p={4} border="1px solid" borderColor="gray.200" rounded="md">
-                            <VStack align="start" gap={3}>
-                                <HStack justify="space-between" align="center" w="100%">
-                                    <VStack align="start" gap={1}>
-                                        <Text fontWeight="semibold">Write a Review</Text>
-                                        <Text fontSize="sm" color="gray.600">
-                                            Rate and review this movie
-                                        </Text>
-                                    </VStack>
-                                    <Button width="170px">
-                                        <LuStar /> Write Review
-                                    </Button>
-                                </HStack>
-                            </VStack>
-                        </Box>
-
-                        {/* Do Later Section */}
-                        <Box p={4} border="1px solid" borderColor="gray.200" rounded="md">
-                            <HStack justify="space-between" align="center">
-                                <VStack align="start" gap={1}>
-                                    <Text fontWeight="semibold">Do Later</Text>
-                                    <Text fontSize="sm" color="gray.600">
-                                    Add to your &quotdo later&quot list
-                                    </Text>
-                                </VStack>
-                                <Button variant="outline" width="170px">
-                                    <LuClock /> Save Review
-                                </Button>
-                            </HStack>
-                        </Box>
+              <Dialog.Header>
+                <Dialog.Title>Share your thoughts or add to your favorites</Dialog.Title>
+                <Dialog.Description>
+                  Rate, review, or add <strong>{movieTitle}</strong> to your favorites
+                </Dialog.Description>
+              </Dialog.Header>
+              <Dialog.Body>
+                <VStack gap={4} align="stretch">
+                  {/* Rating Section */}
+                  <Box p={4} border="1px solid" borderColor="gray.200" rounded="md">
+                    <VStack align="start" gap={3}>
+                      <VStack align="start" gap={1}>
+                        <Heading size="sm">Rating</Heading>
+                        <Text fontSize="sm" color="gray.600">
+                          Rate this movie
+                        </Text>
+                      </VStack>
+                      <Box width="100%">
+                        <RatingSelector movieId={movieId} />
+                      </Box>
                     </VStack>
-                </Dialog.Body>
-                <Dialog.Footer>
-                    <Dialog.ActionTrigger asChild>
-                        <Button variant="outline">Cancel</Button>
-                    </Dialog.ActionTrigger>
-                    <Button>Save</Button>
-                </Dialog.Footer>
-                <Dialog.CloseTrigger asChild>
-                    <CloseButton size="sm" />
-                </Dialog.CloseTrigger>
+                  </Box>
+
+                  {/* Favorites Section */}
+                  <Box p={4} border="1px solid" borderColor="gray.200" rounded="md">
+                    <HStack justify="space-between" align="center">
+                      <VStack align="start" gap={1}>
+                        <Text fontWeight="semibold">Add to Favorites</Text>
+                        <Text fontSize="sm" color="gray.600">
+                          Save this movie to your favorites list
+                        </Text>
+                      </VStack>
+                      <Button 
+                        variant="outline" 
+                        colorScheme="pink" 
+                        width="170px"
+                        onClick={() => setFavouriteDialogOpen(true)}
+                        disabled={!isInWatchlist}
+                      >
+                        <LuHeart color="pink" /> Add to Favorites
+                      </Button>
+                    </HStack>
+                  </Box>
+
+                  {/* Review Section */}
+                  <Box p={4} border="1px solid" borderColor="gray.200" rounded="md">
+                    <VStack align="start" gap={3}>
+                      <HStack justify="space-between" align="center" w="100%">
+                        <VStack align="start" gap={1}>
+                          <Text fontWeight="semibold">Write a Review</Text>
+                          <Text fontSize="sm" color="gray.600">
+                            Rate and review this movie
+                          </Text>
+                        </VStack>
+                        <Button 
+                          width="170px"
+                          onClick={() => setReviewFormOpen(true)}
+                          disabled={!isInWatchlist}
+                        >
+                          <LuStar /> Write Review
+                        </Button>
+                      </HStack>
+                      {reviewFormOpen && (
+                        <Box width="100%" mt={2}>
+                          <ReviewForm 
+                            movieId={movieId}
+                            onSuccess={handleReviewSuccess}
+                            onCancel={() => setReviewFormOpen(false)}
+                            isInWatchlist={isInWatchlist || false}
+                          />
+                        </Box>
+                      )}
+                    </VStack>
+                  </Box>
+                </VStack>
+              </Dialog.Body>
+              <Dialog.Footer>
+                <Dialog.ActionTrigger asChild>
+                  <Button variant="outline" onClick={() => setDialogOpen(false)}>Close</Button>
+                </Dialog.ActionTrigger>
+              </Dialog.Footer>
+              <Dialog.CloseTrigger asChild>
+                <CloseButton size="sm" />
+              </Dialog.CloseTrigger>
             </Dialog.Content>
-        </Dialog.Positioner>
+          </Dialog.Positioner>
         </Portal>
-  </Dialog.Root>
+      </Dialog.Root>
+
+      <FavouriteDialog
+        movieId={movieId}
+        movieTitle={movieTitle}
+        open={favouriteDialogOpen}
+        onOpenChange={setFavouriteDialogOpen}
+        onSuccess={handleFavouriteSuccess}
+      />
+    </>
   );
 }

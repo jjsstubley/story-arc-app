@@ -1,4 +1,4 @@
-import { Checkbox } from "@chakra-ui/react";
+import { Checkbox, Box } from "@chakra-ui/react";
 import { CheckedChangeDetails } from "node_modules/@chakra-ui/react/dist/types/components/checkbox/namespace";
 
 interface TableCheckboxProps {
@@ -15,15 +15,27 @@ export function TableCheckbox({
   size = "sm"
 }: TableCheckboxProps) {
   return (
-    <Checkbox.Root
-      size={size}
-      top="0.5"
-      aria-label={ariaLabel}
-      checked={checked}
-      onCheckedChange={onCheckedChange}
+    <Box 
+      onClick={(e) => {
+        e.stopPropagation();
+      }}
+      onMouseDown={(e) => {
+        e.stopPropagation();
+      }}
     >
-      <Checkbox.HiddenInput />
-      <Checkbox.Control />
-    </Checkbox.Root>
+      <Checkbox.Root
+        size={size}
+        top="0.5"
+        aria-label={ariaLabel}
+        checked={checked}
+        onCheckedChange={onCheckedChange}
+        onClick={(e) => {
+          e.stopPropagation();
+        }}
+      >
+        <Checkbox.HiddenInput />
+        <Checkbox.Control />
+      </Checkbox.Root>
+    </Box>
   );
 }

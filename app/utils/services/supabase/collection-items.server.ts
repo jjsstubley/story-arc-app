@@ -102,3 +102,5 @@ export async function toggleMovieInCollection(userId: string, collectionId: stri
     : await addMovieToCollection(collectionId, movieId, userId, supabase);
 }
 
+
+
