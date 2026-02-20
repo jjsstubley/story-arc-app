@@ -7,7 +7,6 @@ import { TmdbMovieSummaryInterface } from "~/interfaces/tmdb/movie/summary"
 import { getFormattedDate } from "~/utils/helpers"
 import CollectionWatched from "~/components/collections/watched"
 import MoviePosterList from "~/components/movie/previews/poster-list"
-import DeleteCollectionItemAction from "~/components/collections/delete-movie-action"
 
 export const CollectionTable = ({ collection }: {collection: CollectionsInterface}) => {
   const [hoveredItemId, setHoveredItemId] = useState<string | null>(null)
