@@ -9,8 +9,9 @@ import { usePosterGradientColor } from "~/hooks/use-poster-gradient-color";
 import BlurredPlaceholder from "../media/common/blurred-placeholder";
 import EditCollectionDialog from "./edit-collection-dialog";
 import { HiPencil } from "react-icons/hi";
+import { LuChevronUp } from "react-icons/lu";
 import { Session } from "@supabase/supabase-js";
-import { forwardRef } from "react";
+import { forwardRef, useState, useRef, useEffect } from "react";
 // import BackButton from "../backButton";
 
 interface CollectionsHeroProps {
@@ -27,10 +28,74 @@ const CollectionsHero = forwardRef<HTMLHeadingElement, CollectionsHeroProps>(({c
       collection?.id
     );
 
+    // Tags expand/collapse state
+    const [isTagsExpanded, setIsTagsExpanded] = useState(false);
+    const [visibleTagCount, setVisibleTagCount] = useState(collection?.tags.length || 0);
+    const tagsContainerRef = useRef<HTMLDivElement>(null);
+    const badgeRefs = useRef<(HTMLAnchorElement | null)[]>([]);
+
+    // Measure which badges fit in 3 rows
+    useEffect(() => {
+      if (!tagsContainerRef.current || !collection || collection.tags.length === 0) {
+        setVisibleTagCount(collection?.tags.length || 0);
+        return;
+      }
+
+      // Reset refs array
+      badgeRefs.current = new Array(collection.tags.length).fill(null);
+
+      // Wait for badges to render
+      const timeoutId = setTimeout(() => {
+        const container = tagsContainerRef.current;
+        if (!container) return;
+
+        const containerRect = container.getBoundingClientRect();
+        let lastRowTop = -1;
+        let currentRow = 1;
+        let countInFirst3Rows = 0;
+
+        badgeRefs.current.forEach((badgeRef) => {
+          if (!badgeRef) return;
+
+          const rect = badgeRef.getBoundingClientRect();
+          const top = rect.top - containerRect.top;
+
+          // Determine if this is a new row
+          if (lastRowTop === -1 || Math.abs(top - lastRowTop) > 5) {
+            if (lastRowTop !== -1) {
+              currentRow++;
+            }
+            lastRowTop = top;
+          }
+
+          // Count badges in first 3 rows
+          if (currentRow <= 3) {
+            countInFirst3Rows++;
+          }
+        });
+
+        // If all tags fit in 3 rows, show all
+        if (countInFirst3Rows >= collection.tags.length) {
+          setVisibleTagCount(collection.tags.length);
+        } else {
+          // Show tags that fit in 3 rows (minus 1 to make room for "+X more" badge)
+          setVisibleTagCount(Math.max(0, countInFirst3Rows - 1));
+        }
+      }, 100);
+
+      return () => clearTimeout(timeoutId);
+    }, [collection]);
+
     if (!collection) return (<Box width="100%" height={height} backgroundColor="gray.900" rounded="md"></Box>)
     
     const items = collection.collection_items.slice(0, 4);
     const placeholderCount = Math.max(0, 4 - items.length);
+    
+    const hasMoreTags = !isTagsExpanded && visibleTagCount < (collection?.tags.length || 0);
+    const remainingCount = (collection?.tags.length || 0) - visibleTagCount;
+    const tagsToShow = isTagsExpanded 
+      ? collection.tags 
+      : collection.tags.slice(0, visibleTagCount);
     
     return (
       <Box position="relative" rounded="md" overflow="hidden">
@@ -121,19 +186,64 @@ const CollectionsHero = forwardRef<HTMLHeadingElement, CollectionsHeroProps>(({c
               <Text mt={4}>{collection.description}</Text>
               <Text mt={4} fontSize="xs">Created { getFormattedDate({release_date: collection.created_at, options: {year: 'numeric', month: 'long',day: 'numeric'}, region:'en-US'}) }</Text>
               <Box display="flex" gap={4} justifyContent="space-between flex-wrap">
-                <Box display="flex" gap={2} mt={4} flexWrap="wrap">
+                <Box position="relative" flex={1}>
+                  <Box 
+                    ref={tagsContainerRef}
+                    display="flex" 
+                    gap={2} 
+                    mt={4} 
+                    flexWrap="wrap"
+                  >
                     {
-                      collection.tags.map((item, index) => (
-                        <Link to={`/keywords/${item.toLowerCase()}`} key={index}>
-                          <Badge size="md" colorPalette="orange"> {item} </Badge>
-                        </Link>
-                      ))
+                      collection.tags.map((item, index) => {
+                        const isVisible = index < tagsToShow.length;
+                        return (
+                          <Link 
+                            to={`/keywords/${item.toLowerCase()}`} 
+                            key={index} 
+                            style={{ 
+                              textDecoration: 'none',
+                              display: isVisible ? 'inline-block' : 'none'
+                            }}
+                            ref={(el) => {
+                              badgeRefs.current[index] = el;
+                            }}
+                          >
+                            <Badge size="md" colorPalette="orange"> {item} </Badge>
+                          </Link>
+                        );
+                      })
                     }
+                    {hasMoreTags && (
+                      <Badge 
+                        size="md" 
+                        colorPalette="orange"
+                        as="button"
+                        onClick={() => setIsTagsExpanded(true)}
+                        cursor="pointer"
+                        style={{ textDecoration: 'none', border: 'none', background: 'inherit' }}
+                      >
+                        +{remainingCount} more
+                      </Badge>
+                    )}
+                  </Box>
+                  {isTagsExpanded && (
+                    <IconButton
+                      size="sm"
+                      variant="ghost"
+                      colorPalette="orange"
+                      mt={2}
+                      onClick={() => setIsTagsExpanded(false)}
+                      aria-label="Collapse tags"
+                    >
+                      <LuChevronUp />
+                    </IconButton>
+                  )}
                 </Box>
               </Box>
             </Box>
             <Box rounded="md" overflow="hidden" width="100%" minWidth="300px" maxWidth="300px" position="relative" zIndex={2}>
-              <SimpleGrid columns={2}>
+              <SimpleGrid columns={2} gap={0} alignItems="flex-start">
                   {
                     items.map((i, index) => (
                       <MediaImage key={index} backdrop_path={i.movie.backdrop_path} height="100px" />
