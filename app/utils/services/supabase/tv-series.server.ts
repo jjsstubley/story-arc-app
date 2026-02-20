@@ -71,6 +71,33 @@ export async function toggleSeriesInSaved(
     : await addSeriesToSaved(userId, seriesId, supabase, watchlistId);
 }
 
+export async function updateTVSeriesItem(
+  userId: string,
+  seriesId: number,
+  updates: {
+    is_seen?: boolean;
+    notes?: string;
+  },
+  supabase: SupabaseClient
+) {
+  console.log('updateTVSeriesItem userId', userId);
+  console.log('updateTVSeriesItem seriesId', seriesId);
+  console.log('updateTVSeriesItem updates', updates);
+
+  const { data, error } = await supabase
+    .from(collection)
+    .update(updates)
+    .eq("user_id", userId)
+    .eq("tmdb_series_id", seriesId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  
+  console.log('updateTVSeriesItem all good');
+  return data;
+}
+
 export async function getUserSavedSeries(
   userId: string,
   supabase: SupabaseClient,

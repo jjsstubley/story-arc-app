@@ -16,7 +16,7 @@ const InfoPanelMetadata = ({movie} : { movie: TmdbMovieDetailWAppendsProps }) =>
                 </Box>
                 {/* <BsCheck2Circle color="green" size="30px"/> */}  {/* TODO: Add seen status */}
             </Box>
-            <Box display="flex" gap={2} mt={4}>
+            <Box display="flex" gap={2} mt={4} flexWrap="wrap">
                 <Genres genres={movie.genres} />
             </Box>
             <Box display="flex" gap={2} alignItems="center" justifyContent="flex-start">

@@ -1,6 +1,7 @@
 import { AbsoluteCenter, Box,  ProgressCircle, Text } from "@chakra-ui/react";
 import { TmdbMovieDetailWAppendsProps } from "~/interfaces/tmdb/movie/detail";
 import { formatReadableNumber } from "~/utils/helpers";
+import RatingReviewDialog from "~/components/user-actions/ratings/rating-review-dialog";
 
 const RatingCard = ({movie} : { movie: TmdbMovieDetailWAppendsProps }) => {
     function getVoteAverage() {
@@ -17,8 +18,18 @@ const RatingCard = ({movie} : { movie: TmdbMovieDetailWAppendsProps }) => {
         }
     }
     
-    return (
-        <Box colorPalette={getVoteAverage()} bg="blackAlpha.600" rounded="md" p={2} display="flex" alignItems="center" gap={2}>
+    const cardContent = (
+        <Box 
+            colorPalette={getVoteAverage()} 
+            bg="blackAlpha.600" 
+            rounded="md" 
+            p={2} 
+            display="flex" 
+            alignItems="center" 
+            gap={2}
+            cursor="pointer"
+            _hover={{ bg: "blackAlpha.700" }}
+        >
             <ProgressCircle.Root size="lg" value={(parseFloat(movie.vote_average.toString()) / 10) * 100} colorPalette={getVoteAverage()}>
                 <ProgressCircle.Circle >
                     <ProgressCircle.Track/>
@@ -30,6 +41,16 @@ const RatingCard = ({movie} : { movie: TmdbMovieDetailWAppendsProps }) => {
             </ProgressCircle.Root>
             <Text whiteSpace="nowrap" fontSize="xs">{formatReadableNumber(parseInt(movie.vote_count.toString()))} ratings</Text>
         </Box>
+    );
+
+    return (
+        <RatingReviewDialog
+            mediaId={movie.id}
+            mediaTitle={movie.title}
+            mediaType="movie"
+        >
+            {cardContent}
+        </RatingReviewDialog>
     );
 };
 

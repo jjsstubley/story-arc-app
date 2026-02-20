@@ -4,6 +4,7 @@ import { TmdbTVSeriesDetailWAppendsProps } from "~/interfaces/tmdb/tv/series/det
 import { TVSeasonDetailsInterface } from "~/interfaces/tmdb/tv/season/details";
 import { TVEpisodeDetailsInterface } from "~/interfaces/tmdb/tv/episode/details";
 import { formatReadableNumber } from "~/utils/helpers";
+import RatingReviewDialog from "~/components/user-actions/ratings/rating-review-dialog";
 
 type MediaDetails = TmdbTVSeriesDetailWAppendsProps | TmdbMovieDetailWAppendsProps | TVSeasonDetailsInterface | TVEpisodeDetailsInterface;
 
@@ -22,9 +23,25 @@ const RatingCard = ({media} : { media: MediaDetails }) => {
           return 'green';
         }
     }
+
+    // Determine media type and extract ID and title
+    const isMovie = 'title' in media;
+    const mediaId = media.id;
+    const mediaTitle = isMovie ? (media as TmdbMovieDetailWAppendsProps).title : (media as TmdbTVSeriesDetailWAppendsProps).name;
+    const mediaType = isMovie ? 'movie' : 'tv';
     
-    return (
-        <Box colorPalette={getVoteAverage()} bg="blackAlpha.600" rounded="md" p={2} display="flex" alignItems="center" gap={2}>
+    const cardContent = (
+        <Box 
+            colorPalette={getVoteAverage()} 
+            bg="blackAlpha.600" 
+            rounded="md" 
+            p={2} 
+            display="flex" 
+            alignItems="center" 
+            gap={2}
+            cursor="pointer"
+            _hover={{ bg: "blackAlpha.700" }}
+        >
             <ProgressCircle.Root size="lg" value={(parseFloat(media.vote_average.toString()) / 10) * 100} colorPalette={getVoteAverage()}>
                 <ProgressCircle.Circle >
                     <ProgressCircle.Track/>
@@ -37,6 +54,22 @@ const RatingCard = ({media} : { media: MediaDetails }) => {
             { 'vote_count' in media && <Text whiteSpace="nowrap" fontSize="xs">{formatReadableNumber(parseInt(media.vote_count.toString()))} ratings</Text>}
         </Box>
     );
+
+    // Only wrap with dialog if it's a movie or TV series (not season/episode)
+    if (isMovie || 'name' in media) {
+        return (
+            <RatingReviewDialog
+                mediaId={mediaId}
+                mediaTitle={mediaTitle}
+                mediaType={mediaType}
+            >
+                {cardContent}
+            </RatingReviewDialog>
+        );
+    }
+
+    // For seasons/episodes, return without dialog
+    return cardContent;
 };
 
 export default RatingCard;

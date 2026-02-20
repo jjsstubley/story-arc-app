@@ -6,9 +6,15 @@ import { FaCircleCheck } from "react-icons/fa6";
 
 export default function Watched({ item, watchlistId } : { item: WatchlistItemInterface, watchlistId: string, isHovered: boolean }) {
     const [isSeen, setIsSeen] = useState(item.is_seen);
+    const [dialogOpen, setDialogOpen] = useState(false);
     
     async function updateWatchlistItem(e: React.MouseEvent) {
         e.stopPropagation();
+        
+        // Only open dialog when marking as watched (changing from false to true)
+        // Use current state, not the prop
+        const currentIsSeen = isSeen;
+        const willBeWatched = !currentIsSeen;
         
         // Determine the correct API endpoint based on watchlist ID
         const apiUrl = watchlistId === 'default' 
@@ -20,22 +26,25 @@ export default function Watched({ item, watchlistId } : { item: WatchlistItemInt
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({ is_seen: !item.is_seen, watchlistId }),
+            body: JSON.stringify({ is_seen: !currentIsSeen, watchlistId }),
         });
 
         if (response.ok) {
-            setIsSeen(!isSeen);
+            setIsSeen(!currentIsSeen);
+            // Only open dialog if we're marking as watched (changing from false to true)
+            if (willBeWatched) {
+                setDialogOpen(true);
+            } else {
+                // Close dialog if we're unmarking as watched
+                setDialogOpen(false);
+            }
         }
     }
 
     const movieTitle = item.movie?.title || item.series?.name || `Movie ${item.tmdb_movie_id}`;
 
     return (
-        <MovieActionsDialog 
-            movieId={item.tmdb_movie_id} 
-            movieTitle={movieTitle}
-            isInWatchlist={true}
-        >
+        <>
             <Box 
                 onClick={updateWatchlistItem}
                 cursor="pointer"
@@ -48,7 +57,15 @@ export default function Watched({ item, watchlistId } : { item: WatchlistItemInt
             >
                 <FaCircleCheck color={isSeen ? "green" : "gray"} size={20} />
             </Box>
-        </MovieActionsDialog>
+            <MovieActionsDialog 
+                movieId={item.tmdb_movie_id} 
+                movieTitle={movieTitle}
+                isInWatchlist={true}
+                open={dialogOpen}
+                onOpenChange={(e) => setDialogOpen(e.open)}
+            >
+                <Box display="none" />
+            </MovieActionsDialog>
+        </>
     );
-
 }

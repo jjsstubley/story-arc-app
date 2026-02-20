@@ -92,3 +92,22 @@ export async function toggleMovieInWatchlist(watchlistId: string, movieId: numbe
     ? await removeMovieFromWatchlist(watchlistId, movieId, supabase)
     : await addMovieToWatchlist(watchlistId, movieId, userId, supabase, mediaType);
 }
+
+export async function getWatchlistItem(
+  watchlistId: string,
+  tmdbId: number,
+  supabase: SupabaseClient,
+): Promise<{ id: string; is_seen: boolean; watchlist_id: string } | null> {
+  console.log('getWatchlistItem watchlistId', watchlistId);
+  console.log('getWatchlistItem tmdbId', tmdbId);
+  const { data, error } = await supabase
+    .from(collection)
+    .select("id, is_seen, watchlist_id")
+    .eq("watchlist_id", watchlistId)
+    .eq("tmdb_id", tmdbId)
+    .maybeSingle();
+
+  if (error) throw error;
+
+  return data;
+}
