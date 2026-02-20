@@ -8,8 +8,6 @@ import { getFormattedDate } from "~/utils/helpers"
 import CollectionWatched from "~/components/collections/watched"
 import MoviePosterList from "~/components/movie/previews/poster-list"
 import DeleteCollectionItemAction from "~/components/collections/delete-movie-action"
-import { Badge, Box } from "@chakra-ui/react"
-import { Link } from "@remix-run/react"
 
 export const CollectionTable = ({ collection }: {collection: CollectionsInterface}) => {
   const [hoveredItemId, setHoveredItemId] = useState<string | null>(null)
@@ -54,21 +52,7 @@ export const CollectionTable = ({ collection }: {collection: CollectionsInterfac
           isHovered={hoveredItemId === item.list_id} 
         />
       )
-    },
-    { 
-      key: "action", 
-      header: "", 
-      width: 50, 
-      render: (item: CollectionItemInterface) => (
-        <DeleteCollectionItemAction 
-          movieId={item.movie_id}
-          movieTitle={item.movie.title || `Movie ${item.movie_id}`}
-          collectionId={collection.id}
-          onDelete={() => {}}
-          isHovered={hoveredItemId === item.list_id}
-        />
-      )
-    },
+    }
   ]
 
   return (
