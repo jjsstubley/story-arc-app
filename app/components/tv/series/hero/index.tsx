@@ -5,10 +5,14 @@ import TVSeriesOverlay from "./movie-overlay";
 import { TmdbTVSeriesDetailWAppendsProps } from "~/interfaces/tmdb/tv/series/details";
 import TVSeriesPoster from "../previews/poster";
 import { TmdbTVSeriesSummaryInterface } from "~/interfaces/tmdb/tv/series/summary";
-import { getGradientColor } from "~/utils/helpers/gradient-colors";
+import { usePosterGradientColor } from "~/hooks/use-poster-gradient-color";
 
 const TVSeriesHero = ({series, height = '400px'} : {series: TmdbTVSeriesDetailWAppendsProps, height: string}) => {
-    const gradientColor = series ? getGradientColor(series.id.toString()) : "orange.900";
+    const gradientColor = usePosterGradientColor(
+      series?.id,
+      series?.poster_path,
+      series?.id?.toString()
+    );
 
     if (!series) return (<Box width="100%" height={height} backgroundColor="gray.900" rounded="md"></Box>)
     return (
