@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { AsyncMultipleCombobox } from "~/components/ui/combobox/async-multiple";
 import ComboTagsGrouped from "~/components/ui/combobox/combo-tags-grouped";
-import { Box, Combobox } from "@chakra-ui/react";
+import { Box, Combobox, SegmentGroup } from "@chakra-ui/react";
 import { parseGroupedValue, serializeGroupedValue } from "~/utils/helpers";
 import { RequestFilterProps } from "~/components/search/filter-search";
 import { ComboboxItemProp } from "~/components/ui/combobox/interfaces/combobox-item";
@@ -13,11 +13,14 @@ interface ConfigProps {
   value: string;
 }
 
-const KeywordCommandEngine = ({ onSelect, defaults, defaultValue }: { 
+const KeywordCommandEngine = ({ onSelect, defaults, defaultValue, withoutDefaults, withoutDefaultValue }: { 
   onSelect: (payload: ConfigProps) => void, 
   defaults?: string[],
-  defaultValue?: RequestFilterProps
+  defaultValue?: RequestFilterProps,
+  withoutDefaults?: string[],
+  withoutDefaultValue?: RequestFilterProps
 }) => {
+  const [mode, setMode] = useState<'Include' | 'Exclude'>('Include');
   const [items, setItems] = useState<ComboboxItemProp[]>([]);
   const [operators, setOperators] = useState<('and' | 'or')[]>([]);
   const [flatTags, setFlatTags] = useState<string[]>([]);
@@ -88,19 +91,22 @@ const KeywordCommandEngine = ({ onSelect, defaults, defaultValue }: {
     return groups;
   };
 
-  // Initialize items and operators from defaults
+  // Initialize items and operators from defaults based on mode
   useEffect(() => {
-    if (defaultValue?.value && typeof defaultValue.value === 'string') {
+    const currentDefaults = mode === 'Include' ? defaults : withoutDefaults;
+    const currentDefaultValue = mode === 'Include' ? defaultValue : withoutDefaultValue;
+    
+    if (currentDefaultValue?.value && typeof currentDefaultValue.value === 'string') {
       // Parse the grouped value string
-      const parsed = parseGroupedValue(defaultValue.value);
+      const parsed = parseGroupedValue(currentDefaultValue.value);
       const { items: newItems, operators: newOperators } = groupsToItemsAndOperators(parsed);
       setItems(newItems);
       setOperators(newOperators);
       setFlatTags(newItems.map(i => i.name));
-    } else if (defaults && defaults.length > 0) {
+    } else if (currentDefaults && currentDefaults.length > 0) {
       // Fallback: use defaults as flat list (all OR)
-      setFlatTags(defaults);
-      const newItems: ComboboxItemProp[] = defaults.map(name => ({
+      setFlatTags(currentDefaults);
+      const newItems: ComboboxItemProp[] = currentDefaults.map(name => ({
         id: parseInt(name) || 0,
         name: name,
         value: name
@@ -109,17 +115,24 @@ const KeywordCommandEngine = ({ onSelect, defaults, defaultValue }: {
       setItems(newItems);
       // Default: all OR operators
       setOperators(newItems.length > 1 ? new Array(newItems.length - 1).fill('or') : []);
+    } else {
+      // Clear if no defaults for current mode
+      setItems([]);
+      setOperators([]);
+      setFlatTags([]);
     }
-  }, [defaultValue, defaults, groupsToItemsAndOperators]);
+  }, [mode, defaultValue, defaults, withoutDefaultValue, withoutDefaults, groupsToItemsAndOperators]);
 
   function handleOnSubmit(details: Combobox.ValueChangeDetails | null) { 
+    const filterKey = mode === 'Include' ? 'with_keywords' : 'without_keywords';
+    
     if (!details) {
       setItems([]);
       setOperators([]);
       setFlatTags([]);
       onSelect({
         type: 'keywords',
-        key: 'with_keywords',
+        key: filterKey,
         name: [],
         value: ''
       });
@@ -165,7 +178,7 @@ const KeywordCommandEngine = ({ onSelect, defaults, defaultValue }: {
 
     const newConfig = {
       type: 'keywords',
-      key: 'with_keywords',
+      key: filterKey,
       name: details.value || [],
       value: serialized
     };
@@ -173,6 +186,7 @@ const KeywordCommandEngine = ({ onSelect, defaults, defaultValue }: {
   }
 
   const handleRemoveTag = (item: ComboboxItemProp) => {
+    const filterKey = mode === 'Include' ? 'with_keywords' : 'without_keywords';
     const itemIndex = items.findIndex(i => i.id === item.id && i.name === item.name);
     if (itemIndex === -1) return;
     
@@ -204,13 +218,14 @@ const KeywordCommandEngine = ({ onSelect, defaults, defaultValue }: {
     
     onSelect({
       type: 'keywords',
-      key: 'with_keywords',
+      key: filterKey,
       name: newItems.map(i => i.name),
       value: serialized
     });
   };
 
   const handleOperatorToggle = (operatorIndex: number) => {
+    const filterKey = mode === 'Include' ? 'with_keywords' : 'without_keywords';
     if (operatorIndex < 0 || operatorIndex >= operators.length) return;
     
     const newOperators = [...operators];
@@ -223,14 +238,38 @@ const KeywordCommandEngine = ({ onSelect, defaults, defaultValue }: {
     
     onSelect({
       type: 'keywords',
-      key: 'with_keywords',
+      key: filterKey,
       name: items.map(i => i.name),
       value: serialized
     });
   };
 
+  const handleModeChange = (newMode: 'Include' | 'Exclude') => {
+    setMode(newMode);
+    // Clear current selections when switching modes
+    setItems([]);
+    setOperators([]);
+    setFlatTags([]);
+  };
+
+  const colorPalette = mode === 'Include' ? 'red' : 'red';
+
   return (
     <Box>
+      <Box mb={2}>
+        <SegmentGroup.Root 
+          size="sm" 
+          value={mode} 
+          onValueChange={(e) => {
+            if (e.value !== null) {
+              handleModeChange(e.value as 'Include' | 'Exclude');
+            }
+          }}
+        >
+          <SegmentGroup.Indicator />
+          <SegmentGroup.Items items={['Include', 'Exclude']} />
+        </SegmentGroup.Root>
+      </Box>
       <AsyncMultipleCombobox 
         suggestions={[]} 
         onSelect={handleOnSubmit} 
@@ -266,7 +305,7 @@ const KeywordCommandEngine = ({ onSelect, defaults, defaultValue }: {
           operators={operators}
           onOperatorToggle={handleOperatorToggle}
           onRemoveTag={handleRemoveTag}
-          colorPalette="red"
+          colorPalette={colorPalette}
         />
       )}
     </Box>

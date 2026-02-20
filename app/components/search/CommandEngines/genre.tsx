@@ -4,7 +4,7 @@ import { GenreInterface } from "~/interfaces/tmdb/genre";
 import { ComboboxItemProp } from "~/components/ui/combobox/interfaces/combobox-item";
 import { MultipleCombobox } from "~/components/ui/combobox/multiple";
 import ComboTagsGrouped from "~/components/ui/combobox/combo-tags-grouped";
-import { Box, Combobox } from "@chakra-ui/react";
+import { Box, Combobox, SegmentGroup } from "@chakra-ui/react";
 import { parseGroupedValue, serializeGroupedValue } from "~/utils/helpers";
 import { RequestFilterProps } from "~/components/search/filter-search";
 
@@ -15,13 +15,16 @@ interface ConfigProps {
   value: string;
 }
 
-const GenreCommandEngine = ({ onSelect, genres, defaults, disabled, defaultValue }: { 
+const GenreCommandEngine = ({ onSelect, genres, defaults, disabled, defaultValue, withoutDefaults, withoutDefaultValue }: { 
   onSelect: (payload: ConfigProps) => void, 
   genres: GenreInterface[], 
   defaults?: string[], 
   disabled: boolean,
-  defaultValue?: RequestFilterProps
+  defaultValue?: RequestFilterProps,
+  withoutDefaults?: string[],
+  withoutDefaultValue?: RequestFilterProps
 }) => {
+  const [mode, setMode] = useState<'Include' | 'Exclude'>('Include');
   const [genreFields, setGenreFields] = useState<ComboboxItemProp[]>([]);
   const [items, setItems] = useState<ComboboxItemProp[]>([]);
   const [operators, setOperators] = useState<('and' | 'or')[]>([]);
@@ -104,19 +107,22 @@ const GenreCommandEngine = ({ onSelect, genres, defaults, disabled, defaultValue
     return groups;
   };
 
-  // Initialize items and operators from defaults
+  // Initialize items and operators from defaults based on mode
   useEffect(() => {
-    if (defaultValue?.value && typeof defaultValue.value === 'string') {
+    const currentDefaults = mode === 'Include' ? defaults : withoutDefaults;
+    const currentDefaultValue = mode === 'Include' ? defaultValue : withoutDefaultValue;
+    
+    if (currentDefaultValue?.value && typeof currentDefaultValue.value === 'string') {
       // Parse the grouped value string
-      const parsed = parseGroupedValue(defaultValue.value);
+      const parsed = parseGroupedValue(currentDefaultValue.value);
       const { items: newItems, operators: newOperators } = groupsToItemsAndOperators(parsed);
       setItems(newItems);
       setOperators(newOperators);
       setFlatTags(newItems.map(i => i.name));
-    } else if (defaults && defaults.length > 0) {
+    } else if (currentDefaults && currentDefaults.length > 0) {
       // Fallback: use defaults as flat list (all OR)
-      setFlatTags(defaults);
-      const newItems: ComboboxItemProp[] = defaults
+      setFlatTags(currentDefaults);
+      const newItems: ComboboxItemProp[] = currentDefaults
         .map(name => {
           const genre = genres.find(g => g.name === name);
           return genre ? {
@@ -130,18 +136,25 @@ const GenreCommandEngine = ({ onSelect, genres, defaults, disabled, defaultValue
       setItems(newItems);
       // Default: all OR operators
       setOperators(newItems.length > 1 ? new Array(newItems.length - 1).fill('or') : []);
+    } else {
+      // Clear if no defaults for current mode
+      setItems([]);
+      setOperators([]);
+      setFlatTags([]);
     }
-  }, [defaultValue, defaults, genres, genreMap, groupsToItemsAndOperators]);
+  }, [mode, defaultValue, defaults, withoutDefaultValue, withoutDefaults, genres, genreMap, groupsToItemsAndOperators]);
 
 
   function handleOnSubmit(details: Combobox.ValueChangeDetails | null) { 
+    const filterKey = mode === 'Include' ? 'with_genres' : 'without_genres';
+    
     if (!details) {
       setItems([]);
       setOperators([]);
       setFlatTags([]);
       onSelect({
         type: 'genre',
-        key: 'with_genres',
+        key: filterKey,
         name: [],
         value: ''
       });
@@ -187,7 +200,7 @@ const GenreCommandEngine = ({ onSelect, genres, defaults, disabled, defaultValue
 
     const newConfig = {
       type: 'genre',
-      key: 'with_genres',
+      key: filterKey,
       name: details.value || [],
       value: serialized
     };
@@ -195,6 +208,7 @@ const GenreCommandEngine = ({ onSelect, genres, defaults, disabled, defaultValue
   }
 
   const handleRemoveTag = (item: ComboboxItemProp) => {
+    const filterKey = mode === 'Include' ? 'with_genres' : 'without_genres';
     const itemIndex = items.findIndex(i => i.id === item.id && i.name === item.name);
     if (itemIndex === -1) return;
     
@@ -226,13 +240,14 @@ const GenreCommandEngine = ({ onSelect, genres, defaults, disabled, defaultValue
     
     onSelect({
       type: 'genre',
-      key: 'with_genres',
+      key: filterKey,
       name: newItems.map(i => i.name),
       value: serialized
     });
   };
 
   const handleOperatorToggle = (operatorIndex: number) => {
+    const filterKey = mode === 'Include' ? 'with_genres' : 'without_genres';
     if (operatorIndex < 0 || operatorIndex >= operators.length) return;
     
     const newOperators = [...operators];
@@ -245,14 +260,38 @@ const GenreCommandEngine = ({ onSelect, genres, defaults, disabled, defaultValue
     
     onSelect({
       type: 'genre',
-      key: 'with_genres',
+      key: filterKey,
       name: items.map(i => i.name),
       value: serialized
     });
   };
 
+  const handleModeChange = (newMode: 'Include' | 'Exclude') => {
+    setMode(newMode);
+    // Clear current selections when switching modes
+    setItems([]);
+    setOperators([]);
+    setFlatTags([]);
+  };
+
+  const colorPalette = mode === 'Include' ? 'orange' : 'red';
+
   return (
     <Box>
+      <Box mb={2}>
+        <SegmentGroup.Root 
+          size="sm" 
+          value={mode} 
+          onValueChange={(e) => {
+            if (e.value !== null) {
+              handleModeChange(e.value as 'Include' | 'Exclude');
+            }
+          }}
+        >
+          <SegmentGroup.Indicator />
+          <SegmentGroup.Items items={['Include', 'Exclude']} />
+        </SegmentGroup.Root>
+      </Box>
       <MultipleCombobox 
         suggestions={genreFields} 
         onSelect={handleOnSubmit} 
@@ -287,7 +326,7 @@ const GenreCommandEngine = ({ onSelect, genres, defaults, disabled, defaultValue
           operators={operators}
           onOperatorToggle={handleOperatorToggle}
           onRemoveTag={handleRemoveTag}
-          colorPalette="orange"
+          colorPalette={colorPalette}
         />
       )}
     </Box>

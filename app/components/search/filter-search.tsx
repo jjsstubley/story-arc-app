@@ -5,6 +5,7 @@ import { Form, useLocation, useNavigate } from "@remix-run/react";
 import GenreCommandEngine from "./CommandEngines/genre";
 import KeywordCommandEngine from "./CommandEngines/keyword";
 import CastCommandEngine from "./CommandEngines/cast";
+import CompanyCommandEngine from "./CommandEngines/company";
 import ProviderCommandEngine from "./CommandEngines/provider";
 import CountryCommandEngine from "./CommandEngines/country";
 import LanguageCommandEngine from "./CommandEngines/language";
@@ -132,9 +133,30 @@ const FilterSearch = ({genres, providers, people, regions, languages, defaults, 
     
   return (
     <Box display="flex" flexDirection="column" gap={4}>
-      <GenreCommandEngine genres={genres} onSelect={(i) => updateFilters(i) } defaults={getDefault('with_genres')?.name} defaultValue={getDefault('with_genres') || undefined} disabled={getDefault('with_genres')?.disabled || false}/>
-      <KeywordCommandEngine onSelect={(i) => updateFilters(i) } defaults={getDefault('with_keywords')?.name} defaultValue={getDefault('with_keywords') || undefined} />
+      <GenreCommandEngine 
+        genres={genres} 
+        onSelect={(i) => updateFilters(i)} 
+        defaults={getDefault('with_genres')?.name} 
+        defaultValue={getDefault('with_genres') || undefined} 
+        withoutDefaults={getDefault('without_genres')?.name}
+        withoutDefaultValue={getDefault('without_genres') || undefined}
+        disabled={getDefault('with_genres')?.disabled || false}
+      />
+      <KeywordCommandEngine 
+        onSelect={(i) => updateFilters(i)} 
+        defaults={getDefault('with_keywords')?.name} 
+        defaultValue={getDefault('with_keywords') || undefined}
+        withoutDefaults={getDefault('without_keywords')?.name}
+        withoutDefaultValue={getDefault('without_keywords') || undefined}
+      />
       <CastCommandEngine people={people} onSelect={(i) => updateFilters(i) } defaults={getDefault('with_cast')?.name}/>
+      <CompanyCommandEngine 
+        onSelect={(i) => updateFilters(i)} 
+        defaults={getDefault('with_companies')?.name} 
+        defaultValue={getDefault('with_companies') || undefined}
+        withoutDefaults={getDefault('without_companies')?.name}
+        withoutDefaultValue={getDefault('without_companies') || undefined}
+      />
 
       <Box mb={8}>
           <RatingAvgSlider onValueChange={(e) => updateSliderFilter('ratingAvg', e)} defaults={defaults?.filter((i) => i.type.includes('ratingAvg'))}/>
