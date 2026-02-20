@@ -17,6 +17,8 @@ import { WatchlistProvider } from "~/components/providers/watchlist-context";
 import GlobalSearch from "~/components/search/global-search";
 import { MediaPanelProvider } from "~/components/providers/media-provider";
 import PopcornDialog from "~/components/user-actions/popcorn/popcorn-dialog";
+import AuthButtons from "~/components/auth/auth-buttons";
+import HeaderAvatar from "~/components/auth/header-avatar";
 
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import ArcSidePanel from "~/components/sidepanel/arc-side-panel";
@@ -115,11 +117,16 @@ export default function Layout() {
             <Flex direction="column" minH="100vh" gap={4}>
                 <Box as="header" pt={4} display="flex" gap={4} alignItems="flex-start">
                     <Box w={{ base: "100%", md: "25%" }} alignItems="center">
-                      <Heading as="h1" display="flex" alignItems="center" gap={1} > <Box rounded="full" bg="black" p={1} border="1px solid" borderColor="whiteAlpha.200" overflow="hidden"><Image src="/public/logo.jpg"  width={10} height={10} alt="Brand"/></Box> story arc</Heading>
+                      <Heading as="h1" display="flex" alignItems="center" gap={1} > <Box rounded="full" bg="black" p={1} border="1px solid" borderColor="whiteAlpha.200" overflow="hidden"><Image src="/public/logo.jpg"  width={10} height={10} alt="Brand"/></Box> filmarc</Heading>
                     </Box>
                     <GlobalSearch />
-                    <Box display="flex" justifyContent="space-between" gap={4}>
+                    <Box display="flex" justifyContent="space-between" gap={4} alignItems="center">
                       <PopcornDialog watchlists={filterOptions.watchlists} />
+                      {session ? (
+                        <HeaderAvatar session={session} />
+                      ) : (
+                        <AuthButtons />
+                      )}
                     </Box>
                 </Box>   
                 <PanelGroup direction="horizontal" className="main-panel-group">

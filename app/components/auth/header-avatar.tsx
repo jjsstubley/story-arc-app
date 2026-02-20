@@ -1,5 +1,3 @@
-"use client"
-
 import {
   Menu as ChakraMenu,
   Box,
@@ -10,78 +8,42 @@ import {
   ClientOnly,
   Skeleton,
 } from "@chakra-ui/react"
-import { LuUser, LuSettings, LuLogOut, LuChevronsUpDown } from "react-icons/lu"
+import { LuUser, LuSettings, LuLogOut } from "react-icons/lu"
 import * as React from "react"
-import { Avatar } from "./avatar"
-import { useColorMode, ColorModeIcon } from "./color-mode"
-import SignOutDialog from "~/components/auth/signout-dialog"
+import { Avatar } from "~/components/ui/avatar"
+import { useColorMode, ColorModeIcon } from "~/components/ui/color-mode"
+import { Session } from '@supabase/supabase-js'
+import SignOutDialog from './signout-dialog'
 
-export interface User {
-  id: string
-  email?: string
-  user_metadata?: {
-    full_name?: string
-    avatar_url?: string
-  }
+interface HeaderAvatarProps {
+  session: Session
 }
 
-export interface UserAccountDropdownProps {
-  user: User | null
-  onSignOut?: () => void
-  className?: string
-}
-
-export const UserAccountDropdown = React.forwardRef<
-  HTMLDivElement,
-  UserAccountDropdownProps
->(function UserAccountDropdown({ user, onSignOut, className }, ref) {
+export default function HeaderAvatar({ session }: HeaderAvatarProps) {
   const [signOutDialogOpen, setSignOutDialogOpen] = React.useState(false)
-  
-  if (!user) {
-    return null
-  }
-
-  const { colorMode, toggleColorMode } = useColorMode()
+  const user = session.user
   const userName = user.user_metadata?.full_name || user.email?.split("@")[0] || "User"
   const userEmail = user.email || ""
   const userAvatar = user.user_metadata?.avatar_url
+  const { colorMode, toggleColorMode } = useColorMode()
 
   return (
     <>
-      <ChakraMenu.Root positioning={{ placement: "bottom-start" }}>
+      <ChakraMenu.Root positioning={{ placement: "bottom-end" }}>
       <ChakraMenu.Trigger asChild>
         <Box
-          ref={ref}
-          borderTop="1px solid"
-          borderColor="gray.200"
-          className={className}
           display="flex"
           alignItems="center"
-          justifyContent="space-between"
-          gap="2"
-          padding="2"
-          borderRadius="md"
           cursor="pointer"
-          _hover={{ bg: "gray.100" }}
-          _dark={{ _hover: { bg: "gray.800" }, borderColor: "gray.800" }}
+          _hover={{ opacity: 0.8 }}
+          transition="opacity 0.2s"
         >
-          <Box display="flex" alignItems="center" gap="2">
-            <Avatar
-              size="sm"
-              name={userName}
-              src={userAvatar}
-              fallback={<LuUser />}
-            />
-            <Box display={{ base: "none", md: "block" }}>
-              <Text fontSize="sm" fontWeight="medium">
-                {userName}
-              </Text>
-              <Text fontSize="xs" color="gray.500">
-                {userEmail}
-              </Text>
-            </Box>
-          </Box>
-          <LuChevronsUpDown size={16} />
+          <Avatar
+            size="sm"
+            name={userName}
+            src={userAvatar}
+            fallback={<LuUser />}
+          />
         </Box>
       </ChakraMenu.Trigger>
 
@@ -197,7 +159,6 @@ export const UserAccountDropdown = React.forwardRef<
                 onClick={(e) => {
                   e.preventDefault()
                   setSignOutDialogOpen(true)
-                  if (onSignOut) onSignOut()
                 }}
               >
                 <LuLogOut size={16} />
@@ -216,4 +177,5 @@ export const UserAccountDropdown = React.forwardRef<
     />
     </>
   )
-}) 
+}
+

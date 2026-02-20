@@ -7,16 +7,27 @@ export const loader: LoaderFunction = async ({ request }: LoaderFunctionArgs) =>
   const headers = new Headers();
   const supabase = getSupabaseServerClient(request, headers);
 
+  // Normalize the callback URL to avoid double slashes
+  const baseUrl = APP_URL?.replace(/\/$/, '') || '';
+  const callbackUrl = `${baseUrl}/auth/callback`;
+
   const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: "google", // Change to "google", "twitter", etc.
+    provider: "google",
     options: { 
-      redirectTo: `${APP_URL}auth/callback`,
-    }, // Handle callback
+      redirectTo: callbackUrl,
+      queryParams: {
+        prompt: 'select_account',
+      },
+    },
   });
 
   if (error) {
     return redirect("/auth/login?error=" + encodeURIComponent(error.message));
   }
 
-  return redirect(data.url, { headers });
+  if (data?.url) {
+    return redirect(data.url, { headers });
+  }
+
+  return redirect("/", { headers });
 };

@@ -5,7 +5,6 @@ import { FullProviderInterface } from "~/interfaces/tmdb/provider";
 import { CiSearch } from "react-icons/ci";
 import { Session } from "@supabase/supabase-js";
 import { UserAccountDropdown } from "~/components/ui/user-account-dropdown";
-import GoogleSignIn from "~/components/googleSignIn";
 import DiscoverNavSection from "./sections/discover-nav-section";
 import { WatchlistInterface } from "~/interfaces/watchlist";
 import { PersonSummaryForInterface } from "~/interfaces/tmdb/people/summary";
@@ -74,26 +73,7 @@ const ArcSidePanel = ({filters, session} : {filters: FilterOptionsProps, session
   ]       
   return (
     <Box as="nav" w={{ base: "100%", md: "25%" }} minWidth="300px" height="calc(100vh - 100px)" overflow="hidden" display="flex" flexDirection="column">
-      {/* <Text>Sidebar</Text> */}
-      {/* Account section - fixed at top */}
-      <Box 
-        flexShrink={0}
-        borderColor="gray.200" 
-        _dark={{ borderColor: "gray.700" }}
-        bg="bg.muted"
-        rounded="lg"
-      >
-        {session ? (
-          <UserAccountDropdown 
-            user={session.user} 
-            onSignOut={() => {}} 
-            className="user-account-dropdown" 
-          />
-        ) : (
-          <GoogleSignIn />
-        )}
-      </Box>
-      <Box flex="1"mt={2}>
+      <Box flex="1" mt={2} overflow="hidden" display="flex" flexDirection="column">
         <Accordion.Root defaultValue={["search"]} spaceY={2} height="100%" >
             {sections.map((section) => (
                 <Accordion.Item key={section.value} value={section.value}  bgColor="bg.muted" rounded="lg"  w="full">
@@ -126,6 +106,23 @@ const ArcSidePanel = ({filters, session} : {filters: FilterOptionsProps, session
             ))}
         </Accordion.Root>
       </Box>
+      {/* Account section - fixed at bottom */}
+      {session && (
+        <Box 
+          flexShrink={0}
+          mt={2}
+          borderColor="gray.200" 
+          _dark={{ borderColor: "gray.700" }}
+          bg="bg.muted"
+          rounded="lg"
+        >
+          <UserAccountDropdown 
+            user={session.user} 
+            onSignOut={() => {}} 
+            className="user-account-dropdown" 
+          />
+        </Box>
+      )}
     </Box>
   );
 };

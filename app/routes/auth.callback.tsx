@@ -1,8 +1,8 @@
-// app/routes/callback.tsx
-import { redirect, type LoaderFunctionArgs } from "@remix-run/node";
+// app/routes/auth.callback.tsx
+import { redirect, type LoaderFunctionArgs, type LoaderFunction } from "@remix-run/node";
 import { getSupabaseServerClient } from "~/utils/supabase.server";
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
+export const loader: LoaderFunction = async ({ request }: LoaderFunctionArgs) => {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
   const next = requestUrl.searchParams.get('next') || '/'
@@ -15,7 +15,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     if (!error) {
       return redirect(next, { headers })
     }
+    
+    // If there's an error, redirect to home with error message
+    console.error('Auth callback error:', error);
+    return redirect("/?error=" + encodeURIComponent(error.message), { headers });
   }
 
-  return redirect("/", { headers }); // Redirect to home page after login
+  return redirect("/", { headers }); // Redirect to home page if no code
 };
