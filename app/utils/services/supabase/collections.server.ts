@@ -83,8 +83,9 @@ export async function getCollectionById(id: string, userId: string, supabase: Su
   return data;
 }
 
-export async function getCollectionWMoviesById(id: string, userId: string, supabase: SupabaseClient) {
+export async function getCollectionWMoviesById(id: string, userId: string | null, supabase: SupabaseClient) {
 
+  // First, fetch the collection by ID
   const { data, error } = await supabase
     .from("collections")
     .select(`*,
@@ -103,6 +104,16 @@ export async function getCollectionWMoviesById(id: string, userId: string, supab
 
   if (error && error.code !== "PGRST116") throw error; // PGRST116 = no rows found
   if (!data) return null
+
+  // Access control:
+  // - System-generated collections: accessible to everyone
+  // - User collections: only accessible to the owner
+  if (!data.is_system_generated) {
+    // For non-system-generated collections, require authentication and ownership
+    if (!userId || data.user_id !== userId) {
+      return null;
+    }
+  }
 
   const items = data.collection_items || [];
 

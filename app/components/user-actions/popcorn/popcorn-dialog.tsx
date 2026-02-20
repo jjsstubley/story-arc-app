@@ -1,10 +1,15 @@
-import { Button, Dialog, Portal, CloseButton } from '@chakra-ui/react'
+import { Button, Dialog, Portal, CloseButton, IconButton } from '@chakra-ui/react'
 import { LuPopcorn } from 'react-icons/lu'
 import PopcornWatchlist from '~/components/watchlist/popcorn-watchlist';
 import { WatchlistInterface } from "~/interfaces/watchlist";
+import type { IconButtonProps } from '@chakra-ui/react'
 
+export interface PopcornDialogProps {
+  watchlists: WatchlistInterface[]
+  triggerProps?: Omit<IconButtonProps, "aria-label">
+}
 
-export default function PopcornDialog({watchlists}: {watchlists: WatchlistInterface[]}) {
+export default function PopcornDialog({watchlists, triggerProps}: PopcornDialogProps) {
     function formatTimeRemaining(ms: number): string {
         const formatter = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
         
@@ -37,11 +42,14 @@ export default function PopcornDialog({watchlists}: {watchlists: WatchlistInterf
   return (
     <Dialog.Root size="lg" motionPreset="slide-in-bottom">
       <Dialog.Trigger asChild>
-        <Button position="fixed" variant="outline" bgColor="orange.700" colorScheme="orange" bottom={5} right={11}  zIndex={1000} onClick={() => {
-            console.log('Test')
-          }}>
-            <LuPopcorn color="whiteAlpha.600" />
-        </Button>
+        <IconButton
+          variant="ghost"
+          aria-label="Open popcorn watchlist"
+          size="sm"
+          {...triggerProps}
+        >
+          <LuPopcorn />
+        </IconButton>
       </Dialog.Trigger>
       <Portal>
         <Dialog.Backdrop />

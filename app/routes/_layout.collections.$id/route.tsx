@@ -14,16 +14,30 @@ export const loader: LoaderFunction = async ({ request, params } : LoaderFunctio
   const { data: { user } } = await supabase.auth.getUser()
 
   console.log('LoaderFunction id', id)
-  if (!user) {
-    return json({ error: "User must be signed in"})
-  }
-
+  
   if (!id) {
     return json({ error: "Collection ID is required"})
   }
 
-  const collection = await getCollectionWMoviesById(id, user.id, supabase)
+  // Allow logged-out users to access system-generated collections
+  // For non-system-generated collections, user must be signed in
+  const userId = user?.id || null;
+  const collection = await getCollectionWMoviesById(id, userId, supabase)
   console.log('collection', collection)
+
+  if (!collection) {
+    return json({ error: "Collection not found or access denied" }, { status: 404, headers });
+  }
+
+  // If collection is not system-generated and user is not logged in, deny access
+  if (!collection.is_system_generated && !user) {
+    return json({ error: "User must be signed in to view this collection" }, { status: 401, headers });
+  }
+
+  // If collection is not system-generated and user doesn't own it, deny access
+  if (!collection.is_system_generated && user && collection.user_id !== user.id) {
+    return json({ error: "Access denied" }, { status: 403, headers });
+  }
 
   return json({ session, collection }, { headers });
 
@@ -42,9 +56,9 @@ export const meta: MetaFunction<typeof loader> = () => {
 };
 
 export default function Index() {
-  const { collection } = useLoaderData<typeof loader>();
+  const { collection, error, session } = useLoaderData<typeof loader>();
   
   return (
-    <CollectionDashboard collection={collection} />
+    <CollectionDashboard collection={collection} error={error} session={session} />
   );
 }

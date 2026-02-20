@@ -8,6 +8,7 @@ import { ReusableTable } from "~/components/ui/table/resuable-table"
 import { getFormattedDate } from "~/utils/helpers"
 import Watched from "~/components/user-actions/watchlist/watched"
 import DeleteMovieAction from "~/components/watchlist/delete-movie-action"
+import EmptyWatchlist from "~/components/watchlist/empty-watchlist"
 
 export const WatchlistTable = ({ watchlist }: {watchlist: WatchlistInterface}) => {
   const [hoveredItemId, setHoveredItemId] = useState<string | null>(null)
@@ -69,6 +70,23 @@ export const WatchlistTable = ({ watchlist }: {watchlist: WatchlistInterface}) =
       )
     },
   ]
+
+  // Handle empty watchlist
+  if (!watchlist.watchlist_items || watchlist.watchlist_items.length === 0) {
+    // Determine appropriate message based on watchlist type
+    let title = "This watchlist is empty";
+    let description = "Add some movies to get started!";
+    
+    if (watchlist.id === "default") {
+      title = "The Default List is empty";
+      description = "Add movies to your Default List to get started.";
+    } else if (watchlist.id === "popcorn") {
+      title = "The Popcorn List is empty";
+      description = "Add movies to your Popcorn List to get started.";
+    }
+
+    return <EmptyWatchlist title={title} description={description} />
+  }
 
   return (
     <ReusableTable

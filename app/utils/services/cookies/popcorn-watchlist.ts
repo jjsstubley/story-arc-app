@@ -47,16 +47,11 @@ export async function getPopcornWatchlist(request: Request): Promise<TempWatchli
   return await parsePopcornWatchlistCookie(request);
 }
 
-export async function getPopcornWatchlistWMovies(request: Request) {
+export async function getPopcornWatchlistWMovies(request: Request): Promise<WatchlistInterface> {
   console.log('getPopcornWatchlistWMovies')
   const cookie = await getPopcornWatchlist(request);
 
-  if(!cookie) {
-    return null
-  }
-  console.log('getPopcornWatchlistWMovies watchlist', cookie)
   const items = cookie?.movieIds || [];
-
 
   const watchlist_items: WatchlistItemInterface[] = await Promise.all(
     items.map(async (tmdb_movie_id) => {
@@ -67,7 +62,7 @@ export async function getPopcornWatchlistWMovies(request: Request) {
           id: `popcorn-${tmdb_movie_id}`, // mock ID
           tmdb_movie_id,
           user_id: "anonymous", // or null / system default
-          added_at: new Date(cookie.updatedAt).toISOString(),
+          added_at: cookie?.updatedAt ? new Date(cookie.updatedAt).toISOString() : new Date().toISOString(),
           watchlist_id: "temp", // or null
           is_seen: false,
           movie,
@@ -79,20 +74,26 @@ export async function getPopcornWatchlistWMovies(request: Request) {
     })
   ).then(items => items.filter(Boolean) as WatchlistItemInterface[]);
 
+  // Always return a valid watchlist structure, even when empty
+  const now = new Date().toISOString();
   const watchlist: WatchlistInterface = {
-    id: "popcorn", // or generate with uuidv4()
+    id: "popcorn",
     user_id: "anonymous",
-    created_at: watchlist_items[0].added_at,
-    updated_at: new Date(Date.now()).toISOString(),
+    created_at: watchlist_items.length > 0 
+      ? watchlist_items[0].added_at 
+      : now, // Use current date if no items exist
+    updated_at: cookie?.updatedAt 
+      ? new Date(cookie.updatedAt).toISOString() 
+      : now,
     name: "Popcorn Watchlist",
-    descriptions: null,
+    descriptions: "A quick list of movies you're in the mood to watch — perfect for tonight's lineup.",
     tags: [],
     is_public: false,
     is_default: false,
     source: "cookie",
     forked_from_watchlist_id: "",
     shared_with: "",
-    watchlist_items,
+    watchlist_items: watchlist_items || [], // Ensure it's always an array
   };
 
   return watchlist;

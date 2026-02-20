@@ -9,9 +9,10 @@ import { usePosterGradientColor } from "~/hooks/use-poster-gradient-color";
 import BlurredPlaceholder from "../media/common/blurred-placeholder";
 import EditCollectionDialog from "./edit-collection-dialog";
 import { HiPencil } from "react-icons/hi";
+import { Session } from "@supabase/supabase-js";
 // import BackButton from "../backButton";
 
-const CollectionsHero = ({collection, height = '00px'} : {collection: CollectionsInterface, height?: string}) => {
+const CollectionsHero = ({collection, height = '00px', session}: {collection: CollectionsInterface, height?: string, session?: Session | null}) => {
     const firstMovie = collection?.collection_items?.[0];
     const gradientColor = usePosterGradientColor(
       firstMovie?.movie?.id,
@@ -83,7 +84,7 @@ const CollectionsHero = ({collection, height = '00px'} : {collection: Collection
               <HStack gap={4} alignItems="center" mb={2}>
                 <Box display="flex" gap={4} alignItems="start" flex={1}>
                   <Heading as="h1" lineHeight={1}  size="4xl"  fontWeight={600}>{collection.name}</Heading>
-                  {collection.is_system_generated && (
+                  {collection.is_system_generated && session && (
                     <ForkCollectionDialog
                       sourceCollection={collection}
                       trigger={<Button>Add Collection</Button>}

@@ -6,11 +6,15 @@ import {
   Flex,
   Text,
   Portal,
+  Switch as ChakraSwitch,
+  ClientOnly,
+  Skeleton,
 } from "@chakra-ui/react"
 import { LuUser, LuSettings, LuLogOut, LuChevronsUpDown } from "react-icons/lu"
 import * as React from "react"
 import { Form } from "@remix-run/react"
 import { Avatar } from "./avatar"
+import { useColorMode, ColorModeIcon } from "./color-mode"
 
 export interface User {
   id: string
@@ -35,6 +39,7 @@ export const UserAccountDropdown = React.forwardRef<
     return null
   }
 
+  const { colorMode, toggleColorMode } = useColorMode()
   const userName = user.user_metadata?.full_name || user.email?.split("@")[0] || "User"
   const userEmail = user.email || ""
   const userAvatar = user.user_metadata?.avatar_url
@@ -139,6 +144,41 @@ export const UserAccountDropdown = React.forwardRef<
                 <LuSettings size={16} />
                 <Text fontSize="sm">Settings</Text>
               </ChakraMenu.Item>
+
+              <ClientOnly fallback={<Skeleton height="40px" />}>
+                <ChakraMenu.Item
+                  value="color-mode"
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="space-between"
+                  gap="3"
+                  padding="3"
+                  cursor="pointer"
+                  _hover={{ bg: "gray.50" }}
+                  _dark={{ _hover: { bg: "gray.800" } }}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    toggleColorMode()
+                  }}
+                >
+                  <Flex alignItems="center" gap="3">
+                    <ColorModeIcon />
+                    <Text fontSize="sm">Dark mode</Text>
+                  </Flex>
+                  <Box onClick={(e) => e.stopPropagation()}>
+                    <ChakraSwitch.Root
+                      checked={colorMode === "dark"}
+                      onCheckedChange={toggleColorMode}
+                      size="sm"
+                    >
+                      <ChakraSwitch.HiddenInput />
+                      <ChakraSwitch.Control>
+                        <ChakraSwitch.Thumb />
+                      </ChakraSwitch.Control>
+                    </ChakraSwitch.Root>
+                  </Box>
+                </ChakraMenu.Item>
+              </ClientOnly>
 
               <ChakraMenu.Separator />
 

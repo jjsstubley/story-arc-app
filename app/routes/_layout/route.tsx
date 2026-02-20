@@ -2,7 +2,6 @@ import { Box, Container, Flex, Heading, Image } from "@chakra-ui/react";
 import { LoaderFunction, LoaderFunctionArgs } from "@remix-run/node";
 import { json, Outlet, useLoaderData, useLocation } from "@remix-run/react";
 // import SearchFeature from "~/components/search/searchFeature";
-import { ColorModeButton } from "~/components/ui/color-mode";
 
 import { getOfficialMovieGenres } from "~/utils/services/external/tmdb/genres";
 import { getSupabaseServerClient } from "~/utils/supabase.server";
@@ -120,7 +119,7 @@ export default function Layout() {
                     </Box>
                     <GlobalSearch />
                     <Box display="flex" justifyContent="space-between" gap={4}>
-                      <ColorModeButton />
+                      <PopcornDialog watchlists={filterOptions.watchlists} />
                     </Box>
                 </Box>   
                 <PanelGroup direction="horizontal" className="main-panel-group">
@@ -139,7 +138,6 @@ export default function Layout() {
                 </PanelGroup>
             </Flex>
           </MediaPanelProvider> 
-          <PopcornDialog watchlists={filterOptions.watchlists} />
       </WatchlistProvider>
     </Container>
   );

@@ -23,23 +23,42 @@ export const loader: LoaderFunction = async ({ request, params } : LoaderFunctio
   }
 
   if (id === 'default') {
-    const watchlist = await getDefaultWatchlistWMovies(user.id, supabase)
-    return json({ session, watchlist }, { headers });
+    try {
+      const watchlist = await getDefaultWatchlistWMovies(user.id, supabase)
+      if (!watchlist) {
+        return json({ error: "Default watchlist not found", session }, { status: 404, headers });
+      }
+      return json({ session, watchlist }, { headers });
+    } catch (error) {
+      console.error('Error loading default watchlist:', error);
+      return json({ error: "Failed to load default watchlist", session }, { status: 500, headers });
+    }
   }
 
   if (id === 'popcorn') {
-    const watchlist = await getPopcornWatchlistWMovies(request)
-    return json({ session, watchlist }, { headers });
+    try {
+      const watchlist = await getPopcornWatchlistWMovies(request)
+      // getPopcornWatchlistWMovies now always returns a valid watchlist
+      return json({ session, watchlist }, { headers });
+    } catch (error) {
+      console.error('Error loading popcorn watchlist:', error);
+      return json({ error: "Failed to load popcorn watchlist", session }, { status: 500, headers });
+    }
   }
 
   // Handle regular watchlist IDs
-  const watchlist = await getWatchlistByIdWMovies(id, user.id, supabase);
-  
-  if (!watchlist) {
-    return json({ error: "Watchlist not found" }, { status: 404, headers });
-  }
+  try {
+    const watchlist = await getWatchlistByIdWMovies(id, user.id, supabase);
+    
+    if (!watchlist) {
+      return json({ error: "Watchlist not found", session }, { status: 404, headers });
+    }
 
-  return json({ session, watchlist }, { headers });
+    return json({ session, watchlist }, { headers });
+  } catch (error) {
+    console.error('Error loading watchlist:', error);
+    return json({ error: "Failed to load watchlist", session }, { status: 500, headers });
+  }
 };
 
 export const meta: MetaFunction<typeof loader> = () => {
@@ -55,9 +74,9 @@ export const meta: MetaFunction<typeof loader> = () => {
 };
 
 export default function Index() {
-  const { watchlist } = useLoaderData<typeof loader>();
+  const { watchlist, error } = useLoaderData<typeof loader>();
   
   return (
-    <WatchlistDashboard watchlist={watchlist} />
+    <WatchlistDashboard watchlist={watchlist} error={error} />
   );
 }

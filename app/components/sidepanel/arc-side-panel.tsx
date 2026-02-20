@@ -35,7 +35,7 @@ interface FilterOptionsProps {
   userCollections?: CollectionsInterface[]
 }
 
-const ArcSidePanel = ({filters, session} : {filters: FilterOptionsProps, session: Session}) => {
+const ArcSidePanel = ({filters, session} : {filters: FilterOptionsProps, session: Session | null}) => {
   
   const sections = [
     {
@@ -49,7 +49,7 @@ const ArcSidePanel = ({filters, session} : {filters: FilterOptionsProps, session
       },
       content: <DiscoverNavSection collections={filters.collections || []} genres={filters.genres} people={filters.people} />
     },
-    {
+    ...(session ? [{
       label: "Your Stuff",
       value: "library",
       description: "Your watchlist, collections, and more",
@@ -58,8 +58,8 @@ const ArcSidePanel = ({filters, session} : {filters: FilterOptionsProps, session
         default: "blue.900/30",
         hover: "blue.900/80",
       },
-      content: <LibraryNavSection />
-    },
+      content: <LibraryNavSection watchlists={filters.watchlists || []} />
+    }] : []),
     {
       label: "Browse",
       value: "search",

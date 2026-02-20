@@ -14,6 +14,7 @@ interface Watchlist {
 export default function WatchListCheckboxCards({ movieId } : { movieId: number }) {
     const [userWatchlists, setUserWatchlists] = useState<Watchlist[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     useEffect(() => {
         const fetchWatchlists = async () => {
@@ -26,9 +27,14 @@ export default function WatchListCheckboxCards({ movieId } : { movieId: number }
                         !w.is_default && w.id !== "popcorn"
                     );
                     setUserWatchlists(filtered);
+                    setIsAuthenticated(true);
+                } else if (response.status === 401 || response.status === 403) {
+                    // User is not authenticated
+                    setIsAuthenticated(false);
                 }
             } catch (error) {
                 console.error("Failed to fetch watchlists:", error);
+                setIsAuthenticated(false);
             } finally {
                 setIsLoading(false);
             }
@@ -40,23 +46,27 @@ export default function WatchListCheckboxCards({ movieId } : { movieId: number }
     return (
         <VStack align="start" gap={4}>
             <WatchListCheckboxCard watchlistId="popcorn" label="Popcorn List" description="A quick list of movies you&apos;re in the mood to watch — perfect for tonight&apos;s lineup." movieId={movieId} addon="Expires in 2 days" />
-            <WatchListCheckboxCard watchlistId="default" label="Keep it for later" description="Default Watchlist" movieId={movieId} />
-            <Separator orientation="horizontal" borderColor={"whiteAlpha.500"} width="100%"/>
-            <Heading fontSize="sm" fontWeight="bold">Add to other lists:</Heading>
-            { !isLoading && userWatchlists.map((watchlist) => (
-                <WatchListCheckboxCard 
-                    key={watchlist.id} 
-                    watchlistId={watchlist.id} 
-                    label={watchlist.name} 
-                    description={watchlist.descriptions || watchlist.name} 
-                    movieId={movieId} 
-                />
-            ))}
-            <CreateWatchlistDialog movieId={movieId} trigger={
-                <Button variant="solid" width="100%">
-                    Create new list
-                </Button>
-            } />
+            {isAuthenticated && (
+                <>
+                    <WatchListCheckboxCard watchlistId="default" label="Keep it for later" description="Default Watchlist" movieId={movieId} />
+                    <Separator orientation="horizontal" borderColor={"whiteAlpha.500"} width="100%"/>
+                    <Heading fontSize="sm" fontWeight="bold">Add to other lists:</Heading>
+                    { !isLoading && userWatchlists.map((watchlist) => (
+                        <WatchListCheckboxCard 
+                            key={watchlist.id} 
+                            watchlistId={watchlist.id} 
+                            label={watchlist.name} 
+                            description={watchlist.descriptions || watchlist.name} 
+                            movieId={movieId} 
+                        />
+                    ))}
+                    <CreateWatchlistDialog movieId={movieId} trigger={
+                        <Button variant="solid" width="100%">
+                            Create new list
+                        </Button>
+                    } />
+                </>
+            )}
         </VStack>
     );
 

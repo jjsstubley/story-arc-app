@@ -1,16 +1,19 @@
-import {  Box, Heading, Stack, Text, ButtonGroup, Button, Separator } from "@chakra-ui/react"
-
+import {  Box, Heading, Stack, Text, ButtonGroup, Button, Separator, VStack } from "@chakra-ui/react"
+import { Link } from "@remix-run/react";
 
 import { RiFireFill } from "react-icons/ri";
+import { LuPopcorn } from "react-icons/lu";
 
 import DefaultWatchlist from "../../watchlist/default-watchlist";
 import { useState } from "react";
 import CollectionsList from "~/components/collections/displays/collections-list";
 import SavedSeriesList from "~/components/tv-series/saved-series-list";
+import { WatchlistInterface } from "~/interfaces/watchlist";
 
-export default function LibraryNavSection() {
+export default function LibraryNavSection({ watchlists = [] }: { watchlists?: WatchlistInterface[] }) {
 
     const [filter, setFilter] = useState('all');
+    const popcornWatchlist = watchlists.find((watchlist) => watchlist.id === "popcorn") || null;
 
     // const sections = [
     //     {
@@ -48,7 +51,34 @@ export default function LibraryNavSection() {
               </Box>
               <Text fontSize="xs" color="fg.muted">Collections you&apos;ve created or forked</Text>
             </Stack>
-            <CollectionsList />
+            <VStack gap={2} align="stretch">
+              <CollectionsList />
+              <Link to="/watchlists/popcorn">
+                <Box
+                  p={3}
+                  rounded="md"
+                  border="1px solid"
+                  borderColor="gray.700"
+                  _hover={{ bg: "gray.800", borderColor: "orange.500" }}
+                  transition="all 0.2s"
+                >
+                  <Stack gap={1}>
+                    <Box display="flex" gap={2} alignItems="center">
+                      <LuPopcorn color="whiteAlpha.600" size={16} />
+                      <Heading as="h4" size="sm" fontWeight="semibold">
+                        Popcorn watchlist
+                      </Heading>
+                    </Box>
+                    <Text fontSize="xs" color="fg.muted" noOfLines={1}>
+                      A quick list of movies you&apos;re in the mood to watch — perfect for tonight&apos;s lineup.
+                    </Text>
+                    <Text fontSize="xs" color="fg.muted">
+                      {popcornWatchlist?.watchlist_items?.length || 0} movies
+                    </Text>
+                  </Stack>
+                </Box>
+              </Link>
+            </VStack>
           </>
         ) : filter === 'tv' ? (
           <>

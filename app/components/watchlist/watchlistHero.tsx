@@ -19,7 +19,7 @@ const WatchlistHero = ({watchlist, height = '00px'} : {watchlist: WatchlistInter
 
     if (!watchlist) return (<Box width="100%" height={height} backgroundColor="gray.900" rounded="md"></Box>)
     
-    const items = watchlist.watchlist_items.slice(0, 4);
+    const items = (watchlist.watchlist_items || []).slice(0, 4);
     const placeholderCount = Math.max(0, 4 - items.length);
     
     return (
