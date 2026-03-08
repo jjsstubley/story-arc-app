@@ -1,27 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { addOrUpdateRating } from "./ratings.server";
 import { createOrUpdateReview } from "./reviews.server";
+import { isMovieWatched } from "./user-watched-movies.server";
 
 const collection = 'user_favourites';
-
-/**
- * Check if a movie exists in any of the user's watchlists
- */
-export async function isMovieInWatchlist(
-  userId: string,
-  tmdbMovieId: number,
-  supabase: SupabaseClient
-): Promise<boolean> {
-  const { data, error } = await supabase
-    .from('watchlist_items')
-    .select('id')
-    .eq('user_id', userId)
-    .eq('tmdb_id', tmdbMovieId)
-    .maybeSingle();
-
-  if (error) throw error;
-  return Boolean(data);
-}
 
 /**
  * Add movie to favourites
@@ -36,10 +18,10 @@ export async function addToFavourites(
     review_text?: string;
   }
 ) {
-  // Validate movie is in watchlist
-  const inWatchlist = await isMovieInWatchlist(userId, tmdbMovieId, supabase);
-  if (!inWatchlist) {
-    throw new Error('Movie must be in a watchlist before adding to favourites');
+  // Validate movie is marked as watched
+  const watched = await isMovieWatched(userId, tmdbMovieId, supabase);
+  if (!watched) {
+    throw new Error('Movie must be marked as watched before adding to favourites');
   }
 
   // Add to favourites

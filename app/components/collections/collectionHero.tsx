@@ -1,26 +1,20 @@
-import {  Badge, Box, Flex, Heading, SimpleGrid, Text, Button, Breadcrumb, IconButton, HStack, Image } from "@chakra-ui/react";
+import { Badge, Box, Flex, SimpleGrid, Text, Breadcrumb, IconButton, Image } from "@chakra-ui/react";
 import '~/styles.css'
 import { Link } from "@remix-run/react";
 import { getFormattedDate } from "~/utils/helpers";
 import { CollectionsInterface } from "~/interfaces/collections";
 import MediaImage from "../media/common/movie-image";
-import ForkCollectionDialog from "./fork-collection-dialog";
 import { usePosterGradientColor } from "~/hooks/use-poster-gradient-color";
 import BlurredPlaceholder from "../media/common/blurred-placeholder";
-import EditCollectionDialog from "./edit-collection-dialog";
-import { HiPencil } from "react-icons/hi";
 import { LuChevronUp } from "react-icons/lu";
-import { Session } from "@supabase/supabase-js";
-import { forwardRef, useState, useRef, useEffect } from "react";
-// import BackButton from "../backButton";
+import { useState, useRef, useEffect } from "react";
 
 interface CollectionsHeroProps {
   collection: CollectionsInterface;
   height?: string;
-  session?: Session | null;
 }
 
-const CollectionsHero = forwardRef<HTMLHeadingElement, CollectionsHeroProps>(({collection, height = '00px', session}, ref) => {
+export default function CollectionsHero({ collection, height = '00px' }: CollectionsHeroProps) {
     const firstMovie = collection?.collection_items?.[0];
     const gradientColor = usePosterGradientColor(
       firstMovie?.movie?.id,
@@ -136,7 +130,7 @@ const CollectionsHero = forwardRef<HTMLHeadingElement, CollectionsHeroProps>(({c
           gradientTo="transparent" 
           pb={6}
         >
-          <Flex p={4} alignItems="center" justifyContent="space-between" flexWrap="wrap-reverse" gap={4}>
+          <Flex p={4} alignItems="start" justifyContent="space-between" flexWrap="wrap-reverse" gap={4}>
             <Box color="white" flex={1} position="relative" zIndex={2}>
               <Box mb={4} zIndex={1}>
                 {/* <BackButton /> */}
@@ -145,43 +139,9 @@ const CollectionsHero = forwardRef<HTMLHeadingElement, CollectionsHeroProps>(({c
                     <Breadcrumb.Item>
                       Collections
                     </Breadcrumb.Item>
-                    <Breadcrumb.Separator />
-                    <Breadcrumb.Item>
-                      <Breadcrumb.CurrentLink>{collection.name}</Breadcrumb.CurrentLink>
-                    </Breadcrumb.Item>
                   </Breadcrumb.List>
                 </Breadcrumb.Root>
               </Box>
-              {/* Text and Data */}
-              <HStack gap={4} alignItems="center" mb={2}>
-                <Box display="flex" gap={4} alignItems="start" flex={1}>
-                  <Heading ref={ref} as="h1" lineHeight={1}  size="4xl"  fontWeight={600}>{collection.name}</Heading>
-                  {collection.is_system_generated && session && (
-                    <ForkCollectionDialog
-                      sourceCollection={collection}
-                      trigger={<Button>Add Collection</Button>}
-                    />
-                  )}
-                </Box>
-                {!collection.is_system_generated && (
-                  <EditCollectionDialog 
-                    collection={collection}
-                    trigger={
-                      <IconButton 
-                        variant="subtle" 
-                        border="1px solid" 
-                        borderColor="whiteAlpha.300" 
-                        rounded="full"
-                        aria-label="Edit collection"
-                        size="sm"
-                      >
-                        <HiPencil />
-                      </IconButton>
-                    }
-                  />
-                )}
-              </HStack>
-            
 
               <Text mt={4}>{collection.description}</Text>
               <Text mt={4} fontSize="xs">Created { getFormattedDate({release_date: collection.created_at, options: {year: 'numeric', month: 'long',day: 'numeric'}, region:'en-US'}) }</Text>
@@ -264,8 +224,4 @@ const CollectionsHero = forwardRef<HTMLHeadingElement, CollectionsHeroProps>(({c
         </Box>
       </Box>
     );
-});
-
-CollectionsHero.displayName = 'CollectionsHero';
-
-export default CollectionsHero;
+}

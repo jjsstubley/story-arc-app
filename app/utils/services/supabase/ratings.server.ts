@@ -1,26 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getRatingTier, type RatingTier } from "~/utils/constants/ratings";
+import { isMovieWatched } from "./user-watched-movies.server";
 
 const collection = 'user_ratings';
-
-/**
- * Check if a movie exists in any of the user's watchlists
- */
-export async function isMovieInWatchlist(
-  userId: string,
-  tmdbMovieId: number,
-  supabase: SupabaseClient
-): Promise<boolean> {
-  const { data, error } = await supabase
-    .from('watchlist_items')
-    .select('id')
-    .eq('user_id', userId)
-    .eq('tmdb_id', tmdbMovieId)
-    .maybeSingle();
-
-  if (error) throw error;
-  return Boolean(data);
-}
 
 /**
  * Add or update rating for a movie
@@ -31,10 +13,10 @@ export async function addOrUpdateRating(
   percentage: number,
   supabase: SupabaseClient
 ) {
-  // Validate movie is in watchlist
-  const inWatchlist = await isMovieInWatchlist(userId, tmdbMovieId, supabase);
-  if (!inWatchlist) {
-    throw new Error('Movie must be in a watchlist before adding a rating');
+  // Validate movie is marked as watched
+  const watched = await isMovieWatched(userId, tmdbMovieId, supabase);
+  if (!watched) {
+    throw new Error('Movie must be marked as watched before adding a rating');
   }
 
   // Validate percentage is between 0 and 100

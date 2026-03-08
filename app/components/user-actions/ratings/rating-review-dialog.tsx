@@ -13,6 +13,7 @@ import {
 } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import { getWatchlistItemStatus } from "../watchlist/helpers";
+import { getMovieWatchedStatus, dispatchWatchedChange } from "../watched/helpers";
 import RatingSelector from "./rating-selector";
 import ReviewForm from "../reviews/review-form";
 import { FaCircleCheck } from "react-icons/fa6";
@@ -32,66 +33,66 @@ export default function RatingReviewDialog({
 }: RatingReviewDialogProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  // For movies: global watched status; for TV: watchlist item status
   const [watchlistStatus, setWatchlistStatus] = useState<{
     exists: boolean;
     is_seen: boolean | null;
     watchlistId: string | null;
   } | null>(null);
+  const [movieWatched, setMovieWatched] = useState<boolean | null>(null);
   const [markingAsWatched, setMarkingAsWatched] = useState(false);
 
   useEffect(() => {
     if (dialogOpen) {
-      loadWatchlistStatus();
+      loadStatus();
     }
   }, [dialogOpen, mediaId]);
 
-  const loadWatchlistStatus = async () => {
+  const loadStatus = async () => {
     setLoading(true);
     try {
-      const status = await getWatchlistItemStatus(mediaId, mediaType);
-      setWatchlistStatus(status);
+      if (mediaType === "tv") {
+        const status = await getWatchlistItemStatus(mediaId, mediaType);
+        setWatchlistStatus(status);
+        setMovieWatched(null);
+      } else {
+        const status = await getMovieWatchedStatus(mediaId);
+        setMovieWatched(status.watched);
+        setWatchlistStatus(null);
+      }
     } catch (error) {
-      console.error("Failed to load watchlist status", error);
+      console.error("Failed to load status", error);
       setWatchlistStatus({ exists: false, is_seen: null, watchlistId: null });
+      setMovieWatched(false);
     } finally {
       setLoading(false);
     }
   };
 
   const handleMarkAsWatched = async () => {
-    if (!watchlistStatus?.exists) return;
-
     setMarkingAsWatched(true);
     try {
-      let apiUrl: string;
-      let body: any;
-
       if (mediaType === "tv") {
-        apiUrl = `/api/tv-series/${mediaId}/toggle`;
-        body = {
-          is_seen: true,
-        };
+        if (!watchlistStatus?.exists) return;
+        const response = await fetch(`/api/tv-series/${mediaId}/toggle`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ is_seen: true }),
+        });
+        if (response.ok) await loadStatus();
+        else console.error("Failed to mark as watched");
       } else {
-        apiUrl = `/api/watchlists/default/movies/${mediaId}`;
-        body = {
-          is_seen: true,
-          watchlistId: watchlistStatus?.watchlistId,
-        };
-      }
-
-      const response = await fetch(apiUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
-      });
-
-      if (response.ok) {
-        // Reload watchlist status
-        await loadWatchlistStatus();
-      } else {
-        console.error("Failed to mark as watched");
+        const response = await fetch(`/api/movies/${mediaId}/watched`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ watched: true }),
+        });
+        if (response.ok) {
+          await loadStatus();
+          dispatchWatchedChange(mediaId, true);
+        } else {
+          console.error("Failed to mark as watched");
+        }
       }
     } catch (error) {
       console.error("Failed to mark as watched", error);
@@ -109,44 +110,67 @@ export default function RatingReviewDialog({
       );
     }
 
-    if (!watchlistStatus?.exists) {
-      return (
-        <Box p={4} bg="gray.800" rounded="md">
-          <Heading size="sm" mb={2}>
-            Add to Watchlist First
-          </Heading>
-          <Text fontSize="sm" color="fg.muted">
-            Add {mediaTitle} to a watchlist before you can rate or review it.
-          </Text>
-        </Box>
-      );
-    }
-
-    // Show "Mark as Watched" if is_seen is false, null, or undefined (not explicitly true)
-    if (watchlistStatus.is_seen !== true) {
-      return (
-        <VStack align="stretch" gap={4}>
+    // TV: require watchlist and is_seen
+    if (mediaType === "tv") {
+      if (!watchlistStatus?.exists) {
+        return (
           <Box p={4} bg="gray.800" rounded="md">
-            <VStack align="start" gap={3}>
-              <Heading size="sm">Mark as Watched</Heading>
-              <Text fontSize="sm" color="fg.muted">
-                Mark {mediaTitle} as watched to rate and review it.
-              </Text>
-              <Button
-                onClick={handleMarkAsWatched}
-                disabled={markingAsWatched}
-                leftIcon={<FaCircleCheck />}
-                colorScheme="green"
-              >
-                {markingAsWatched ? "Marking..." : "Mark as Watched"}
-              </Button>
-            </VStack>
+            <Heading size="sm" mb={2}>
+              Add to Watchlist First
+            </Heading>
+            <Text fontSize="sm" color="fg.muted">
+              Add {mediaTitle} to a watchlist before you can rate or review it.
+            </Text>
           </Box>
-        </VStack>
-      );
+        );
+      }
+      if (watchlistStatus.is_seen !== true) {
+        return (
+          <VStack align="stretch" gap={4}>
+            <Box p={4} bg="gray.800" rounded="md">
+              <VStack align="start" gap={3}>
+                <Heading size="sm">Mark as Watched</Heading>
+                <Text fontSize="sm" color="fg.muted">
+                  Mark {mediaTitle} as watched to rate and review it.
+                </Text>
+                <Button
+                  onClick={handleMarkAsWatched}
+                  disabled={markingAsWatched}
+                  colorPalette="green"
+                >
+                  <FaCircleCheck /> {markingAsWatched ? "Marking..." : "Mark as Watched"}
+                </Button>
+              </VStack>
+            </Box>
+          </VStack>
+        );
+      }
+    } else {
+      // Movie: gate on global watched only
+      if (movieWatched !== true) {
+        return (
+          <VStack align="stretch" gap={4}>
+            <Box p={4} bg="gray.800" rounded="md">
+              <VStack align="start" gap={3}>
+                <Heading size="sm">Mark as Watched</Heading>
+                <Text fontSize="sm" color="fg.muted">
+                  Mark {mediaTitle} as watched to rate and review it.
+                </Text>
+                <Button
+                  onClick={handleMarkAsWatched}
+                  disabled={markingAsWatched}
+                  colorPalette="green"
+                >
+                  <FaCircleCheck /> {markingAsWatched ? "Marking..." : "Mark as Watched"}
+                </Button>
+              </VStack>
+            </Box>
+          </VStack>
+        );
+      }
     }
 
-    // is_seen === true, show rating and review options
+    // Watched (movie or TV), show rating and review options
     return (
       <VStack align="stretch" gap={4}>
         {/* Rating Section */}

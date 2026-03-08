@@ -40,7 +40,29 @@ const TVSeriesOverlay = ({series} : {series: TmdbTVSeriesDetailWAppendsProps}) =
               borderColor="orange.400"
               pl={3}
             >
-                {series.name} <Text fontSize="xs" color="whiteAlpha.600" whiteSpace="nowrap">{ getFormattedDate({release_date: series.first_air_date, options: {year: 'numeric', month: 'long',day: 'numeric'}, region:'en-US'}) } | { series.number_of_seasons} seasons</Text> 
+                {series.name}
+                <Text as="span" fontSize="xs" color="whiteAlpha.600" whiteSpace="nowrap" display="block" mt={1}>
+                  {series.first_air_date &&
+                    getFormattedDate({
+                      release_date: series.first_air_date,
+                      options: {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      },
+                      region: "en-US",
+                    })}
+                  {series.first_air_date && series.number_of_seasons != null && " | "}
+                  {series.number_of_seasons != null &&
+                    `${series.number_of_seasons} seasons`}
+                  {(series.first_air_date || series.number_of_seasons != null) &&
+                    (series.number_of_episodes != null || series.status) &&
+                    " | "}
+                  {series.number_of_episodes != null &&
+                    `${series.number_of_episodes} episodes`}
+                  {series.number_of_episodes != null && series.status && " · "}
+                  {series.status && series.status}
+                </Text>
             </Heading>
         </Box>
         {/* <WatchListDropdown movieId={series.id}/> */}

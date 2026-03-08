@@ -1,4 +1,4 @@
-import { Box, Flex, Heading, IconButton } from "@chakra-ui/react";
+import { Badge, Box, Flex, Heading, IconButton, Text } from "@chakra-ui/react";
 import { WatchlistInterface } from "~/interfaces/watchlist";
 import EditWatchlistDialog from "./edit-watchlist-dialog";
 import { HiPencil } from "react-icons/hi";
@@ -12,6 +12,11 @@ export default function FixedWatchlistHeader({
   watchlist,
   gradientColor,
 }: FixedWatchlistHeaderProps) {
+  const items = watchlist.watchlist_items ?? [];
+  const total = items.length;
+  const seenCount = items.filter((i) => i.is_seen).length;
+  const isComplete = total > 0 && seenCount === total;
+
   return (
     <Box
       position="sticky"
@@ -51,17 +56,29 @@ export default function FixedWatchlistHeader({
       />
       <Box px={4} py={3} position="relative" zIndex={1}>
         <Flex alignItems="center" justifyContent="space-between" gap={4}>
-          <Heading
-            as="h2"
-            size="lg"
-            fontWeight={600}
-            color="white"
-            textShadow="2px 2px 4px rgba(0,0,0,0.7)"
-            noOfLines={1}
-            flex={1}
-          >
-            {watchlist.name}
-          </Heading>
+          <Flex flex={1} direction="column" gap={1} minW={0}>
+            <Heading
+              as="h2"
+              size="lg"
+              fontWeight={600}
+              color="white"
+              textShadow="2px 2px 4px rgba(0,0,0,0.7)"
+              noOfLines={1}
+            >
+              {watchlist.name}
+            </Heading>
+            {total > 0 && (
+              <Text fontSize="sm" color="whiteAlpha.800" textShadow="1px 1px 2px rgba(0,0,0,0.7)">
+                {seenCount}/{total} films seen
+                {isComplete && (
+                  <>
+                    {" · "}
+                    <Badge colorPalette="green" size="sm">List completed</Badge>
+                  </>
+                )}
+              </Text>
+            )}
+          </Flex>
           <EditWatchlistDialog
             watchlist={watchlist}
             trigger={

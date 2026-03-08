@@ -7,20 +7,20 @@ import FavouriteDialog from "./favourite-dialog";
 interface FavouriteToggleProps {
   movieId: number;
   movieTitle: string;
-  isInWatchlist: boolean;
+  isWatched: boolean;
 }
 
-export default function FavouriteToggle({ movieId, movieTitle, isInWatchlist }: FavouriteToggleProps) {
+export default function FavouriteToggle({ movieId, movieTitle, isWatched }: FavouriteToggleProps) {
   const [isFavourite, setIsFavourite] = useState(false);
   const [loading, setLoading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
-    if (isInWatchlist) {
+    if (isWatched) {
       loadFavouriteStatus();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [movieId, isInWatchlist]);
+  }, [movieId, isWatched]);
 
   const loadFavouriteStatus = async () => {
     const fav = await checkFavourite(movieId);
@@ -28,8 +28,8 @@ export default function FavouriteToggle({ movieId, movieTitle, isInWatchlist }: 
   };
 
   const handleToggle = async () => {
-    if (!isInWatchlist) {
-      return; // Don't allow if not in watchlist
+    if (!isWatched) {
+      return; // Don't allow if not marked as watched
     }
 
     if (isFavourite) {
@@ -51,8 +51,8 @@ export default function FavouriteToggle({ movieId, movieTitle, isInWatchlist }: 
     loadFavouriteStatus();
   };
 
-  if (!isInWatchlist) {
-    return null; // Don't show if not in watchlist
+  if (!isWatched) {
+    return null; // Don't show if not marked as watched
   }
 
   return (

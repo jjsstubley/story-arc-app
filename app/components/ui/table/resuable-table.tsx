@@ -17,6 +17,7 @@ interface ReusableTableProps<T> {
       getId: (item: T) => string;
     };
     setHoveredItemId?: (id: string | null) => void;
+    onRowClick?: (item: T) => void;
     customRowRenderer?: (item: T, index: number, columns: TableColumn<T>[], selection?: {
         selectedIds: string[];
         onSelectionChange: (ids: string[]) => void;
@@ -30,6 +31,7 @@ interface ReusableTableProps<T> {
     selection,
     customRowRenderer,
     setHoveredItemId,
+    onRowClick,
   }: ReusableTableProps<T>) {
     const hasSelection = selection && selection.selectedIds.length > 0;
     const indeterminate = selection && hasSelection && selection.selectedIds.length < data.length;
@@ -40,9 +42,10 @@ interface ReusableTableProps<T> {
         data-selected={selection?.selectedIds.includes(selection.getId(item)) ? "" : undefined}
         bg="transparent"
         _hover={{ bg: "gray.800" }}
+        cursor={onRowClick ? "pointer" : undefined}
+        onClick={() => onRowClick?.(item)}
         onMouseEnter={() => {
-          console.log('onMouseEnter', item)
-          setHoveredItemId?.(selection ? selection.getId(item) : (item as {id: string}).id)
+          setHoveredItemId?.(selection ? selection.getId(item) : (item as { id: string }).id);
         }}
         onMouseLeave={() => setHoveredItemId?.(null)}
       >

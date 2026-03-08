@@ -25,7 +25,10 @@ export function usePosterGradientColor(
   useEffect(() => {
     // If no movie ID or poster path, use fallback
     if (!memoizedMovieId || !memoizedPosterPath) {
-      const fallback = fallbackId ? getGradientColor(fallbackId) : 'orange.900';
+      const fallback =
+        fallbackId != null && fallbackId !== ''
+          ? getGradientColor(String(fallbackId))
+          : 'orange.900';
       setColor(fallback);
       return;
     }
@@ -37,7 +40,10 @@ export function usePosterGradientColor(
       })
       .catch(() => {
         // If extraction fails, use fallback
-        const fallback = fallbackId ? getGradientColor(fallbackId) : 'orange.900';
+        const fallback =
+          fallbackId != null && fallbackId !== ''
+            ? getGradientColor(String(fallbackId))
+            : 'orange.900';
         setColor(fallback);
       });
   }, [memoizedMovieId, memoizedPosterPath, fallbackId]);

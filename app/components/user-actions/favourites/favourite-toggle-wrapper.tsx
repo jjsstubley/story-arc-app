@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { isMovieInAnyWatchlist } from "../watchlist/helpers";
+import { getMovieWatchedStatus } from "../watched/helpers";
 import FavouriteToggle from "./favourite-toggle";
 
 interface FavouriteToggleWrapperProps {
@@ -10,18 +10,18 @@ interface FavouriteToggleWrapperProps {
 }
 
 export default function FavouriteToggleWrapper({ movieId, movieTitle }: FavouriteToggleWrapperProps) {
-  const [isInWatchlist, setIsInWatchlist] = useState(false);
+  const [isWatched, setIsWatched] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    checkWatchlistStatus();
+    checkWatchedStatus();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [movieId]);
 
-  const checkWatchlistStatus = async () => {
+  const checkWatchedStatus = async () => {
     setLoading(true);
-    const inWatchlist = await isMovieInAnyWatchlist(movieId);
-    setIsInWatchlist(inWatchlist);
+    const status = await getMovieWatchedStatus(movieId);
+    setIsWatched(status.watched);
     setLoading(false);
   };
 
@@ -29,7 +29,7 @@ export default function FavouriteToggleWrapper({ movieId, movieTitle }: Favourit
     return null;
   }
 
-  return <FavouriteToggle movieId={movieId} movieTitle={movieTitle} isInWatchlist={isInWatchlist} />;
+  return <FavouriteToggle movieId={movieId} movieTitle={movieTitle} isWatched={isWatched} />;
 }
 
 

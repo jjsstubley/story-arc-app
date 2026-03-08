@@ -8,7 +8,7 @@ const InfoPanelHeader = ({episode, onClose} : { episode: TVEpisodeDetailsInterfa
     return (
         <Box position="relative">
             <Image 
-                src={`https://image.tmdb.org/t/w300/${episode.still_path}`}
+                src={`https://image.tmdb.org/t/p/w300/${episode.still_path}`}
                 width="100%" 
                 height="100%" 
                 aspectRatio={3/2}

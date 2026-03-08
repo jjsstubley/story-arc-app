@@ -1,7 +1,8 @@
 // app/routes/api/temp-watchlist.tsx
 import { ActionFunctionArgs, json, type LoaderFunctionArgs } from "@remix-run/node";
-import { isMovieInWatchlist, updateWatchlistItem, getWatchlistItem } from "~/utils/services/supabase/watchlist-items.server";
+import { updateWatchlistItem, getWatchlistItem } from "~/utils/services/supabase/watchlist-items.server";
 import { getOrCreateDefaultWatchlist } from "~/utils/services/supabase/watchlist.server";
+import { addWatchedMovie } from "~/utils/services/supabase/user-watched-movies.server";
 import { getSupabaseServerClient } from "~/utils/supabase.server";
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
@@ -43,9 +44,14 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
   if (!movieId) {
     return json({ error: "Movie ID is required" }, { status: 400 });
-  } 
+  }
 
-  const watchlist = await updateWatchlistItem(watchlistId, parseInt(movieId), { is_seen }, supabase);
+  const movieIdNum = parseInt(movieId);
+  const watchlist = await updateWatchlistItem(watchlistId, movieIdNum, { is_seen }, supabase);
+
+  if (is_seen === true) {
+    await addWatchedMovie(user.id, movieIdNum, supabase);
+  }
 
   return json({ watchlist }, { headers });
 }

@@ -44,8 +44,8 @@ export const WatchlistTable = ({ watchlist }: {watchlist: WatchlistInterface}) =
     },
     { 
       key: "watched", 
-      header: "Watched", 
-      width: 10, 
+      header: "Seen", 
+      width: 56, 
       render: (item: WatchlistItemInterface) => (
         <Watched 
           item={item} 

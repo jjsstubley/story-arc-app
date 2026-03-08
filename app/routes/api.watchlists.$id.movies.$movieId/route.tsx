@@ -1,5 +1,6 @@
 import { ActionFunctionArgs, json, type LoaderFunctionArgs } from "@remix-run/node";
 import { isMovieInWatchlist, updateWatchlistItem } from "~/utils/services/supabase/watchlist-items.server";
+import { addWatchedMovie } from "~/utils/services/supabase/user-watched-movies.server";
 import { getSupabaseServerClient } from "~/utils/supabase.server";
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
@@ -59,7 +60,11 @@ export async function action({ request, params }: ActionFunctionArgs) {
   }
 
   try {
-    const watchlistItem = await updateWatchlistItem(watchlistId, parseInt(movieId), { is_seen }, supabase);
+    const movieIdNum = parseInt(movieId);
+    const watchlistItem = await updateWatchlistItem(watchlistId, movieIdNum, { is_seen }, supabase);
+    if (is_seen === true) {
+      await addWatchedMovie(user.id, movieIdNum, supabase);
+    }
     return json({ watchlistItem }, { headers });
   } catch (error) {
     console.error("Error updating watchlist item:", error);

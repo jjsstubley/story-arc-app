@@ -1,21 +1,18 @@
-import {  Badge, Box, Flex, Heading, SimpleGrid, Text, IconButton, Image } from "@chakra-ui/react";
+import { Badge, Box, Flex, SimpleGrid, Text, Image } from "@chakra-ui/react";
 import '~/styles.css'
 import { Link } from "@remix-run/react";
 import { getFormattedDate } from "~/utils/helpers";
 import { WatchlistInterface } from "~/interfaces/watchlist";
 import MediaImage from "../media/common/movie-image";
 import BlurredPlaceholder from "../media/common/blurred-placeholder";
-import EditWatchlistDialog from "./edit-watchlist-dialog";
 import { usePosterGradientColor } from "~/hooks/use-poster-gradient-color";
-import { HiPencil } from "react-icons/hi";
-import { forwardRef } from "react";
 
 interface WatchlistHeroProps {
   watchlist: WatchlistInterface;
   height?: string;
 }
 
-const WatchlistHero = forwardRef<HTMLHeadingElement, WatchlistHeroProps>(({watchlist, height = '00px'}, ref) => {
+export default function WatchlistHero({ watchlist, height = '00px' }: WatchlistHeroProps) {
     const firstMovie = watchlist?.watchlist_items?.[0];
     const gradientColor = usePosterGradientColor(
       firstMovie?.movie?.id,
@@ -25,8 +22,12 @@ const WatchlistHero = forwardRef<HTMLHeadingElement, WatchlistHeroProps>(({watch
 
     if (!watchlist) return (<Box width="100%" height={height} backgroundColor="gray.900" rounded="md"></Box>)
     
-    const items = (watchlist.watchlist_items || []).slice(0, 4);
+    const allItems = watchlist.watchlist_items ?? [];
+    const items = allItems.slice(0, 4);
     const placeholderCount = Math.max(0, 4 - items.length);
+    const total = allItems.length;
+    const seenCount = allItems.filter((i) => i.is_seen).length;
+    const isComplete = total > 0 && seenCount === total;
     
     return (
       <Box position="relative" rounded="md" overflow="hidden">
@@ -69,30 +70,19 @@ const WatchlistHero = forwardRef<HTMLHeadingElement, WatchlistHeroProps>(({watch
         >
           <Flex p={4} alignItems="center" justifyContent="space-between" flexWrap="wrap-reverse" gap={4}>
             <Box color="white" flex={1} position="relative" zIndex={2}>
-              {/* Text and Data */}
-              <Box display="flex" gap={4} alignItems="center" >
-                <Box display="flex" gap={2} alignItems="end" flex={1}>
-                  <Heading ref={ref} as="h1" lineHeight={1}  size="4xl"  fontWeight={600}>{watchlist.name}</Heading>
-                </Box>
-                <EditWatchlistDialog 
-                  watchlist={watchlist}
-                  trigger={
-                    <IconButton 
-                      variant="subtle" 
-                      border="1px solid" 
-                      borderColor="whiteAlpha.300" 
-                      rounded="full"
-                      aria-label="Edit watchlist"
-                      size="sm"
-                    >
-                      <HiPencil />
-                    </IconButton>
-                  }
-                />
-              </Box>
-
               <Text mt={4}>{watchlist.descriptions}</Text>
               <Text mt={4} fontSize="xs">Created { getFormattedDate({release_date: watchlist.created_at, options: {year: 'numeric', month: 'long',day: 'numeric'}, region:'en-US'}) }</Text>
+              {total > 0 && (
+                <Text mt={2} fontSize="sm" color="whiteAlpha.900">
+                  {seenCount}/{total} films seen
+                  {isComplete && (
+                    <>
+                      {" · "}
+                      <Badge colorPalette="green" size="sm">List completed</Badge>
+                    </>
+                  )}
+                </Text>
+              )}
               <Box display="flex" gap={4} justifyContent="space-between">
                 <Box display="flex" gap={2} mt={4}>
                     {
@@ -127,8 +117,4 @@ const WatchlistHero = forwardRef<HTMLHeadingElement, WatchlistHeroProps>(({watch
         </Box>
       </Box>
     );
-});
-
-WatchlistHero.displayName = 'WatchlistHero';
-
-export default WatchlistHero;
+}
