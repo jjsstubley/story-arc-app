@@ -1,8 +1,7 @@
 "use client";
 
-import { Box, VStack, Heading, Text } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
-import { getMovieWatchedStatus } from "../watched/helpers";
+import { Box, VStack, Heading, Skeleton, Text } from "@chakra-ui/react";
+import { useMovieWatched } from "~/features/watched";
 import FavouriteToggle from "./favourite-toggle";
 
 interface FavouriteSectionProps {
@@ -11,26 +10,15 @@ interface FavouriteSectionProps {
 }
 
 export default function FavouriteSection({ movieId, movieTitle }: FavouriteSectionProps) {
-  const [isWatched, setIsWatched] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const { data, isPending } = useMovieWatched(movieId);
+  const isWatched = data?.watched ?? false;
 
-  useEffect(() => {
-    checkWatchedStatus();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [movieId]);
-
-  const checkWatchedStatus = async () => {
-    setLoading(true);
-    const status = await getMovieWatchedStatus(movieId);
-    setIsWatched(status.watched);
-    setLoading(false);
-  };
-
-  if (loading) {
+  if (isPending) {
     return (
-      <Box p={4}>
-        <Heading size="sm">Loading...</Heading>
-      </Box>
+      <VStack align="stretch" gap={4}>
+        <Heading size="sm">Favourites</Heading>
+        <Skeleton height="10" width="100%" rounded="md" />
+      </VStack>
     );
   }
 

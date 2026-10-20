@@ -38,7 +38,8 @@ interface ReusableTableProps<T> {
   
     const defaultRowRenderer = (item: T, index: number) => (
       <Table.Row
-        key={selection ? selection.getId(item) : index}
+        // Key by identity, not position: index keys make row state stick to the wrong item when rows shift
+        key={selection ? selection.getId(item) : (item as { id?: string | number }).id ?? index}
         data-selected={selection?.selectedIds.includes(selection.getId(item)) ? "" : undefined}
         bg="transparent"
         _hover={{ bg: "gray.800" }}

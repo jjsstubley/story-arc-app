@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { MovieWatchedStatus } from "../types";
 
 const collection = "user_watched_movies";
 
@@ -72,4 +73,43 @@ export async function getWatchedMovieIds(
 
   if (error) throw error;
   return new Set((data || []).map((row) => Number(row.tmdb_movie_id)));
+}
+
+export async function getMovieWatchedStatus(
+  userId: string,
+  tmdbMovieId: number,
+  supabase: SupabaseClient
+): Promise<MovieWatchedStatus> {
+  const row = await getWatchedMovie(userId, tmdbMovieId, supabase);
+  return { watched: Boolean(row), watched_at: row?.watched_at ?? null };
+}
+
+/** Marks a movie watched or unwatched for the user and returns the resulting status */
+export async function setMovieWatched(
+  userId: string,
+  tmdbMovieId: number,
+  watched: boolean,
+  supabase: SupabaseClient
+): Promise<MovieWatchedStatus> {
+  if (watched) {
+    await addWatchedMovie(userId, tmdbMovieId, supabase);
+  } else {
+    await removeWatchedMovie(userId, tmdbMovieId, supabase);
+  }
+  return getMovieWatchedStatus(userId, tmdbMovieId, supabase);
+}
+
+/**
+ * Overwrites `is_seen` on movie list items with the user's global watched state,
+ * so lists never disagree with the rest of the app. TV items keep their own `is_seen`.
+ */
+export function applyWatchedStatus<T extends { tmdb_movie_id?: number; tmdb_id?: number; media_type?: string | null; is_seen?: boolean }>(
+  items: T[],
+  watchedIds: Set<number>
+): T[] {
+  return items.map((item) =>
+    item.media_type === "tv"
+      ? item
+      : { ...item, is_seen: watchedIds.has(Number(item.tmdb_movie_id ?? item.tmdb_id)) }
+  );
 }

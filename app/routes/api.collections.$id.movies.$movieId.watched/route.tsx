@@ -1,6 +1,6 @@
 import { ActionFunctionArgs, json } from "@remix-run/node";
 import { updateCollectionItem } from "~/utils/services/supabase/collection-items.server";
-import { addWatchedMovie } from "~/utils/services/supabase/user-watched-movies.server";
+import { setMovieWatched } from "~/features/watched/index.server";
 import { getSupabaseServerClient } from "~/utils/supabase.server";
 
 export async function action({ request, params }: ActionFunctionArgs) {
@@ -28,8 +28,9 @@ export async function action({ request, params }: ActionFunctionArgs) {
     supabase
   );
 
-  if (is_watched === true) {
-    await addWatchedMovie(user.id, movieIdNum, supabase);
+  // Keep the global watched state in sync both ways
+  if (typeof is_watched === "boolean") {
+    await setMovieWatched(user.id, movieIdNum, is_watched, supabase);
   }
 
   return json({ collectionItem }, { headers });

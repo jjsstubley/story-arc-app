@@ -13,7 +13,7 @@ export default function DefaultWatchlist({filter='all'}: {filter: string}) {
     const response = await fetch(`/api/watchlists/default`);
     const data = await response.json();
     console.log('data', data.watchlist);
-    data.watchlist = { ...data.watchlist, watchlist_items: data.watchlist.watchlist_items.map((item: WatchlistItemInterface) => { return { ...item, media_type: 'movie' }})};
+    data.watchlist = { ...data.watchlist, watchlist_items: data.watchlist.watchlist_items.map((item: WatchlistItemInterface) => { return { ...item, media_type: item.media_type ?? 'movie' }})};
     // const sortedWatchlist = watchlistWMediaType.sort((a: WatchlistItemInterface, b: WatchlistItemInterface) => a.movie.title.localeCompare(b.movie.title));  
     console.log('data.watchlist', data.watchlist);
     setWatchlist(data.watchlist);

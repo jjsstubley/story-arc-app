@@ -12,6 +12,7 @@ import type { LinksFunction } from "@remix-run/node";
 // import dotenv from "dotenv";
 import { Provider } from "./components/ui/provider";
 import { Toaster } from "./components/ui/toaster";
+import { QueryProvider } from "./shared/query/query-provider";
 import { getUserSession } from "./utils/auth";
 
 // dotenv.config();
@@ -65,7 +66,9 @@ export default function App() {
   return (
 
     <Provider>
-      <Outlet />
+      <QueryProvider>
+        <Outlet />
+      </QueryProvider>
       <Toaster />
     </Provider>
 

@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { addOrUpdateRating } from "./ratings.server";
+import { addOrUpdateRating } from "~/features/ratings/index.server";
 import { createOrUpdateReview } from "./reviews.server";
-import { isMovieWatched } from "./user-watched-movies.server";
+import { isMovieWatched } from "~/features/watched/index.server";
 
 const collection = 'user_favourites';
 

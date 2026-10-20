@@ -1,5 +1,5 @@
 /**
- * Rating tier mapping - shared between client and server
+ * Rating tier mapping - shared between client and server (no server-only imports here)
  */
 export const RATING_TIERS = {
   Masterpiece: 95,
@@ -31,3 +31,10 @@ export function getPercentageFromTier(tierName: RatingTier): number {
   return RATING_TIERS[tierName];
 }
 
+
+/**
+ * Tiers as select options, highest first. `value` is the tier's percentage as a string.
+ */
+export const RATING_TIER_OPTIONS = (Object.entries(RATING_TIERS) as [RatingTier, number][]).map(
+  ([tier, percentage]) => ({ label: tier, value: String(percentage) })
+);

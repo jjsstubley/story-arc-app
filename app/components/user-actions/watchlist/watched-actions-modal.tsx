@@ -13,7 +13,7 @@ import { LuHeart, LuStar } from "react-icons/lu";
 import { useState } from "react";
 import FavouriteDialog from "../favourites/favourite-dialog";
 import ReviewForm from "../reviews/review-form";
-import RatingSelector from "../ratings/rating-selector";
+import { RatingSelector } from "~/features/ratings";
 
 interface MovieActionsDialogProps {
   children: React.ReactNode;
@@ -78,7 +78,7 @@ export default function MovieActionsDialog({
                 </Text>
               </VStack>
               <Box width="100%">
-                <RatingSelector movieId={movieId} />
+                <RatingSelector movieId={movieId} portalled={false} />
               </Box>
             </VStack>
           </Box>

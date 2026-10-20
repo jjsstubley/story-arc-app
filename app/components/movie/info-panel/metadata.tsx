@@ -6,7 +6,7 @@ import { getFormattedDate, getMovieTags } from "~/utils/helpers";
 import ArkHeader from "~/components/ui/ark-header";
 import Genres from "../common/genres";
 import { TmdbMovieDetailWAppendsProps } from "~/interfaces/tmdb/movie/detail";
-import MovieWatchedBadge from "~/components/user-actions/watched/movie-watched-badge";
+import { MovieWatchedBadge } from "~/features/watched";
 import MovieActionsDialog from "~/components/user-actions/watchlist/watched-actions-modal";
 
 const InfoPanelMetadata = ({ movie }: { movie: TmdbMovieDetailWAppendsProps }) => {

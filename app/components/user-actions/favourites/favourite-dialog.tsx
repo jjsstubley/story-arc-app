@@ -1,7 +1,7 @@
 import { Dialog, Portal, CloseButton, VStack, Heading, Text, Button, Box, Select, Textarea, createListCollection } from "@chakra-ui/react";
 import { useState } from "react";
 import { addToFavourites } from "./services";
-import { RATING_TIERS } from "~/utils/constants/ratings";
+import { RATING_TIERS } from "~/features/ratings";
 
 const ratingTiers = createListCollection({
   items: Object.entries(RATING_TIERS).map(([tier, percentage]) => ({
@@ -93,7 +93,8 @@ export default function FavouriteDialog({
                         <Select.Indicator />
                       </Select.IndicatorGroup>
                     </Select.Control>
-                    <Portal>
+                    {/* Not portalled: the modal Dialog would block the dropdown */}
+                    <Portal disabled>
                       <Select.Positioner>
                         <Select.Content>
                           {ratingTiers.items.map((tier) => (
