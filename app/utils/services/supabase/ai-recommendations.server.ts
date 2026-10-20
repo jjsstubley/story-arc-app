@@ -111,17 +111,45 @@ export async function getRecommendationsByQueryId(
   return data || [];
 }
 
+type RecommendationInput = {
+  movie_id: number;
+  context_tags?: string[] | null;
+  reasoning?: string | null;
+};
+
+/**
+ * Append recommendations to an existing AI query (used for page 2+)
+ */
+export async function appendRecommendations(
+  aiQueryId: string,
+  recommendations: RecommendationInput[],
+  supabase: SupabaseClient
+) {
+  if (recommendations.length === 0) return;
+
+  const recommendationRecords = recommendations.map((rec) => ({
+    ai_query_id: aiQueryId,
+    movie_id: Number(rec.movie_id), // Ensure it's an integer
+    context_tags: rec.context_tags || null,
+    reasoning: rec.reasoning || null,
+  }));
+
+  const { error } = await supabase
+    .from("ai_recommendations")
+    .insert(recommendationRecords);
+
+  if (error) {
+    throw error;
+  }
+}
+
 /**
  * Save AI query and all its recommendations to the database
  */
 export async function saveAiQueryAndRecommendations(
   prompt: string,
   context: object | null,
-  recommendations: Array<{
-    movie_id: number;
-    context_tags?: string[] | null;
-    reasoning?: string | null;
-  }>,
+  recommendations: RecommendationInput[],
   userId: string,
   supabase: SupabaseClient
 ) {
@@ -141,31 +169,7 @@ export async function saveAiQueryAndRecommendations(
   }
 
   // Then, insert all recommendations
-  if (recommendations.length > 0) {
-    const recommendationRecords = recommendations.map((rec) => ({
-      ai_query_id: aiQuery.id as string, // Ensure it's a string UUID
-      movie_id: Number(rec.movie_id), // Ensure it's an integer
-      context_tags: rec.context_tags || null,
-      reasoning: rec.reasoning || null,
-    }));
-
-    console.log("=== Inserting Recommendations ===");
-    console.log("AI Query ID:", aiQuery.id);
-    console.log("AI Query ID type:", typeof aiQuery.id);
-    console.log("Sample recommendation:", {
-      ai_query_id: recommendationRecords[0]?.ai_query_id,
-      movie_id: recommendationRecords[0]?.movie_id,
-      movie_id_type: typeof recommendationRecords[0]?.movie_id,
-    });
-
-    const { error: recommendationsError } = await supabase
-      .from("ai_recommendations")
-      .insert(recommendationRecords);
-
-    if (recommendationsError) {
-      throw recommendationsError;
-    }
-  }
+  await appendRecommendations(aiQuery.id as string, recommendations, supabase);
 
   return aiQuery;
 }

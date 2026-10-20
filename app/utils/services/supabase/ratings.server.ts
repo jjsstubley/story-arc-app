@@ -104,3 +104,20 @@ export async function deleteRating(
   return { success: true };
 }
 
+
+/**
+ * Get all ratings for a user, highest first
+ */
+export async function getUserRatings(
+  userId: string,
+  supabase: SupabaseClient
+): Promise<Array<{ tmdb_movie_id: number; rating_percentage: number; rating_tier: RatingTier }>> {
+  const { data, error } = await supabase
+    .from(collection)
+    .select('tmdb_movie_id, rating_percentage, rating_tier')
+    .eq('user_id', userId)
+    .order('rating_percentage', { ascending: false });
+
+  if (error) throw error;
+  return data || [];
+}

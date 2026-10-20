@@ -1,14 +1,14 @@
 import { Flex, Input, Button } from "@chakra-ui/react";
-import { useFetcher } from "@remix-run/react";
 import { useRef, useState } from "react";
 import SuggestionsDialog from "../suggestions/dialog";
-import { SuggestionsDataInterface } from "~/interfaces/suggestions";
+import { useSuggestionStream } from "~/hooks/use-suggestion-stream";
 
 
 const SuggestionsInput = () => {
-  const fetcher = useFetcher<SuggestionsDataInterface>();
+  const stream = useSuggestionStream();
   const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState("");
+  const isStreaming = stream.state.status === "streaming";
 
   const handleSearch = () => {
     // Validate query before submitting
@@ -16,13 +16,7 @@ const SuggestionsInput = () => {
       return; // Don't submit empty queries
     }
 
-    const formData = new FormData();
-    formData.append("query", query.trim());
-
-    fetcher.submit(formData, {
-      method: "post",
-      action: "/api/suggestions",
-    });
+    stream.start(query.trim());
   };
 
   const handleMainInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -35,7 +29,7 @@ const SuggestionsInput = () => {
       handleSearch()
     }
   };
-  
+
   return (
     <Flex direction="column" gap={4} w="100%">
       <Input
@@ -51,13 +45,13 @@ const SuggestionsInput = () => {
         placeholder="What movie can I help you find."
       />
 
-      <SuggestionsDialog fetcher={fetcher} query={query}>
-        <Button 
+      <SuggestionsDialog stream={stream}>
+        <Button
           onClick={handleSearch}
-          disabled={!query || query.trim().length === 0 || fetcher.state === "submitting"}
-          loading={fetcher.state === "submitting"}
+          disabled={!query || query.trim().length === 0 || isStreaming}
+          loading={isStreaming}
         >
-          {fetcher.state === "submitting" ? "Searching..." : "Recommend"}
+          {isStreaming ? "Searching..." : "Recommend"}
         </Button>
       </SuggestionsDialog>
     </Flex>

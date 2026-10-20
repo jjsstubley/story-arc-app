@@ -11,6 +11,7 @@ import type { LinksFunction } from "@remix-run/node";
 // import "./tailwind.css";
 // import dotenv from "dotenv";
 import { Provider } from "./components/ui/provider";
+import { Toaster } from "./components/ui/toaster";
 import { getUserSession } from "./utils/auth";
 
 // dotenv.config();
@@ -34,6 +35,10 @@ export const links: LinksFunction = () => [
   {
     rel: "stylesheet",
     href: "https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap",
+  },
+  {
+    rel: "stylesheet",
+    href: "https://fonts.googleapis.com/css2?family=Bungee+Hairline&display=swap",
   },
 ];
 
@@ -61,6 +66,7 @@ export default function App() {
 
     <Provider>
       <Outlet />
+      <Toaster />
     </Provider>
 
 )

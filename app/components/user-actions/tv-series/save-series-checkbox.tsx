@@ -1,22 +1,19 @@
 import { CheckboxCard } from "@chakra-ui/react"
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { checkTVSeries, toggleTVSeries } from "~/components/user-actions/watchlist/services";
 import { useWatchlistContext } from "~/components/providers/watchlist-context";
+import { useOptimisticToggle } from "~/components/user-actions/watchlist/use-optimistic-toggle";
 
 export default function SaveSeriesCheckbox({ seriesId } : { seriesId: number }) {
-    const [selected, setSelected] = useState<boolean>(false);
+    const { selected, setSelected, toggle } = useOptimisticToggle("TV Series");
     const { updateWatchlist } = useWatchlistContext();
 
     const updateList = async () => {
-        const response = await toggleTVSeries(seriesId, selected);
-        if (!response) {
-            console.error("Failed to update saved TV series");
-            setSelected(false)
-            return;
+        const ok = await toggle((wasSelected) => toggleTVSeries(seriesId, wasSelected));
+        if (ok) {
+            // Trigger refresh of saved series list
+            updateWatchlist('saved-tv-series');
         }
-        setSelected(!selected);
-        // Trigger refresh of saved series list
-        updateWatchlist('saved-tv-series');
     }
 
     const checkList = async () => {

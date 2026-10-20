@@ -1,70 +1,79 @@
-import { Box, Grid, Heading, Text } from "@chakra-ui/react";
-import { useFetcher } from "@remix-run/react";
-import { SuggestionsDataInterface } from "~/interfaces/suggestions";
+import { Badge, Box, Button, Flex, Grid, Heading, Spinner, Text } from "@chakra-ui/react";
+import { useSuggestionStream } from "~/hooks/use-suggestion-stream";
 import MovieSearchItem from "../movieSearchItem";
 import LoadingState from "./loading-state";
 import ErrorState from "./error-state";
 import EmptyState from "./empty-state";
 
 interface SuggestionsResultsProps {
-  fetcher: ReturnType<typeof useFetcher<SuggestionsDataInterface>>;
-  query?: string;
+  stream: ReturnType<typeof useSuggestionStream>;
 }
 
-const SuggestionsResults = ({ fetcher, query }: SuggestionsResultsProps) => {
-  // Loading state
-  if (fetcher.state === "loading" || fetcher.state === "submitting") {
+const SuggestionsResults = ({ stream }: SuggestionsResultsProps) => {
+  const { status, query, title, cached, personalised, suggestions, error } = stream.state;
+
+  // Error before anything arrived
+  if (status === "error" && suggestions.length === 0) {
+    return <ErrorState error={error ?? undefined} onRetry={stream.retry} />;
+  }
+
+  // Waiting for the first suggestion
+  if (status === "streaming" && suggestions.length === 0) {
     return <LoadingState />;
   }
 
-  // Error state
-  if (fetcher.data?.error) {
-    return (
-      <ErrorState
-        error={fetcher.data.error}
-        onRetry={() => {
-          // Retry logic would be handled by the parent component
-          // This is just for display
-        }}
-      />
-    );
-  }
-
-  // No data state
-  if (!fetcher.data?.result) {
-    return <EmptyState query={query} />;
-  }
-
-  const suggestions = fetcher.data.result.suggestions || [];
-
   // Empty results state
   if (suggestions.length === 0) {
-    return (
-      <EmptyState
-        message="No recommendations found"
-        query={query}
-      />
-    );
+    return status === "done"
+      ? <EmptyState message="No recommendations found" query={query} />
+      : <EmptyState query={query} />;
   }
 
-  // Success state with results
+  // Results (still filling in while streaming)
   return (
     <Box>
       <Box display="flex" alignItems="center" justifyContent="space-between" mb={4}>
         <Heading as="h4" fontSize="md" fontWeight="semibold">
-          {fetcher.data.result.title || "Suggestions"}
+          {title || "Suggestions"}
         </Heading>
-        {fetcher.data.cached && (
-          <Text fontSize="xs" color="fg.muted" fontStyle="italic">
-            From cache
-          </Text>
-        )}
+        <Flex gap={3} alignItems="center">
+          {personalised && (
+            <Badge colorPalette="orange" variant="subtle">
+              Personalised for you
+            </Badge>
+          )}
+          {cached && (
+            <Text fontSize="xs" color="fg.muted" fontStyle="italic">
+              From cache
+            </Text>
+          )}
+        </Flex>
       </Box>
       <Grid columns={{ base: 1, md: 2 }} gap={4}>
-        {suggestions.map((item, index) => (
-          <MovieSearchItem key={item.tmdbData?.id || index} item={item} />
+        {suggestions.map((item) => (
+          <MovieSearchItem key={item.movie_id ?? `${item.rank}-${item.title}`} item={item} />
         ))}
       </Grid>
+
+      <Flex justifyContent="center" alignItems="center" gap={3} py={6}>
+        {status === "streaming" && (
+          <>
+            <Spinner size="sm" color="orange.500" />
+            <Text fontSize="sm" color="fg.muted">Finding more recommendations...</Text>
+          </>
+        )}
+        {status === "error" && (
+          <>
+            <Text fontSize="sm" color="red.400">{error}</Text>
+            <Button size="sm" variant="outline" onClick={stream.retry}>Try again</Button>
+          </>
+        )}
+        {status === "done" && (
+          <Button colorPalette="orange" variant="outline" onClick={stream.loadMore}>
+            More results
+          </Button>
+        )}
+      </Flex>
     </Box>
   );
 };

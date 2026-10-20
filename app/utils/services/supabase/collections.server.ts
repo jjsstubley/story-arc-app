@@ -306,3 +306,23 @@ export async function deleteCollectionById(
 
   return { success: true };
 }
+/**
+ * Find the system-generated collection created from an AI query
+ */
+export async function findCollectionIdByAiQueryId(
+  aiQueryId: string,
+  userId: string,
+  supabase: SupabaseClient
+): Promise<string | null> {
+  const { data, error } = await supabase
+    .from("collections")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("generated_from->>ai_query_id", aiQueryId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data?.id ?? null;
+}

@@ -1,24 +1,21 @@
 import { Text, IconButton, } from "@chakra-ui/react"
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { IoBookmark, IoBookmarkOutline } from "react-icons/io5";
 import { useWatchlistContext } from "~/components/providers/watchlist-context";
 import { checkWatchlist, toggleWatchlist } from "../services";
+import { useOptimisticToggle } from "../use-optimistic-toggle";
 
 export default function BookmarkIcon({ watchlistId, movieId, isDefault } : { watchlistId: string,  movieId: number, isDefault: boolean }) {
     // const [isAddedToWatchlist, setIsAddedToWatchlist] = useState<boolean>(false);
     const { updateWatchlist } = useWatchlistContext();
-    const [selected, setSelected] = useState<boolean>(false);
+    const { selected, setSelected, toggle } = useOptimisticToggle("watchlist");
     const watchlist = isDefault ? "default" : watchlistId;
 
     const updateList = async (watchlist: string) => {
-        const response = await toggleWatchlist(watchlist, movieId, selected);
-            if (!response) {
-            console.error("Failed to update watchlist");
-            setSelected(false)
-            return;
+        const ok = await toggle((wasSelected) => toggleWatchlist(watchlist, movieId, wasSelected));
+        if (ok) {
+            updateWatchlist(watchlist);
         }
-        setSelected(!selected);
-        updateWatchlist(watchlist);
     }
 
     const checkList = async (watchlist: string) => {

@@ -38,29 +38,41 @@ export async function action({ request, params }: ActionFunctionArgs) {
     return json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let body;
-  try {
-    body = await request.json();
-  } catch {
-    return json({ error: "Invalid JSON" }, { status: 400 });
-  }
-
   if (!id) {
     return json({ error: "Watchlist ID is required" }, { status: 400 });
   }
 
-  switch (method) { 
-    case "DELETE": {
-      deleteWatchlistById(id, user.id, supabase);
-      return json({ message: "Watchlist deleted successfully" }, { status: 204, headers });
-    }
-    case "PATCH": {
-      const watchlist = updateWatchlistById(id, user.id, body, supabase);
-      return json({watchlist: watchlist});
-    }
-    default:
-      return new Response("Method Not Allowed", { status: 405 })
-  }
+  try {
+    switch (method) {
+      case "DELETE": {
+        await deleteWatchlistById(id, user.id, supabase);
+        // A 204 response must not have a body
+        return new Response(null, { status: 204, headers });
+      }
+      case "PATCH": {
+        let body;
+        try {
+          body = await request.json();
+        } catch {
+          return json({ error: "Invalid JSON" }, { status: 400 });
+        }
 
+        // Only user-editable fields; never user_id, is_default, etc.
+        const { name, description, tags } = body;
+        const updates = Object.fromEntries(
+          Object.entries({ name, description, tags }).filter(([, value]) => value !== undefined)
+        );
+
+        const watchlist = await updateWatchlistById(id, user.id, updates, supabase);
+        return json({ watchlist }, { headers });
+      }
+      default:
+        return new Response("Method Not Allowed", { status: 405 })
+    }
+  } catch (error: unknown) {
+    console.error("Watchlist action error:", error);
+    const message = error instanceof Error ? error.message : "Unknown server error";
+    return json({ error: message }, { status: 500 });
+  }
 }
 

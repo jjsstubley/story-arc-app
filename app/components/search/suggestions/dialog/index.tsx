@@ -1,35 +1,39 @@
 import { useState, useEffect } from 'react';
 
 import { CustomDialog } from '../../../custom-dialog';
-import {  SuggestionsDataInterface } from '~/interfaces/suggestions';
-import { useFetcher } from '@remix-run/react';
+import { useSuggestionStream } from '~/hooks/use-suggestion-stream';
 import SuggestionsDialogHeader from './suggestions-dialog-header';
 import SuggestionsResults from '../results';
 
 
-const SuggestionsDialog = ({fetcher, query, children} : { fetcher: ReturnType<typeof useFetcher<SuggestionsDataInterface>>, query: string, children: React.ReactNode;}) => {
+const SuggestionsDialog = ({stream, children} : { stream: ReturnType<typeof useSuggestionStream>, children: React.ReactNode;}) => {
     const [open, setOpen] = useState(false);
+    const { status, title, error } = stream.state;
 
-    // Open dialog when data is loaded or error occurs
+    // Open as soon as the stream starts returning (meta) or fails
     useEffect(() => {
-        if (fetcher.data && (fetcher.data.result || fetcher.data.error)) {
+        if (status !== "idle" && (title || error)) {
             setOpen(true);
         }
-    }, [fetcher.data]);
+    }, [status, title, error]);
 
     return (
-        <CustomDialog 
+        <CustomDialog
             dialogProps={{
                 open: open,
-                onOpenChange: (e) => setOpen(e.open),
+                onOpenChange: (e) => {
+                    setOpen(e.open);
+                    // Stop streaming when the dialog is closed
+                    if (!e.open) stream.cancel();
+                },
                 size: 'cover',
                 placement: "center",
                 motionPreset: 'slide-in-bottom',
                 scrollBehavior: 'outside',
             }}
             trigger={ children }
-            header={ <SuggestionsDialogHeader query={query} />}
-            body={ <SuggestionsResults fetcher={fetcher} query={query} />}
+            header={ <SuggestionsDialogHeader query={stream.state.query} />}
+            body={ <SuggestionsResults stream={stream} />}
         />
     );
 };

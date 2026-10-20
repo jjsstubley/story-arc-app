@@ -1,25 +1,26 @@
 import { CheckboxCard, } from "@chakra-ui/react"
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useWatchlistContext } from "~/components/providers/watchlist-context";
 import { checkWatchlist, toggleWatchlist } from "../services";
+import { useOptimisticToggle } from "../use-optimistic-toggle";
 
     export default function WatchListCheckboxCard({ watchlistId, label, description, movieId, addon, mediaType } : { watchlistId: string, label: string, description: string, movieId: number, addon?: string, mediaType?: string }) {
     // const [isAddedToWatchlist, setIsAddedToWatchlist] = useState<boolean>(false);
     const { updateWatchlist, setIsOtherWatchlistsOpen } = useWatchlistContext();
-    const [selected, setSelected] = useState<boolean>(false);
+    const { selected, setSelected, toggle } = useOptimisticToggle(label);
 
     const updateList = async (watchlistId: string) => {
-        const response = await toggleWatchlist(watchlistId, movieId, selected, mediaType || 'movie');
-        if (!response) {
-            console.error("Failed to update watchlist");
-            setSelected(false)
-            return;
+        const ok = await toggle(
+            (wasSelected) => toggleWatchlist(watchlistId, movieId, wasSelected, mediaType || 'movie'),
+            (next) => {
+                if (watchlistId === "default") {
+                    setIsOtherWatchlistsOpen(next);
+                }
+            }
+        );
+        if (ok) {
+            updateWatchlist(watchlistId);
         }
-        setSelected(!selected);
-        if (watchlistId === "default") {    
-            setIsOtherWatchlistsOpen(!selected);
-        }  
-        updateWatchlist(watchlistId);
     }
 
     const checkList = async (watchlistId: string) => {

@@ -11,6 +11,11 @@ const MovieSearchItem = ({ item }: { item: MovieSuggestionInterface}) => {
         <Box width="250px">{ item.tmdbData && (<MoviePoster item={item.tmdbData} /> )}</Box>
         <Box flex="1">
             <Heading as="h3" lineHeight={1} letterSpacing="0.225rem" size="4xl" fontFamily="'Epilogue', sans-serif" fontWeight={400}>{item.title}</Heading>
+            { item.because_you_liked && (
+              <Text mt={3} fontSize="sm" color="orange.300">
+                Because you liked <Text as="em">{item.because_you_liked}</Text>
+              </Text>
+            )}
             <Alert.Root title="Success" status="success" mt={4} colorPalette="green">
               <Alert.Indicator><WiStars /></Alert.Indicator>
               <Alert.Content color="fg">

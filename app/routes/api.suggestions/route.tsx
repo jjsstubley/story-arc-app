@@ -1,6 +1,20 @@
 import { ActionFunction, json } from "@remix-run/node"
-import { getSuggestions } from "~/utils/services/ai/"
+import { streamSuggestions } from "~/utils/services/ai/"
 import { getSupabaseServerClient } from "~/utils/supabase.server";
+
+function parseExcludeTitles(value: FormDataEntryValue | null): string[] {
+  if (typeof value !== "string" || !value) return [];
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed.filter((t): t is string => typeof t === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+function optionalString(value: FormDataEntryValue | null): string | null {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
 
 export const action: ActionFunction = async ({ request }) => {
   try {
@@ -12,8 +26,13 @@ export const action: ActionFunction = async ({ request }) => {
       return json({ error: "Query cannot be empty" }, { status: 400 });
     }
 
-    // Get user context for caching
-    const headers = new Headers();
+    const page = Math.max(1, Number(formData.get("page")) || 1);
+
+    // Get user context for caching and personalisation
+    const headers = new Headers({
+      "Content-Type": "application/x-ndjson; charset=utf-8",
+      "Cache-Control": "no-cache",
+    });
     let supabase;
     let user;
 
@@ -26,17 +45,23 @@ export const action: ActionFunction = async ({ request }) => {
       // Continue without user context - will still work but won't cache
     }
 
-    // getSuggestions already returns a Response object, so return it directly
-    return await getSuggestions(
-      query.trim(),
+    const stream = streamSuggestions(
+      {
+        query: query.trim(),
+        page,
+        excludeTitles: parseExcludeTitles(formData.get("excludeTitles")),
+        aiQueryId: optionalString(formData.get("aiQueryId")),
+        collectionId: optionalString(formData.get("collectionId")),
+      },
       user?.id,
-      user && supabase ? supabase : undefined,
-      {} // context can be extended later with filters, preferences, etc.
+      user && supabase ? supabase : undefined
     );
+
+    return new Response(stream, { headers });
   } catch (error) {
     console.error("API suggestions error:", error);
-    const errorMessage = error instanceof Error 
-      ? error.message 
+    const errorMessage = error instanceof Error
+      ? error.message
       : "An unexpected error occurred";
     return json({ error: errorMessage }, { status: 500 });
   }

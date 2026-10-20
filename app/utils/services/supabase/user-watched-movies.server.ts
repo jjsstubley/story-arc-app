@@ -60,3 +60,16 @@ export async function removeWatchedMovie(
 
   if (error) throw error;
 }
+
+export async function getWatchedMovieIds(
+  userId: string,
+  supabase: SupabaseClient
+): Promise<Set<number>> {
+  const { data, error } = await supabase
+    .from(collection)
+    .select("tmdb_movie_id")
+    .eq("user_id", userId);
+
+  if (error) throw error;
+  return new Set((data || []).map((row) => Number(row.tmdb_movie_id)));
+}

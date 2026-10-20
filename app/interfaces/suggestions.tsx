@@ -1,19 +1,22 @@
 import { TmdbMovieSummaryInterface } from "./tmdb/movie/summary";
 
 export interface MovieSuggestionInterface {
+    rank: number;
     title: string;
     year: string;
     reason: string;
     themes: string[];
     tags: string[];
-    tmdbData?: TmdbMovieSummaryInterface
+    because_you_liked?: string | null;
+    movie_id?: number | null;
+    tmdbData?: TmdbMovieSummaryInterface | null
 }
-  
-interface ResultsDataInterface {
-    suggestions: MovieSuggestionInterface[];
-}
-  
-export interface SuggestionsDataInterface {
-    result?: ResultsDataInterface; // Optional, as it may not always exist
-    error?: string;  // Optional, as it may not always exist
-}
+
+/**
+ * NDJSON events streamed from /api/suggestions (one JSON object per line)
+ */
+export type SuggestionStreamEvent =
+    | { type: "meta"; title: string; cached: boolean; personalised: boolean }
+    | ({ type: "suggestion" } & MovieSuggestionInterface)
+    | { type: "done"; aiQueryId: string | null; collectionId: string | null }
+    | { type: "error"; message: string };

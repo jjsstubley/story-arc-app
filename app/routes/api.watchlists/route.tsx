@@ -42,8 +42,14 @@ export async function action({ request }: ActionFunctionArgs) {
   const { name, description, tags } = body;
 
   if (!name) {
-    const defaultWatchlist = createDefaultWatchlist(user.id, supabase);
-    return json({ watchlist: defaultWatchlist }, { status: 201, headers });
+    try {
+      const defaultWatchlist = await createDefaultWatchlist(user.id, supabase);
+      return json({ watchlist: defaultWatchlist }, { status: 201, headers });
+    } catch (error: unknown) {
+      console.error("Create Default Watchlist Error:", error);
+      const message = error instanceof Error ? error.message : "Unknown server error";
+      return json({ error: message }, { status: 500 });
+    }
   }
 
   try {
