@@ -7,7 +7,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { appendRecommendations, findSimilarQuery, getRecommendationsByQueryId, saveAiQueryAndRecommendations } from "~/utils/services/supabase/ai-recommendations.server";
 import { createCollectionWithItems, findCollectionIdByAiQueryId } from "~/utils/services/supabase/collections.server";
 import { addMovieToCollection } from "~/utils/services/supabase/collection-items.server";
-import { getWatchedMovieIds } from "~/utils/services/supabase/user-watched-movies.server";
+import { getWatchedMovieIds } from "~/features/watched/index.server";
 import type { TasteProfile } from "~/utils/services/supabase/taste-profiles.server";
 import { getOrBuildTasteProfile } from "./taste-profile.server";
 import type { MovieSuggestionInterface, SuggestionStreamEvent } from "~/interfaces/suggestions";

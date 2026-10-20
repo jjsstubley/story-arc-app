@@ -6,6 +6,7 @@ import { WatchlistInterface } from "~/interfaces/watchlist";
 import MediaImage from "../media/common/movie-image";
 import BlurredPlaceholder from "../media/common/blurred-placeholder";
 import { usePosterGradientColor } from "~/hooks/use-poster-gradient-color";
+import { useSeenCount } from "./use-seen-count";
 
 interface WatchlistHeroProps {
   watchlist: WatchlistInterface;
@@ -19,6 +20,7 @@ export default function WatchlistHero({ watchlist, height = '00px' }: WatchlistH
       firstMovie?.movie?.poster_path,
       undefined // Fallback to "orange.900" if no movie
     );
+    const seenCount = useSeenCount(watchlist?.watchlist_items ?? [], watchlist?.id ?? "");
 
     if (!watchlist) return (<Box width="100%" height={height} backgroundColor="gray.900" rounded="md"></Box>)
     
@@ -26,7 +28,6 @@ export default function WatchlistHero({ watchlist, height = '00px' }: WatchlistH
     const items = allItems.slice(0, 4);
     const placeholderCount = Math.max(0, 4 - items.length);
     const total = allItems.length;
-    const seenCount = allItems.filter((i) => i.is_seen).length;
     const isComplete = total > 0 && seenCount === total;
     
     return (

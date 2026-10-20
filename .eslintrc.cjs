@@ -71,6 +71,26 @@ module.exports = {
         "plugin:import/recommended",
         "plugin:import/typescript",
       ],
+      rules: {
+        // Features are imported only through their public entry points:
+        // "~/features/<name>" (client-safe) or "~/features/<name>/index.server"
+        "no-restricted-imports": [
+          "error",
+          {
+            patterns: [
+              {
+                group: ["~/features/*/*", "!~/features/*/index.server"],
+                message: "Import a feature through ~/features/<name> or ~/features/<name>/index.server, not its internals.",
+              },
+            ],
+          },
+        ],
+        // shared/ is the bottom layer and must not depend on features
+        "import/no-restricted-paths": [
+          "error",
+          { zones: [{ target: "./app/shared", from: "./app/features" }] },
+        ],
+      },
     },
 
     // Node

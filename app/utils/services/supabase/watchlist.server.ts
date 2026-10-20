@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getMovieDetailsById } from "../external/tmdb/movies";
 import { WatchlistItemInterface } from "~/interfaces/watchlist";
+import { applyWatchedStatus, getWatchedMovieIds } from "~/features/watched/index.server";
 
 export async function getAllWatchlists(userId: string, supabase: SupabaseClient) {
   const { data, error } = await supabase
@@ -35,7 +36,8 @@ export async function getDefaultWatchlistWMovies(userId: string, supabase: Supab
         tmdb_id,
         tmdb_movie_id,
         is_seen,
-        added_at
+        added_at,
+        media_type
       )
     `)
     .eq("user_id", userId)
@@ -45,7 +47,8 @@ export async function getDefaultWatchlistWMovies(userId: string, supabase: Supab
   if (error && error.code !== "PGRST116") throw error; // PGRST116 = no rows found
   if (!data) return null
 
-  const items = (data.watchlist_items || []).sort((a: WatchlistItemInterface, b: WatchlistItemInterface) => 
+  const watchedIds = await getWatchedMovieIds(userId, supabase);
+  const items = applyWatchedStatus<WatchlistItemInterface>(data.watchlist_items || [], watchedIds).sort((a: WatchlistItemInterface, b: WatchlistItemInterface) => 
     new Date(b.added_at).getTime() - new Date(a.added_at).getTime()
   );
 
@@ -101,9 +104,10 @@ export async function getAllWatchlistsWMovies(userId: string, supabase: Supabase
   if (error) throw error;
   if (!data) return [];
 
+  const watchedIds = await getWatchedMovieIds(userId, supabase);
   const watchlistsWithMovies = await Promise.all(
     data.map(async (watchlist) => {
-      const items = (watchlist.watchlist_items || []).sort((a: WatchlistItemInterface, b: WatchlistItemInterface) => 
+      const items = applyWatchedStatus<WatchlistItemInterface>(watchlist.watchlist_items || [], watchedIds).sort((a: WatchlistItemInterface, b: WatchlistItemInterface) => 
         new Date(b.added_at).getTime() - new Date(a.added_at).getTime()
       );
       
@@ -152,7 +156,8 @@ export async function getWatchlistByIdWMovies(watchlistId: string, userId: strin
   if (error && error.code !== "PGRST116") throw error; // PGRST116 = no rows found
   if (!data) return null;
 
-  const items = (data.watchlist_items || []).sort((a: WatchlistItemInterface, b: WatchlistItemInterface) => 
+  const watchedIds = await getWatchedMovieIds(userId, supabase);
+  const items = applyWatchedStatus<WatchlistItemInterface>(data.watchlist_items || [], watchedIds).sort((a: WatchlistItemInterface, b: WatchlistItemInterface) => 
     new Date(b.added_at).getTime() - new Date(a.added_at).getTime()
   );
 

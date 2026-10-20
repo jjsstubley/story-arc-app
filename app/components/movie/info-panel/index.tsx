@@ -9,7 +9,7 @@ import InfoPanelHeader from "./header";
 import InfoPanelMetadata from "./metadata";
 import WatchListCheckboxCards from "~/components/user-actions/watchlist/checkbox-cards";
 import { MdOutlinePassword } from "react-icons/md";
-import RatingSection from "~/components/user-actions/ratings/rating-section";
+import { RatingSection } from "~/features/ratings";
 import ReviewsSection from "~/components/user-actions/reviews/reviews-section";
 
 

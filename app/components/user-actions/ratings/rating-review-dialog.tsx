@@ -13,8 +13,8 @@ import {
 } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import { getWatchlistItemStatus } from "../watchlist/helpers";
-import { getMovieWatchedStatus, dispatchWatchedChange } from "../watched/helpers";
-import RatingSelector from "./rating-selector";
+import { useMovieWatched, useSetMovieWatched } from "~/features/watched";
+import { RatingSelector } from "~/features/ratings";
 import ReviewForm from "../reviews/review-form";
 import { FaCircleCheck } from "react-icons/fa6";
 
@@ -32,72 +32,60 @@ export default function RatingReviewDialog({
   mediaType = "movie",
 }: RatingReviewDialogProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  // For movies: global watched status; for TV: watchlist item status
+  // Movies: global watched state (shared cache). TV: watchlist item status.
+  const movieWatchedQuery = useMovieWatched(mediaId, { enabled: dialogOpen && mediaType === "movie" });
+  const setMovieWatched = useSetMovieWatched(mediaId);
+  const movieWatched = movieWatchedQuery.data?.watched ?? false;
+
+  const [tvLoading, setTvLoading] = useState(false);
   const [watchlistStatus, setWatchlistStatus] = useState<{
     exists: boolean;
     is_seen: boolean | null;
     watchlistId: string | null;
   } | null>(null);
-  const [movieWatched, setMovieWatched] = useState<boolean | null>(null);
-  const [markingAsWatched, setMarkingAsWatched] = useState(false);
+  const [markingTvAsWatched, setMarkingTvAsWatched] = useState(false);
 
   useEffect(() => {
-    if (dialogOpen) {
-      loadStatus();
+    if (dialogOpen && mediaType === "tv") {
+      loadTvStatus();
     }
-  }, [dialogOpen, mediaId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dialogOpen, mediaId, mediaType]);
 
-  const loadStatus = async () => {
-    setLoading(true);
+  const loadTvStatus = async () => {
+    setTvLoading(true);
     try {
-      if (mediaType === "tv") {
-        const status = await getWatchlistItemStatus(mediaId, mediaType);
-        setWatchlistStatus(status);
-        setMovieWatched(null);
-      } else {
-        const status = await getMovieWatchedStatus(mediaId);
-        setMovieWatched(status.watched);
-        setWatchlistStatus(null);
-      }
+      setWatchlistStatus(await getWatchlistItemStatus(mediaId, "tv"));
     } catch (error) {
       console.error("Failed to load status", error);
       setWatchlistStatus({ exists: false, is_seen: null, watchlistId: null });
-      setMovieWatched(false);
     } finally {
-      setLoading(false);
+      setTvLoading(false);
     }
   };
 
+  const markingAsWatched = mediaType === "tv" ? markingTvAsWatched : setMovieWatched.isPending;
+  const loading = mediaType === "tv" ? tvLoading : movieWatchedQuery.isPending;
+
   const handleMarkAsWatched = async () => {
-    setMarkingAsWatched(true);
+    if (mediaType !== "tv") {
+      setMovieWatched.mutate(true);
+      return;
+    }
+    if (!watchlistStatus?.exists) return;
+    setMarkingTvAsWatched(true);
     try {
-      if (mediaType === "tv") {
-        if (!watchlistStatus?.exists) return;
-        const response = await fetch(`/api/tv-series/${mediaId}/toggle`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ is_seen: true }),
-        });
-        if (response.ok) await loadStatus();
-        else console.error("Failed to mark as watched");
-      } else {
-        const response = await fetch(`/api/movies/${mediaId}/watched`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ watched: true }),
-        });
-        if (response.ok) {
-          await loadStatus();
-          dispatchWatchedChange(mediaId, true);
-        } else {
-          console.error("Failed to mark as watched");
-        }
-      }
+      const response = await fetch(`/api/tv-series/${mediaId}/toggle`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ is_seen: true }),
+      });
+      if (response.ok) await loadTvStatus();
+      else console.error("Failed to mark as watched");
     } catch (error) {
       console.error("Failed to mark as watched", error);
     } finally {
-      setMarkingAsWatched(false);
+      setMarkingTvAsWatched(false);
     }
   };
 
@@ -147,7 +135,7 @@ export default function RatingReviewDialog({
       }
     } else {
       // Movie: gate on global watched only
-      if (movieWatched !== true) {
+      if (!movieWatched) {
         return (
           <VStack align="stretch" gap={4}>
             <Box p={4} bg="gray.800" rounded="md">
@@ -183,7 +171,7 @@ export default function RatingReviewDialog({
               </Text>
             </VStack>
             <Box width="100%">
-              <RatingSelector movieId={mediaId} />
+              <RatingSelector movieId={mediaId} portalled={false} />
             </Box>
           </VStack>
         </Box>

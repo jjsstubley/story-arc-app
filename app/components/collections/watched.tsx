@@ -1,63 +1,31 @@
 import { CollectionItemInterface } from "~/interfaces/collections";
-import { Box, Spinner } from "@chakra-ui/react";
-import { useState, useEffect } from "react";
+import { Box, Skeleton } from "@chakra-ui/react";
+import { useState } from "react";
 import MovieActionsDialog from "../user-actions/watchlist/watched-actions-modal";
 import { FaCircleCheck } from "react-icons/fa6";
-import { getMovieWatchedStatus, dispatchWatchedChange, useWatchedSync } from "../user-actions/watched/helpers";
+import { useMovieWatched, useSetMovieWatched } from "~/features/watched";
 
 /**
- * Uses user_watched_movies (GET/POST /api/movies/:movieId/watched). Not collection_items.is_watched.
+ * Uses the global watched state (user_watched_movies), not collection_items.is_watched.
  */
-export default function CollectionWatched({ item, collectionId }: { item: CollectionItemInterface; collectionId: string; isHovered: boolean }) {
-    const [watched, setWatched] = useState<boolean | null>(null);
-    const [loading, setLoading] = useState(true);
+export default function CollectionWatched({ item }: { item: CollectionItemInterface; collectionId: string; isHovered: boolean }) {
+    const { data, isPending } = useMovieWatched(item.movie_id);
+    const setWatched = useSetMovieWatched(item.movie_id);
     const [dialogOpen, setDialogOpen] = useState(false);
 
-    useWatchedSync(item.movie_id, setWatched);
-
-    useEffect(() => {
-        let cancelled = false;
-        (async () => {
-            setLoading(true);
-            try {
-                const status = await getMovieWatchedStatus(item.movie_id);
-                if (!cancelled) setWatched(status.watched);
-            } catch {
-                if (!cancelled) setWatched(false);
-            } finally {
-                if (!cancelled) setLoading(false);
-            }
-        })();
-        return () => { cancelled = true; };
-    }, [item.movie_id]);
-
-    async function handleToggle(e: React.MouseEvent) {
-        e.stopPropagation();
-        if (watched === null) return;
-        try {
-            const response = await fetch(`/api/movies/${item.movie_id}/watched`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ watched: !watched }),
-            });
-            if (response.ok) {
-                const data = await response.json();
-                const newWatched = Boolean(data.watched);
-                setWatched(newWatched);
-                dispatchWatchedChange(item.movie_id, newWatched);
-                setDialogOpen(newWatched);
-            }
-        } catch (err) {
-            console.error("Failed to update watched", err);
-        }
-    }
-
+    const watched = data?.watched ?? false;
     const movieTitle = item.movie?.title || `Movie ${item.movie_id}`;
 
-    if (loading) {
+    function handleToggle(e: React.MouseEvent) {
+        e.stopPropagation();
+        const next = !watched;
+        setWatched.mutate(next, { onSuccess: () => setDialogOpen(next) });
+    }
+
+    if (isPending) {
         return (
             <Box display="flex" p={1} justifyContent="center" alignItems="center">
-                <Spinner size="sm" />
+                <Skeleton boxSize="5" rounded="full" />
             </Box>
         );
     }
@@ -86,4 +54,3 @@ export default function CollectionWatched({ item, collectionId }: { item: Collec
         </MovieActionsDialog>
     );
 }
-

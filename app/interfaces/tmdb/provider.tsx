@@ -6,7 +6,7 @@ interface BaseProviderInterface {
 }
 
 
-interface ProviderInterface extends BaseProviderInterface {}
+export interface ProviderInterface extends BaseProviderInterface {}
 
 export interface FullProviderInterface extends BaseProviderInterface {
     display_priorities: DisplayPrioritiesInterface
@@ -22,6 +22,7 @@ export interface CountryResultInterface {
     rent?: ProviderInterface[];
     buy?: ProviderInterface[];
     free?: ProviderInterface[];
+    ads?: ProviderInterface[];
 }
   
 export interface WatchProvidersByProductionInterface {

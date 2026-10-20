@@ -6,16 +6,6 @@ export interface FavouriteInterface {
     updated_at: string;
 }
 
-export interface RatingInterface {
-    id: string;
-    user_id: string;
-    tmdb_movie_id: number;
-    rating_percentage: number;
-    rating_tier: 'Masterpiece' | 'Excellent' | 'Good' | 'Okay' | 'Bad' | 'Awful';
-    created_at: string;
-    updated_at: string;
-}
-
 export interface ReviewInterface {
     id: string;
     user_id: string;

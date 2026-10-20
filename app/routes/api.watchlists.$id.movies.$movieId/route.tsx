@@ -1,6 +1,6 @@
 import { ActionFunctionArgs, json, type LoaderFunctionArgs } from "@remix-run/node";
 import { isMovieInWatchlist, updateWatchlistItem } from "~/utils/services/supabase/watchlist-items.server";
-import { addWatchedMovie } from "~/utils/services/supabase/user-watched-movies.server";
+import { setMovieWatched } from "~/features/watched/index.server";
 import { getSupabaseServerClient } from "~/utils/supabase.server";
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
@@ -62,8 +62,9 @@ export async function action({ request, params }: ActionFunctionArgs) {
   try {
     const movieIdNum = parseInt(movieId);
     const watchlistItem = await updateWatchlistItem(watchlistId, movieIdNum, { is_seen }, supabase);
-    if (is_seen === true) {
-      await addWatchedMovie(user.id, movieIdNum, supabase);
+    // Movies: keep the global watched state in sync both ways. TV keeps is_seen only.
+    if (watchlistItem?.media_type !== "tv") {
+      await setMovieWatched(user.id, movieIdNum, is_seen, supabase);
     }
     return json({ watchlistItem }, { headers });
   } catch (error) {

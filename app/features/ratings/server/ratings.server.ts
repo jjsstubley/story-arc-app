@@ -1,6 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { getRatingTier, type RatingTier } from "~/utils/constants/ratings";
-import { isMovieWatched } from "./user-watched-movies.server";
+import { ConflictError, ValidationError } from "~/shared/errors";
+import { isMovieWatched } from "~/features/watched/index.server";
+import { getRatingTier, type RatingTier } from "../tiers";
+import type { Rating } from "../types";
 
 const collection = 'user_ratings';
 
@@ -12,16 +14,14 @@ export async function addOrUpdateRating(
   tmdbMovieId: number,
   percentage: number,
   supabase: SupabaseClient
-) {
-  // Validate movie is marked as watched
-  const watched = await isMovieWatched(userId, tmdbMovieId, supabase);
-  if (!watched) {
-    throw new Error('Movie must be marked as watched before adding a rating');
+): Promise<Rating> {
+  if (!Number.isFinite(percentage) || percentage < 0 || percentage > 100) {
+    throw new ValidationError('Rating must be between 0 and 100', 'INVALID_RATING');
   }
 
-  // Validate percentage is between 0 and 100
-  if (percentage < 0 || percentage > 100) {
-    throw new Error('Rating percentage must be between 0 and 100');
+  const watched = await isMovieWatched(userId, tmdbMovieId, supabase);
+  if (!watched) {
+    throw new ConflictError('Mark this movie as watched before rating it.', 'MOVIE_NOT_WATCHED');
   }
 
   const ratingTier = getRatingTier(percentage);
@@ -74,7 +74,7 @@ export async function getUserRating(
   userId: string,
   tmdbMovieId: number,
   supabase: SupabaseClient
-) {
+): Promise<Rating | null> {
   const { data, error } = await supabase
     .from(collection)
     .select('*')
@@ -93,7 +93,7 @@ export async function deleteRating(
   userId: string,
   tmdbMovieId: number,
   supabase: SupabaseClient
-) {
+): Promise<void> {
   const { error } = await supabase
     .from(collection)
     .delete()
@@ -101,7 +101,6 @@ export async function deleteRating(
     .eq('tmdb_movie_id', tmdbMovieId);
 
   if (error) throw error;
-  return { success: true };
 }
 
 

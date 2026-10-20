@@ -2,6 +2,7 @@ import { Badge, Box, Flex, Heading, IconButton, Text } from "@chakra-ui/react";
 import { WatchlistInterface } from "~/interfaces/watchlist";
 import EditWatchlistDialog from "./edit-watchlist-dialog";
 import { HiPencil } from "react-icons/hi";
+import { useSeenCount } from "./use-seen-count";
 
 interface FixedWatchlistHeaderProps {
   watchlist: WatchlistInterface;
@@ -14,7 +15,7 @@ export default function FixedWatchlistHeader({
 }: FixedWatchlistHeaderProps) {
   const items = watchlist.watchlist_items ?? [];
   const total = items.length;
-  const seenCount = items.filter((i) => i.is_seen).length;
+  const seenCount = useSeenCount(items, watchlist.id);
   const isComplete = total > 0 && seenCount === total;
 
   return (
