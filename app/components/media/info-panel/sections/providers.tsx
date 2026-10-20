@@ -2,7 +2,7 @@ import { Box, Text } from "@chakra-ui/react";
 import MovieProviders from "~/components/movie/movie-Providers";
 import {  WatchProvidersByProductionInterface } from "~/interfaces/tmdb/provider";
 
-const ProvidersSection = ({providers} : { providers: WatchProvidersByProductionInterface }) => {
+const ProvidersSection = ({providers} : { providers?: WatchProvidersByProductionInterface }) => {
     const region = 'AU';
     
     return (

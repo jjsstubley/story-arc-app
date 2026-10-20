@@ -16,33 +16,36 @@ import ProvidersSection from "~/components/media/info-panel/sections/providers";
 import { TmdbTVSeriesDetailWAppendsProps } from "~/interfaces/tmdb/tv/series/details";
 import OverviewSection from "~/components/media/info-panel/sections/overview";
 import KeywordSection from "~/components/media/info-panel/sections/keywords";
-import TrailersSection from "~/components/media/info-panel/sections/trailers";
+import TrailersSection, { getPlayableTrailers } from "~/components/media/info-panel/sections/trailers";
 import Seasons from "./sections/seasons";
 // No "use client" directive needed
 export function TVSeriesInfoPanel({ series, onClose }: { series: TmdbTVSeriesDetailWAppendsProps, onClose: () => void }) {
     // ✅ Server-side data fetching
 
-    const sections = [
+    const sections: { title: string; value: string; icon: JSX.Element; description: string; content: JSX.Element; isEmpty?: boolean }[] = [
         {
             title: 'Plot',
             value: 'plot',
             icon: <FaPenFancy color="whiteAlpha.600" />,
             description: `Overview of ${series.name} (no spoilers)`,
-            content: <OverviewSection overview={series.overview} />
+            content: <OverviewSection overview={series.overview} />,
+            isEmpty: !series.overview?.trim()
         },
         {
             title: 'Seasons',
             value: 'seasons',
             icon: <FaTv color="whiteAlpha.600" />,
             description: 'Take a look into the seasons of the show',
-            content: <Seasons seasons={series.seasons || []} seriesId={series.id} />
+            content: <Seasons seasons={series.seasons || []} seriesId={series.id} />,
+            isEmpty: !series.seasons?.length
         },
         {
             title: 'Keywords',
             value: 'keywords',
             icon: <MdOutlinePassword color="whiteAlpha.600" />,
             description: 'Take a look into some themes and explore',
-            content: <KeywordSection keywords={series.keywords?.keywords || []} />
+            content: <KeywordSection keywords={series.keywords?.keywords || []} />,
+            isEmpty: !series.keywords?.keywords?.length
         },
         {
             title: 'Watchlists',
@@ -55,17 +58,20 @@ export function TVSeriesInfoPanel({ series, onClose }: { series: TmdbTVSeriesDet
             title: 'Providers',
             value: 'providers',
             icon: <FaTv color="whiteAlpha.600" />,
-            description: 'Where can you watch this movie?',
-            content: series.providers && <ProvidersSection providers={series.providers} />
+            description: 'Where can you watch this show?',
+            content: <ProvidersSection providers={series.providers} />
         },
         {
             title: 'Trailer',
             value: 'trailer',
             icon: <GiFilmSpool color="whiteAlpha.600" />,
             description: `Get a brief look into ${series.name}`,
-            content: <TrailersSection videos={series.videos?.results || []} />
+            content: <TrailersSection videos={series.videos?.results || []} />,
+            isEmpty: !getPlayableTrailers(series.videos?.results || []).length
         },
     ]
+    // Hide TMDB reference sections that have nothing to show; action sections always render.
+    const visibleSections = sections.filter((section) => !section.isEmpty);
 
     return (
       <Box>
@@ -73,10 +79,10 @@ export function TVSeriesInfoPanel({ series, onClose }: { series: TmdbTVSeriesDet
         <Box p={4} pt={0}>
             <InfoPanelMetadata series={series} />
             <Separator my={4} />
-            <Accordion.Root collapsible defaultValue={["plot"]}>
+            <Accordion.Root collapsible defaultValue={visibleSections[0] ? [visibleSections[0].value] : []}>
                 {
-                    sections.map((section, index) => (
-                        <Accordion.Item value={section.value} key={index}>
+                    visibleSections.map((section) => (
+                        <Accordion.Item value={section.value} key={section.value}>
                             <Accordion.ItemTrigger>
                                 <Stack gap="1">
                                     <Box display="flex" gap={4} alignItems="center">

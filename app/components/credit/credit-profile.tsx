@@ -38,10 +38,22 @@ const CreditProfile = ({item , role} : { item: CastInterface | CrewInterface, ro
                             bottom="0"
                             left="0"
                             width="100%"
-                            bgGradient="to-t" gradientFrom="blackAlpha.800" gradientTo="transparent" gradientVia="blackAlpha.800"
+                            bgGradient="to-t" gradientFrom="blackAlpha.900" gradientVia="blackAlpha.600" gradientTo="transparent"
                             color="white"
-                            p={4}
-                            ><Text fontSize="xs">{role}</Text></Box>
+                            px={2}
+                            pt={6}
+                            pb={1.5}
+                            pointerEvents="none"
+                            >
+                            <Text fontSize="xs" fontWeight="semibold" lineHeight="short" truncate title={item.name}>
+                                {item.name}
+                            </Text>
+                            {role && (
+                                <Text fontSize="2xs" fontStyle="italic" color="gray.300" lineHeight="short" truncate title={role}>
+                                    {role}
+                                </Text>
+                            )}
+                        </Box>
                     </Box>
 
                 </Card.Body>
