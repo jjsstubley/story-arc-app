@@ -7,6 +7,11 @@ npm run dev        # dev server
 npm run typecheck  # tsc (the repo has ~44 known pre-existing errors; don't add new ones)
 npm run lint
 npm run build
+
+npx supabase start                    # local Supabase (needs Docker)
+npx supabase test db                  # pgTAP tests in supabase/tests/
+npx supabase db reset                 # rebuild the local DB from migrations
+npx supabase migration new <name>     # new migration file
 ```
 
 ## Architecture (migration in progress)
@@ -87,6 +92,19 @@ export const action = route;
   watchlist loaders and is only authoritative for TV items (`media_type === "tv"`).
 - Rating, reviewing and favouriting a movie all require it to be watched.
 
+## Database (Supabase)
+
+- Schema changes go in a new file in `supabase/migrations/`, never as edits to an applied migration.
+  `20261021013720_remote_schema.sql` is the baseline taken from production. `migrations/_archive/` holds
+  the old hand-run scripts; it isn't applied, so don't add to it.
+- Every user-owned table has RLS enabled, with policies that check `auth.uid()`. Add or change a policy
+  only with a pgTAP test in `supabase/tests/<table>_rls.test.sql`. Copy the shape of
+  `user_watched_movies_rls.test.sql`: two users, checks for signed-out (`anon`), own rows and the other user's rows.
+- Functions are `SECURITY INVOKER` so RLS applies. Never filter on a caller-supplied `user_id` inside a
+  `SECURITY DEFINER` function; that lets anyone read any user's rows (see `fix_ai_queries_fuzzy_matching.sql`).
+- The app uses the anon key with the user's session, so RLS is what protects user data. Server services
+  still filter by `user.id`, but that doesn't replace a policy.
+
 ## Loading and error states
 
 - **Query loading:** a `Skeleton` sized like the content, not a spinner or "Loading..." text.
@@ -108,6 +126,6 @@ export const action = route;
   Fix the key before removing those providers.
 - `components/user-actions/ratings/rating-review-dialog.tsx` combines ratings, watched, watchlist and reviews,
   so it stays outside the feature until those are migrated.
-- Watchlist loaders call `getMovieDetailsById` for every item, including TV series (`media_type === "tv"`),
-  so TV items in watchlists get the wrong details. Fix this when watchlists are migrated.
+- `features/watchlists/server/watchlists.server.ts` and `popcorn.server.ts` call `getMovieDetailsById` for
+  every item, including TV series (`media_type === "tv"`), so TV items in watchlists get the wrong details.
 - TV watched state (`is_seen`, `user_watched_tv_episodes`) hasn't moved to React Query yet.

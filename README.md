@@ -1,40 +1,47 @@
-# Welcome to Remix!
+# Story Arc
 
-- 📖 [Remix docs](https://remix.run/docs)
+Find, track and rate films and TV. Built with Remix 2 (Vite), Chakra UI v3, Supabase and TanStack Query.
+Film data comes from TMDB; suggestions come from OpenAI or Gemini.
 
-## Development
+**Coding standards, architecture and domain rules are in [CLAUDE.md](CLAUDE.md).** Read it before
+changing code. It's written for both developers and AI agents.
 
-Run the dev server:
+## Setup
 
-```shellscript
+Needs Node 20+ and, for the local database, Docker.
+
+```sh
+npm install
+npx supabase start      # prints the local API URL and anon key
 npm run dev
 ```
 
-## Deployment
+Create `.env.local` (it's gitignored) with:
 
-First, build your app for production:
+| Variable | What it's for |
+|---|---|
+| `SUPABASE_URL`, `SUPABASE_KEY` | Supabase URL and anon key (server) |
+| `VITE_SUPABASE_URL`, `VITE_SUPABASE_KEY` | The same values, for the browser |
+| `VITE_TMDB_ACCESS_TOKEN` | TMDB API read access token |
+| `OPENAI_API_KEY` | AI suggestions |
+| `GEMINI_KEY` | Only if using the Gemini provider |
+| `VITE_APP_URL` | The app's own URL, e.g. `http://localhost:5173` |
+
+To use the local database, set the Supabase variables to the values `npx supabase start` prints.
+
+## Checks
+
+```sh
+npm run typecheck
+npm run lint
+npx supabase test db    # RLS tests; needs the local database running
+```
+
+## Production
 
 ```sh
 npm run build
-```
-
-Then run the app in production mode:
-
-```sh
 npm start
 ```
 
-Now you'll need to pick a host to deploy it to.
-
-### DIY
-
-If you're familiar with deploying Node applications, the built-in Remix app server is production-ready.
-
-Make sure to deploy the output of `npm run build`
-
-- `build/server`
-- `build/client`
-
-## Styling
-
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever css framework you prefer. See the [Vite docs on css](https://vitejs.dev/guide/features.html#css) for more information.
+Deploy `build/server` and `build/client`.
