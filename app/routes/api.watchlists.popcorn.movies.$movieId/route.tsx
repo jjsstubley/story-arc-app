@@ -1,6 +1,6 @@
 // routes/api/temp-watchlist.check.tsx
 import { json, type LoaderFunctionArgs } from "@remix-run/node";
-import { getPopcornWatchlist, serializePopcornWatchlistCookie } from "~/utils/services/cookies/popcorn-watchlist";
+import { getPopcornWatchlist, serializePopcornWatchlistCookie } from "~/features/watchlists/index.server";
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   console.log('api/watchlist/popcorn/movies/$movieId')

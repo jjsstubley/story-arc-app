@@ -4,8 +4,7 @@ import { getSupabaseServerClient } from "~/utils/supabase.server";
 import { useLoaderData } from "@remix-run/react";
 import WatchlistsDashboard from "./dashboards/WatchlistsDashboard";
 
-import { getDefaultWatchlistWMovies } from "~/utils/services/supabase/watchlist.server";
-import { getPopcornWatchlistWMovies } from "~/utils/services/cookies/popcorn-watchlist";
+import { getDefaultWatchlistWMovies, getPopcornWatchlistWMovies } from "~/features/watchlists/index.server";
 import { WatchlistInterface } from "~/interfaces/watchlist";
 
 export const loader: LoaderFunction = async ({ request } : LoaderFunctionArgs) => {

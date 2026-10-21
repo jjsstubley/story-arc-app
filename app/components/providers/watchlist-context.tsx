@@ -1,4 +1,8 @@
 "use client"
+/**
+ * Change flags for lists not yet on React Query (saved TV series).
+ * Watchlists use ~/features/watchlists instead; don't add new flags here.
+ */
 import { createContext, useContext, useState, useCallback, ReactNode } from "react";
 
 interface WatchlistContextType {
@@ -10,15 +14,12 @@ interface WatchlistContextType {
   
   // Reset the update flag
   resetUpdate: (watchlistId: string) => void;
-  isOtherWatchlistsOpen: boolean;
-  setIsOtherWatchlistsOpen: (isOpen: boolean) => void;
 }
 
 const WatchlistContext = createContext<WatchlistContextType | undefined>(undefined);
 
 export function WatchlistProvider({ children }: { children: ReactNode }) {
   const [updatedFlags, setUpdatedFlags] = useState<Set<string>>(new Set());
-  const [isOtherWatchlistsOpen, setIsOtherWatchlistsOpen] = useState(false);
 
   const updateWatchlist = useCallback((watchlistId: string) => {
     setUpdatedFlags(prev => new Set(prev).add(watchlistId));
@@ -41,8 +42,6 @@ export function WatchlistProvider({ children }: { children: ReactNode }) {
     updateWatchlist,
     isWatchlistUpdated,
     resetUpdate,
-    isOtherWatchlistsOpen,
-    setIsOtherWatchlistsOpen
   };
 
   return (

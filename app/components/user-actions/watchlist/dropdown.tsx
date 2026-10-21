@@ -1,7 +1,7 @@
 import { Text,  IconButton, Portal, Popover } from "@chakra-ui/react"
 import { IoBookmark, IoBookmarkOutline } from "react-icons/io5";
 import { useCallback, useState } from "react";
-import WatchListCheckboxCards from "./checkbox-cards";
+import { WatchlistPicker } from "~/features/watchlists";
 
 export default function WatchListDropdown({ movieId} : { movieId: number }) {
     // const [isAddedToWatchlist, setIsAddedToWatchlist] = useState<boolean>(false);
@@ -37,7 +37,7 @@ export default function WatchListDropdown({ movieId} : { movieId: number }) {
                     <Popover.Content overflow="auto">
                         {/* <Popover.Header>Select Lists:</Popover.Header> */}
                         <Popover.Body>
-                            <WatchListCheckboxCards movieId={movieId} />
+                            <WatchlistPicker movieId={movieId} />
                         </Popover.Body>
                     </Popover.Content>
                 </Popover.Positioner>

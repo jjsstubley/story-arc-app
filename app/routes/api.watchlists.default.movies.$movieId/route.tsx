@@ -1,7 +1,6 @@
 // app/routes/api/temp-watchlist.tsx
 import { ActionFunctionArgs, json, type LoaderFunctionArgs } from "@remix-run/node";
-import { updateWatchlistItem, getWatchlistItem } from "~/utils/services/supabase/watchlist-items.server";
-import { getOrCreateDefaultWatchlist } from "~/utils/services/supabase/watchlist.server";
+import { getOrCreateDefaultWatchlist, getWatchlistItem, updateWatchlistItem } from "~/features/watchlists/index.server";
 import { setMovieWatched } from "~/features/watched/index.server";
 import { getSupabaseServerClient } from "~/utils/supabase.server";
 

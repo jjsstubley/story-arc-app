@@ -2,6 +2,7 @@ import { Button, Dialog, Portal, CloseButton, IconButton } from '@chakra-ui/reac
 import { LuPopcorn } from 'react-icons/lu'
 import PopcornWatchlist from '~/components/watchlist/popcorn-watchlist';
 import { WatchlistInterface } from "~/interfaces/watchlist";
+import { POPCORN_WATCHLIST_ID, useWatchlist } from "~/features/watchlists";
 import type { IconButtonProps } from '@chakra-ui/react'
 
 export interface PopcornDialogProps {
@@ -10,6 +11,10 @@ export interface PopcornDialogProps {
 }
 
 export default function PopcornDialog({watchlists, triggerProps}: PopcornDialogProps) {
+    const initialPopcorn = watchlists.find((watchlist) => watchlist.id === POPCORN_WATCHLIST_ID) || null
+    // Adding a movie resets the expiry, so read the live list rather than the loader's copy
+    const { data: popcornWatchlist } = useWatchlist(POPCORN_WATCHLIST_ID, { initialData: initialPopcorn })
+
     function formatTimeRemaining(ms: number): string {
         const formatter = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
         
@@ -25,7 +30,6 @@ export default function PopcornDialog({watchlists, triggerProps}: PopcornDialogP
         return 'Less than 1 minute';
     }
     function getPopcornExpiry() {
-        const popcornWatchlist = watchlists.length > 0 ? watchlists.find((watchlist) => watchlist.id === "popcorn") : null 
         if (!popcornWatchlist) {
             return '(Expired)'
         }
@@ -60,7 +64,7 @@ export default function PopcornDialog({watchlists, triggerProps}: PopcornDialogP
               <Dialog.Description>A quick list of movies you&apos;re in the mood to watch — perfect for tonight&apos;s lineup. {getPopcornExpiry()}</Dialog.Description>
             </Dialog.Header>
             <Dialog.Body>
-              <PopcornWatchlist watchlist={watchlists.find((watchlist) => watchlist.id === "popcorn") || null} />
+              <PopcornWatchlist watchlist={initialPopcorn} />
             </Dialog.Body>
             <Dialog.Footer>
               <Dialog.ActionTrigger asChild>

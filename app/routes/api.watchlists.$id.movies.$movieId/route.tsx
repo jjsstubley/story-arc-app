@@ -1,5 +1,5 @@
 import { ActionFunctionArgs, json, type LoaderFunctionArgs } from "@remix-run/node";
-import { isMovieInWatchlist, updateWatchlistItem } from "~/utils/services/supabase/watchlist-items.server";
+import { isMovieInWatchlist, updateWatchlistItem } from "~/features/watchlists/index.server";
 import { setMovieWatched } from "~/features/watched/index.server";
 import { getSupabaseServerClient } from "~/utils/supabase.server";
 

@@ -1,72 +1,27 @@
-// app/routes/api/temp-watchlist.tsx
-import { ActionFunctionArgs, json, type LoaderFunctionArgs } from "@remix-run/node";
-import { createDefaultWatchlist, createWatchlist, getAllWatchlists } from "~/utils/services/supabase/watchlist.server";
-import { getSupabaseServerClient } from "~/utils/supabase.server";
+import { createWatchlist, getWatchlistSummaries } from "~/features/watchlists/index.server";
+import type { WatchlistSummary } from "~/features/watchlists";
+import { apiRoute, readJsonBody } from "~/shared/api/route.server";
+import { ValidationError } from "~/shared/errors";
 
+const route = apiRoute({
+  GET: ({ user, supabase }) => getWatchlistSummaries(user.id, supabase),
 
-// LOADER
-export async function loader({ request }: LoaderFunctionArgs) {
-  const headers = new Headers();
-  const supabase = getSupabaseServerClient(request, headers);
-
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    return json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const watchlist = await getAllWatchlists(user.id, supabase);
-
-  return json({ watchlist }, { headers });
-}
-
-// ACTIONS
-export async function action({ request }: ActionFunctionArgs) {
-  const headers = new Headers();
-  const supabase = getSupabaseServerClient(request, headers);
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  let body;
-  try {
-    body = await request.json();
-  } catch {
-    return json({ error: "Invalid JSON" }, { status: 400 });
-  }
-
-  const { name, description, tags } = body;
-
-  if (!name) {
-    try {
-      const defaultWatchlist = await createDefaultWatchlist(user.id, supabase);
-      return json({ watchlist: defaultWatchlist }, { status: 201, headers });
-    } catch (error: unknown) {
-      console.error("Create Default Watchlist Error:", error);
-      const message = error instanceof Error ? error.message : "Unknown server error";
-      return json({ error: message }, { status: 500 });
+  POST: async ({ request, user, supabase }) => {
+    const { name, description } = await readJsonBody(request);
+    if (typeof name !== "string" || !name.trim()) {
+      throw new ValidationError("Give your watchlist a name.", "NAME_REQUIRED");
     }
-  }
+    if (description != null && typeof description !== "string") {
+      throw new ValidationError("Description must be text.", "INVALID_DESCRIPTION");
+    }
 
-  try {
-    const newWatchlist = await createWatchlist(
-      {
-        user_id: user.id,
-        name,
-        description,
-        tags,
-      },
+    const watchlist = await createWatchlist(
+      { user_id: user.id, name: name.trim(), description: description?.trim() || undefined },
       supabase
     );
+    return { ...watchlist, item_count: 0 } satisfies WatchlistSummary;
+  },
+});
 
-    return json({ watchlist: newWatchlist }, { status: 201, headers });
-  } catch (error: unknown) {
-    console.error("Create Watchlist Error:", error);
-    const message = error instanceof Error ? error.message : "Unknown server error";
-    return json({ error: message }, { status: 500 });
-  }
-}
+export const loader = route;
+export const action = route;

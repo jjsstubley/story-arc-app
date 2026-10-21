@@ -7,7 +7,7 @@ import { WatchlistInterface, WatchlistItemInterface } from "~/interfaces/watchli
 import { ReusableTable } from "~/components/ui/table/resuable-table"
 import { getFormattedDate } from "~/utils/helpers"
 import Watched from "~/components/user-actions/watchlist/watched"
-import DeleteMovieAction from "~/components/watchlist/delete-movie-action"
+import { RemoveFromWatchlistButton } from "~/features/watchlists"
 import EmptyWatchlist from "~/components/watchlist/empty-watchlist"
 
 export const WatchlistTable = ({ watchlist }: {watchlist: WatchlistInterface}) => {
@@ -59,12 +59,10 @@ export const WatchlistTable = ({ watchlist }: {watchlist: WatchlistInterface}) =
       header: "", 
       width: 50, 
       render: (item: WatchlistItemInterface) => (
-        <DeleteMovieAction 
-          movieId={item.movie.id}
-          movieTitle={item.movie.title || `Movie ${item.tmdb_movie_id}`}
-          watchlistId={watchlist.id}
-          isDefault={watchlist.is_default}
-          onDelete={() => {}}
+        <RemoveFromWatchlistButton
+          watchlist={watchlist}
+          movieId={item.tmdb_movie_id ?? item.tmdb_id}
+          movieTitle={item.movie?.title || `Movie ${item.tmdb_movie_id}`}
           isHovered={hoveredItemId === item.id}
         />
       )

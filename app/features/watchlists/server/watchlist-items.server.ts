@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { getDefaultWatchlist } from "./watchlist.server";
+import type { WatchlistMembership } from "../types";
+import { resolveWatchlistId } from "./watchlists.server";
 
 const collection = 'watchlist_items'
 
@@ -78,19 +79,36 @@ export async function updateWatchlistItem(
 }
 
 
-export async function toggleMovieInDefaultWatchlist(userId: string, movieId: number, supabase: SupabaseClient, mediaType: string = 'movie') {
-  const watchlist = await getDefaultWatchlist(userId, supabase);
-  const alreadyAdded = await isMovieInWatchlist(watchlist.id, movieId, supabase);
-  return alreadyAdded
-    ? await removeMovieFromWatchlist(watchlist.id, movieId, supabase)
-    : await addMovieToWatchlist(watchlist.id, movieId, userId, supabase, mediaType);
+/** Whether a movie is in a watchlist ("default" or a uuid the user owns) */
+export async function getWatchlistMembership(
+  watchlistId: string,
+  tmdbId: number,
+  userId: string,
+  supabase: SupabaseClient,
+): Promise<WatchlistMembership> {
+  const id = await resolveWatchlistId(watchlistId, userId, supabase);
+  return { inWatchlist: await isMovieInWatchlist(id, tmdbId, supabase) };
 }
 
-export async function toggleMovieInWatchlist(watchlistId: string, movieId: number, userId: string, supabase: SupabaseClient, mediaType: string = 'movie') {
-  const alreadyAdded = await isMovieInWatchlist(watchlistId, movieId, supabase);
-  return alreadyAdded
-    ? await removeMovieFromWatchlist(watchlistId, movieId, supabase)
-    : await addMovieToWatchlist(watchlistId, movieId, userId, supabase, mediaType);
+/**
+ * Adds or removes a movie. Idempotent, so a retried or repeated request can't
+ * flip the result the way a toggle would.
+ */
+export async function setWatchlistMembership(
+  watchlistId: string,
+  tmdbId: number,
+  inWatchlist: boolean,
+  mediaType: string,
+  userId: string,
+  supabase: SupabaseClient,
+): Promise<WatchlistMembership> {
+  const id = await resolveWatchlistId(watchlistId, userId, supabase);
+  if (inWatchlist) {
+    await addMovieToWatchlist(id, tmdbId, userId, supabase, mediaType);
+  } else {
+    await removeMovieFromWatchlist(id, tmdbId, supabase);
+  }
+  return { inWatchlist };
 }
 
 export async function getWatchlistItem(

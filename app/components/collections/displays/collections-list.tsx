@@ -1,37 +1,24 @@
 "use client"
 
-import { useEffect, useState } from "react";
 import { Link } from "@remix-run/react";
-import { Box, Stack, Text, Heading, VStack } from "@chakra-ui/react";
-import { WatchlistInterface } from "~/interfaces/watchlist";
+import { Box, Stack, Text, Heading, VStack, Skeleton } from "@chakra-ui/react";
 import { BsCollection } from "react-icons/bs";
+import { useWatchlists } from "~/features/watchlists";
+import { InlineError } from "~/shared/ui/inline-error";
 
 export default function CollectionsList() {
-  const [watchlists, setWatchlists] = useState<WatchlistInterface[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: watchlists, isPending, error, refetch } = useWatchlists();
 
-  const fetchWatchlists = async () => {
-    try {
-      const response = await fetch("/api/watchlists");
-      if (response.ok) {
-        const data = await response.json();
-        // Filter to include default watchlist and user-created watchlists
-        const allWatchlists = data.watchlist || [];
-        setWatchlists(allWatchlists);
-      }
-    } catch (error) {
-      console.error("Failed to fetch watchlists:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  if (isPending) {
+    return (
+      <VStack gap={2} align="stretch">
+        {[0, 1].map((row) => <Skeleton key={row} height="76px" rounded="md" />)}
+      </VStack>
+    );
+  }
 
-  useEffect(() => {
-    fetchWatchlists();
-  }, []);
-
-  if (isLoading) {
-    return <Text fontSize="sm" color="fg.muted">Loading collections...</Text>;
+  if (error) {
+    return <InlineError fallback="Couldn't load your watchlists." error={error} onRetry={() => refetch()} />;
   }
 
   if (watchlists.length === 0) {
@@ -67,7 +54,7 @@ export default function CollectionsList() {
                 </Text>
               )}
               <Text fontSize="xs" color="fg.muted">
-                {watchlist.watchlist_items?.length || 0} movies
+                {watchlist.item_count} movies
               </Text>
             </Stack>
           </Box>

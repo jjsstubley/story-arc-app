@@ -19,6 +19,7 @@ npx supabase migration new <name>     # new migration file
 The app is moving from type-based folders (`components/`, `utils/services/`, `interfaces/`) to feature slices.
 **`app/features/ratings/` is the reference implementation. Copy its shape for new or migrated features.**
 `app/features/watched/` follows the same shape and shows cache seeding from list data.
+`app/features/watchlists/` shows list queries seeded from loaders and a mutation that updates several caches.
 Legacy folders still work, but don't add new feature code to them.
 
 ```
@@ -91,6 +92,10 @@ export const action = route;
   `~/features/watched`. `watchlist_items.is_seen` is overwritten from it by `applyWatchedStatus` in the
   watchlist loaders and is only authoritative for TV items (`media_type === "tv"`).
 - Rating, reviewing and favouriting a movie all require it to be watched.
+- **Watchlists:** the client addresses lists as `"default"`, `"popcorn"` or a uuid (`watchlistRef(list)`).
+  The server resolves `"default"` (creating it on first use); `"popcorn"` is a cookie, so its routes use
+  `publicApiRoute` and work signed out. Add or remove movies with `useSetWatchlistMembership`, which refreshes
+  every cached copy of the list. After any other change to a list's contents, call `invalidateListContents`.
 
 ## Database (Supabase)
 
@@ -129,3 +134,7 @@ export const action = route;
 - `features/watchlists/server/watchlists.server.ts` and `popcorn.server.ts` call `getMovieDetailsById` for
   every item, including TV series (`media_type === "tv"`), so TV items in watchlists get the wrong details.
 - TV watched state (`is_seen`, `user_watched_tv_episodes`) hasn't moved to React Query yet.
+- Saved TV series/seasons/episodes still use `WatchlistContext` change flags and `useOptimisticToggle`.
+  Don't add new flags; move them to React Query when that area is migrated.
+- Watchlist CRUD (`api.watchlists.$id` PATCH/DELETE, `edit-watchlist-dialog`) and the `is_seen` routes
+  (`api.watchlists.*.movies.$movieId`) aren't on `apiRoute` yet.

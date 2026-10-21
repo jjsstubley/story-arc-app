@@ -1,38 +1,19 @@
-import { useWatchlistContext } from "../providers/watchlist-context";
-import { SideBarWatchlist } from "./displays/sidebar-list";
-import { useEffect, useState } from "react";
+import { POPCORN_WATCHLIST_ID, useWatchlist } from "~/features/watchlists";
+import { InlineError } from "~/shared/ui/inline-error";
 import { WatchlistInterface } from "~/interfaces/watchlist";
+import { SideBarWatchlist } from "./displays/sidebar-list";
 import EmptyWatchlist from "./empty-watchlist";
 
 export default function PopcornWatchlist({watchlist: initialWatchlist}: {watchlist: WatchlistInterface | null}) {
-  const { isWatchlistUpdated, resetUpdate } = useWatchlistContext();
-  const [watchlist, setWatchlist] = useState<WatchlistInterface | null>(initialWatchlist);
-  const isUpdated = isWatchlistUpdated('popcorn');
+  const { data: watchlist, error, refetch } = useWatchlist(POPCORN_WATCHLIST_ID, { initialData: initialWatchlist });
 
-  const fetchWatchlist = async () => {
-    const response = await fetch(`/api/watchlists/popcorn`);
-    const data = await response.json();
-    setWatchlist(data.watchlist);
-  };
-  // useEffect(() => {
-  //   fetchWatchlist();
-  // }, [])
+  if (error) {
+    return <InlineError fallback="Couldn't load your Popcorn List." error={error} onRetry={() => refetch()} />;
+  }
 
-  useEffect(() => {
-    console.log('PopcornWatchlist isUpdated', isUpdated)
-    if (isUpdated) {
-      fetchWatchlist();
-      resetUpdate('popcorn');
-    }
-  }, [isUpdated, resetUpdate]);
-
-  useEffect(() => {
-    fetchWatchlist();
-  }, [])
-   
-  return (
-    watchlist ? <SideBarWatchlist watchlist={watchlist} inDialog={true} filter='all' /> :  (
-      <EmptyWatchlist title="The Popcorn List is empty" description="Add movies to your Popcorn List to get started." />   
-    )
-  )
+  return watchlist?.watchlist_items.length ? (
+    <SideBarWatchlist watchlist={watchlist} inDialog={true} filter='all' />
+  ) : (
+    <EmptyWatchlist title="The Popcorn List is empty" description="Add movies to your Popcorn List to get started." />
+  );
 }

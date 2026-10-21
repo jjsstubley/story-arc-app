@@ -6,10 +6,10 @@ import { WatchlistInterface, WatchlistItemInterface } from "~/interfaces/watchli
 // import BookmarkIcon from "~/components/user-actions/watchlist/displays/bookmark-icon";
 import Watched from "~/components/user-actions/watchlist/watched"
 import { ReusableTable } from "~/components/ui/table/resuable-table"
-import DeleteMovieAction from "../delete-movie-action"
+import { RemoveFromWatchlistButton } from "~/features/watchlists"
 import { useState } from "react"
 
-export const SideBarWatchlist = ({ watchlist, inDialog=false, filter='all', onDelete }: {watchlist: WatchlistInterface, inDialog: boolean, filter: string, onDelete?: () => void }) => {
+export const SideBarWatchlist = ({ watchlist, inDialog=false, filter='all' }: {watchlist: WatchlistInterface, inDialog: boolean, filter: string }) => {
   const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
   const columns = [
     { key: "movie", header: "", width: 100, render: (item: WatchlistItemInterface) => <MoviePosterList item={item.movie as unknown as TmdbMovieSummaryInterface} inDialog={inDialog} /> },
@@ -19,12 +19,10 @@ export const SideBarWatchlist = ({ watchlist, inDialog=false, filter='all', onDe
       header: "", 
       width: 50, 
       render: (item: WatchlistItemInterface) => (
-        <DeleteMovieAction 
-          movieId={item.movie.id}
-          movieTitle={item.movie.title}
-          watchlistId={watchlist.id}
-          isDefault={watchlist.is_default}
-          onDelete={onDelete || (() => {})}
+        <RemoveFromWatchlistButton
+          watchlist={watchlist}
+          movieId={item.tmdb_movie_id ?? item.tmdb_id}
+          movieTitle={item.movie?.title || `Movie ${item.tmdb_movie_id}`}
           isHovered={hoveredItemId === item.id}
         />
       )

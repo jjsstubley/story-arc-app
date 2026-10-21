@@ -4,7 +4,7 @@ import { ReviewInterface } from "~/interfaces/user-interactions";
 import { getReviews } from "./services";
 import ReviewForm from "./review-form";
 import ReviewItem from "./review-item";
-import { isMovieInAnyWatchlist } from "../watchlist/helpers";
+import { DEFAULT_WATCHLIST_ID, useWatchlistMembership } from "~/features/watchlists";
 
 interface ReviewsSectionProps {
   movieId: number;
@@ -17,22 +17,15 @@ export default function ReviewsSection({ movieId, isInWatchlist: propIsInWatchli
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingReview, setEditingReview] = useState<ReviewInterface | null>(null);
-  const [isInWatchlist, setIsInWatchlist] = useState(propIsInWatchlist ?? false);
+  const { data: membership } = useWatchlistMembership(DEFAULT_WATCHLIST_ID, movieId, {
+    enabled: propIsInWatchlist === undefined,
+  });
+  const isInWatchlist = propIsInWatchlist ?? membership?.inWatchlist ?? false;
 
   useEffect(() => {
-    if (propIsInWatchlist === undefined) {
-      checkWatchlistStatus();
-    } else {
-      setIsInWatchlist(propIsInWatchlist);
-    }
     loadReviews();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [movieId, propIsInWatchlist]);
-
-  const checkWatchlistStatus = async () => {
-    const inWatchlist = await isMovieInAnyWatchlist(movieId);
-    setIsInWatchlist(inWatchlist);
-  };
+  }, [movieId]);
 
   const loadReviews = async () => {
     setLoading(true);

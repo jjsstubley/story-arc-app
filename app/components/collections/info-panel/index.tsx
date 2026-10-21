@@ -5,7 +5,7 @@ import { FaPenFancy } from "react-icons/fa6";
 import { IoBookmark } from "react-icons/io5";
 import CollectionInfoPanelHeader from "./header";
 import CollectionInfoPanelMetadata from "./metadata";
-import WatchListCheckboxCards from "~/components/user-actions/watchlist/checkbox-cards";
+import { WatchlistPicker } from "~/features/watchlists";
 
 
 import OverviewSection from "~/components/media/info-panel/sections/overview";
@@ -36,7 +36,7 @@ export function CollectionInfoPanel({ collection, onClose }: { collection: TmdbC
             value: 'watchlists',
             icon: <IoBookmark color="whiteAlpha.600" />,
             description: 'Build and organise your lists',
-            content: <WatchListCheckboxCards movieId={collection.id} />
+            content: <WatchlistPicker movieId={collection.id} />
         }
     ]
 

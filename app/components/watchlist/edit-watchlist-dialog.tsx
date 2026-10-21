@@ -11,7 +11,8 @@ import {
   Box,
   Text
 } from "@chakra-ui/react";
-import { useWatchlistContext } from "~/components/providers/watchlist-context";
+import { useQueryClient } from "@tanstack/react-query";
+import { watchlistKeys } from "~/features/watchlists";
 import { WatchlistInterface } from "~/interfaces/watchlist";
 import { AsyncMultipleCombobox } from "~/components/ui/combobox/async-multiple";
 import { Combobox } from "@chakra-ui/react";
@@ -24,7 +25,7 @@ interface EditWatchlistDialogProps {
 
 export default function EditWatchlistDialog({ watchlist, trigger, onSuccess }: EditWatchlistDialogProps) {
   const revalidator = useRevalidator();
-  const { updateWatchlist } = useWatchlistContext();
+  const queryClient = useQueryClient();
   const [name, setName] = useState(watchlist.name || "");
   const [description, setDescription] = useState(watchlist.descriptions || "");
   const [tags, setTags] = useState<string[]>(watchlist.tags || []);
@@ -72,7 +73,7 @@ export default function EditWatchlistDialog({ watchlist, trigger, onSuccess }: E
       }
 
       // const { watchlist: updatedWatchlist } = await response.json();
-      updateWatchlist(watchlist.id);
+      queryClient.invalidateQueries({ queryKey: watchlistKeys.all });
       revalidator.revalidate();
       onSuccess?.();
       setIsOpen(false);

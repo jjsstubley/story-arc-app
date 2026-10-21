@@ -7,16 +7,16 @@ import type { ApiFailure, ApiSuccess } from "./types";
 type Method = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 type Params = LoaderFunctionArgs["params"];
 
-export interface ApiContext {
+export interface ApiContext<TUser extends User | null = User> {
   request: Request;
   params: Params;
   supabase: SupabaseClient;
-  user: User;
+  user: TUser;
   /** Carries refreshed Supabase auth cookies; already attached to the response */
   headers: Headers;
 }
 
-type ApiHandler = (ctx: ApiContext) => Promise<unknown>;
+type ApiHandler<TUser extends User | null = User> = (ctx: ApiContext<TUser>) => Promise<unknown>;
 
 /**
  * Builds an authenticated resource route. Export the result as both `loader`
@@ -30,6 +30,19 @@ type ApiHandler = (ctx: ApiContext) => Promise<unknown>;
  * Auth, method dispatch, error mapping and cookie headers are handled here.
  */
 export function apiRoute(handlers: Partial<Record<Method, ApiHandler>>) {
+  // Safe: with requireUser, handlers only ever run with a user
+  return buildRoute(handlers as Partial<Record<Method, ApiHandler<User | null>>>, true);
+}
+
+/**
+ * Like `apiRoute`, but signed-out requests reach the handler with `user: null`.
+ * Only for data that doesn't belong to an account (e.g. cookie-based lists).
+ */
+export function publicApiRoute(handlers: Partial<Record<Method, ApiHandler<User | null>>>) {
+  return buildRoute(handlers, false);
+}
+
+function buildRoute(handlers: Partial<Record<Method, ApiHandler<User | null>>>, requireUser: boolean) {
   return async ({ request, params }: LoaderFunctionArgs) => {
     const headers = new Headers();
     const handler = handlers[request.method as Method];
@@ -42,7 +55,7 @@ export function apiRoute(handlers: Partial<Record<Method, ApiHandler>>) {
     try {
       const supabase = getSupabaseServerClient(request, headers);
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new UnauthorizedError();
+      if (!user && requireUser) throw new UnauthorizedError();
 
       const data = await handler({ request, params, supabase, user, headers });
       return json<ApiSuccess<unknown>>({ data: data ?? null }, { headers });

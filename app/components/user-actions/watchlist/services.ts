@@ -1,27 +1,3 @@
-
-
-export const toggleWatchlist = async (watchlistId: string, movieId: number, selected: boolean, mediaType: string = 'movie') : Promise<boolean> => {
-    console.log('toggleWatchlist', watchlistId, movieId, selected, mediaType);
-    try {
-        const response = await fetch(`/api/watchlists/${watchlistId}/movies/${movieId}/toggle`, {
-            method: selected && watchlistId === "popcorn" ? "DELETE" : "POST",
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ media_type: mediaType })
-        });
-        if (!response.ok) {
-            console.error("Failed to update watchlist");
-            return false;
-        }
-        return true;
-    } catch (error) {
-        console.error("Failed to update watchlist");
-        return false;
-    }
-}
-
-
 export const checkWatchlist = async (watchlistId: string, movieId: number) => {
     try {
         const response = await fetch(`/api/watchlists/${watchlistId}/movies/${movieId}`);

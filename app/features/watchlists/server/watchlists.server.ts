@@ -1,16 +1,71 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { getMovieDetailsById } from "../external/tmdb/movies";
+import { getMovieDetailsById } from "~/utils/services/external/tmdb/movies";
 import { WatchlistItemInterface } from "~/interfaces/watchlist";
 import { applyWatchedStatus, getWatchedMovieIds } from "~/features/watched/index.server";
+import { NotFoundError, ValidationError } from "~/shared/errors";
+import { DEFAULT_WATCHLIST_ID } from "../ids";
+import type { WatchlistSummary } from "../types";
 
-export async function getAllWatchlists(userId: string, supabase: SupabaseClient) {
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Reads the `$id` route param of a Supabase-backed list: "default" or a watchlist uuid */
+export function requireWatchlistIdParam(params: Record<string, string | undefined>): string {
+  const id = params.id;
+  if (id === DEFAULT_WATCHLIST_ID || (id && UUID_PATTERN.test(id))) return id;
+  throw new ValidationError("Invalid watchlist id", "INVALID_PARAM");
+}
+
+/**
+ * Turns a client watchlist id into a real one the user owns. "default" is
+ * created on first use; any other id must belong to the user.
+ */
+export async function resolveWatchlistId(watchlistId: string, userId: string, supabase: SupabaseClient): Promise<string> {
+  if (watchlistId === DEFAULT_WATCHLIST_ID) {
+    const watchlist = await getOrCreateDefaultWatchlist(userId, supabase);
+    return watchlist.id;
+  }
+
   const { data, error } = await supabase
     .from("watchlists")
-    .select("*")
-    .eq("user_id", userId);
+    .select("id")
+    .eq("id", watchlistId)
+    .eq("user_id", userId)
+    .maybeSingle();
 
   if (error) throw error;
-  return data;
+  if (!data) throw new NotFoundError("We couldn't find that watchlist.", "WATCHLIST_NOT_FOUND");
+  return data.id;
+}
+
+/** The user's watchlists with how many items each holds */
+export async function getWatchlistSummaries(userId: string, supabase: SupabaseClient): Promise<WatchlistSummary[]> {
+  const { data, error } = await supabase
+    .from("watchlists")
+    .select("*, watchlist_items(count)")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: true });
+
+  if (error) throw error;
+  return (data || []).map(({ watchlist_items, ...watchlist }) => ({
+    ...watchlist,
+    item_count: watchlist_items?.[0]?.count ?? 0,
+  }));
+}
+
+/** A watchlist ("default" or a uuid) with its items and their TMDB details */
+export async function getWatchlistWMovies(watchlistId: string, userId: string, supabase: SupabaseClient) {
+  const id = await resolveWatchlistId(watchlistId, userId, supabase);
+  const watchlist = await getWatchlistByIdWMovies(id, userId, supabase);
+  if (!watchlist) throw new NotFoundError("We couldn't find that watchlist.", "WATCHLIST_NOT_FOUND");
+
+  return {
+    ...watchlist,
+    // Older rows predate media_type
+    watchlist_items: watchlist.watchlist_items.map((item: WatchlistItemInterface) => ({
+      ...item,
+      media_type: item.media_type ?? "movie",
+    })),
+  };
 }
 
 export async function getDefaultWatchlist(userId: string, supabase: SupabaseClient) {

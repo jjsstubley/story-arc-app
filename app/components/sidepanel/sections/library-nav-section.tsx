@@ -9,11 +9,14 @@ import { useState } from "react";
 import CollectionsList from "~/components/collections/displays/collections-list";
 import SavedSeriesList from "~/components/tv-series/saved-series-list";
 import { WatchlistInterface } from "~/interfaces/watchlist";
+import { POPCORN_WATCHLIST_ID, useWatchlist } from "~/features/watchlists";
 
 export default function LibraryNavSection({ watchlists = [] }: { watchlists?: WatchlistInterface[] }) {
 
     const [filter, setFilter] = useState('all');
-    const popcornWatchlist = watchlists.find((watchlist) => watchlist.id === "popcorn") || null;
+    const { data: popcornWatchlist } = useWatchlist(POPCORN_WATCHLIST_ID, {
+      initialData: watchlists.find((watchlist) => watchlist.id === POPCORN_WATCHLIST_ID),
+    });
 
     // const sections = [
     //     {

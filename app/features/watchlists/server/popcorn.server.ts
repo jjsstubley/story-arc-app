@@ -1,8 +1,8 @@
-// app/utils/cookies.ts
 import { createCookie } from "@remix-run/node";
 import { TempWatchlistProps } from "~/interfaces/temp-watchlist";
-import { getMovieDetailsById } from "../external/tmdb/movies";
+import { getMovieDetailsById } from "~/utils/services/external/tmdb/movies";
 import { WatchlistInterface, WatchlistItemInterface } from "~/interfaces/watchlist";
+import type { WatchlistMembership } from "../types";
 
 const COOKIE_NAME = 'popcorn_list'
 const MAX_AGE = 2 * 24 * 60 * 60; // 2 days (updated on each set)
@@ -145,4 +145,17 @@ export async function removeFromPopcornWatchlist(request: Request, movieId: numb
 export async function clearPopcornWatchlist() {
   console.log('clearPopcornWatchlist')
   return serializePopcornWatchlistCookie(null);
+}
+
+export async function getPopcornMembership(request: Request, movieId: number): Promise<WatchlistMembership> {
+  const watchlist = await getPopcornWatchlist(request);
+  return { inWatchlist: watchlist?.movieIds.includes(movieId) ?? false };
+}
+
+/** Adds or removes a movie; returns the Set-Cookie headers to send back */
+export async function setPopcornMembership(request: Request, movieId: number, inWatchlist: boolean) {
+  const { headers } = inWatchlist
+    ? await addToPopcornWatchlist(request, movieId)
+    : await removeFromPopcornWatchlist(request, movieId);
+  return { membership: { inWatchlist } satisfies WatchlistMembership, headers };
 }

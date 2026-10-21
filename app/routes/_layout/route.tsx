@@ -12,7 +12,7 @@ import { getPopularPeople } from "~/utils/services/external/tmdb/people";
 import { getAvailableLanguages, getAvailableRegions } from "~/utils/services/external/tmdb/configuration";
 
 import InfoPanelWrapper from "../_common/info-panel-wrapper";
-import { getPopcornWatchlistWMovies } from "~/utils/services/cookies/popcorn-watchlist";
+import { getPopcornWatchlistWMovies } from "~/features/watchlists/index.server";
 import { WatchlistProvider } from "~/components/providers/watchlist-context";
 import GlobalSearch from "~/components/search/global-search";
 import { MediaPanelProvider } from "~/components/providers/media-provider";

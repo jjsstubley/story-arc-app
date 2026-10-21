@@ -1,41 +1,27 @@
+import { Skeleton, VStack } from "@chakra-ui/react";
+import { DEFAULT_WATCHLIST_ID, useWatchlist } from "~/features/watchlists";
+import { InlineError } from "~/shared/ui/inline-error";
 import { SideBarWatchlist } from "./displays/sidebar-list";
-import { useEffect, useState } from "react";
-import { WatchlistInterface, WatchlistItemInterface } from "~/interfaces/watchlist";
-import { useWatchlistContext } from "../providers/watchlist-context";
 import EmptyWatchlist from "./empty-watchlist";
 
-
 export default function DefaultWatchlist({filter='all'}: {filter: string}) {
-  const { isWatchlistUpdated, resetUpdate } = useWatchlistContext();
-  const [watchlist, setWatchlist] = useState<WatchlistInterface | null>(null);
+  const { data: watchlist, isPending, error, refetch } = useWatchlist(DEFAULT_WATCHLIST_ID);
 
-  const fetchWatchlist = async () => {
-    const response = await fetch(`/api/watchlists/default`);
-    const data = await response.json();
-    console.log('data', data.watchlist);
-    data.watchlist = { ...data.watchlist, watchlist_items: data.watchlist.watchlist_items.map((item: WatchlistItemInterface) => { return { ...item, media_type: item.media_type ?? 'movie' }})};
-    // const sortedWatchlist = watchlistWMediaType.sort((a: WatchlistItemInterface, b: WatchlistItemInterface) => a.movie.title.localeCompare(b.movie.title));  
-    console.log('data.watchlist', data.watchlist);
-    setWatchlist(data.watchlist);
-  };
-  useEffect(() => {
-    if (isWatchlistUpdated('default')) {
-      fetchWatchlist();
-      resetUpdate('default');
-    }
-  }, [isWatchlistUpdated, resetUpdate])
-
-  useEffect(() => {
-    fetchWatchlist();
-  }, [])
-
-  const handleDelete = () => {
-    fetchWatchlist();
+  if (isPending) {
+    return (
+      <VStack gap={2} mt={4} align="stretch">
+        {[0, 1, 2].map((row) => <Skeleton key={row} height="72px" rounded="md" />)}
+      </VStack>
+    );
   }
-   
-  return (
-    watchlist ? <SideBarWatchlist watchlist={watchlist} inDialog={false} filter={filter} onDelete={handleDelete} /> : (
-      <EmptyWatchlist title="The Default List is empty" description="Add movies to your Default List to get started." />   
-    )
-  )
+
+  if (error) {
+    return <InlineError fallback="Couldn't load your watchlist." error={error} onRetry={() => refetch()} />;
+  }
+
+  if (watchlist.watchlist_items.length === 0) {
+    return <EmptyWatchlist title="The Default List is empty" description="Add movies to your Default List to get started." />;
+  }
+
+  return <SideBarWatchlist watchlist={watchlist} inDialog={false} filter={filter} />;
 }

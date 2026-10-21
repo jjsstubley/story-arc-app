@@ -1,11 +1,13 @@
 import { json, LoaderFunctionArgs, LoaderFunction, type MetaFunction } from "@remix-run/node";
 
 import { getSupabaseServerClient } from "~/utils/supabase.server";
-import { useLoaderData } from "@remix-run/react";
+import { useLoaderData, useParams } from "@remix-run/react";
 import WatchlistDashboard from "./dashboards/WatchlistDashboard";
 
-import { getDefaultWatchlistWMovies, getWatchlistByIdWMovies } from "~/utils/services/supabase/watchlist.server";
-import { getPopcornWatchlistWMovies } from "~/utils/services/cookies/popcorn-watchlist";
+import { getPopcornWatchlistWMovies, getWatchlistWMovies } from "~/features/watchlists/index.server";
+import { POPCORN_WATCHLIST_ID, useWatchlist } from "~/features/watchlists";
+import { getErrorMessage, isAppError } from "~/shared/errors";
+import { WatchlistInterface } from "~/interfaces/watchlist";
 
 export const loader: LoaderFunction = async ({ request, params } : LoaderFunctionArgs) => {
   const headers = new Headers();
@@ -22,42 +24,16 @@ export const loader: LoaderFunction = async ({ request, params } : LoaderFunctio
     return json({ error: "Watchlist ID is required" }, { status: 400, headers });
   }
 
-  if (id === 'default') {
-    try {
-      const watchlist = await getDefaultWatchlistWMovies(user.id, supabase)
-      if (!watchlist) {
-        return json({ error: "Default watchlist not found", session }, { status: 404, headers });
-      }
-      return json({ session, watchlist }, { headers });
-    } catch (error) {
-      console.error('Error loading default watchlist:', error);
-      return json({ error: "Failed to load default watchlist", session }, { status: 500, headers });
-    }
-  }
-
-  if (id === 'popcorn') {
-    try {
-      const watchlist = await getPopcornWatchlistWMovies(request)
-      // getPopcornWatchlistWMovies now always returns a valid watchlist
-      return json({ session, watchlist }, { headers });
-    } catch (error) {
-      console.error('Error loading popcorn watchlist:', error);
-      return json({ error: "Failed to load popcorn watchlist", session }, { status: 500, headers });
-    }
-  }
-
-  // Handle regular watchlist IDs
   try {
-    const watchlist = await getWatchlistByIdWMovies(id, user.id, supabase);
-    
-    if (!watchlist) {
-      return json({ error: "Watchlist not found", session }, { status: 404, headers });
-    }
-
+    // "default" resolves to the user's default list
+    const watchlist = id === POPCORN_WATCHLIST_ID
+      ? await getPopcornWatchlistWMovies(request)
+      : await getWatchlistWMovies(id, user.id, supabase);
     return json({ session, watchlist }, { headers });
   } catch (error) {
-    console.error('Error loading watchlist:', error);
-    return json({ error: "Failed to load watchlist", session }, { status: 500, headers });
+    if (!isAppError(error)) console.error('Error loading watchlist:', error);
+    const status = isAppError(error) ? error.status : 500;
+    return json({ error: getErrorMessage(error, "Failed to load watchlist"), session }, { status, headers });
   }
 };
 
@@ -74,7 +50,13 @@ export const meta: MetaFunction<typeof loader> = () => {
 };
 
 export default function Index() {
-  const { watchlist, error } = useLoaderData<typeof loader>();
+  const { id = "" } = useParams();
+  const { watchlist: initialWatchlist, error } = useLoaderData<typeof loader>();
+  // Seeded from the loader, then kept current as movies are added or removed anywhere
+  const { data: watchlist } = useWatchlist(id, {
+    initialData: initialWatchlist as WatchlistInterface | undefined,
+    enabled: !error,
+  });
   
   return (
     <WatchlistDashboard watchlist={watchlist} error={error} />
