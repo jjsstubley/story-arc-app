@@ -114,7 +114,6 @@ function SeenButton({ isSeen, onClick, movieId, title, dialogOpen, setDialogOpen
             <MovieActionsDialog
                 movieId={movieId}
                 movieTitle={title}
-                isInWatchlist={true}
                 open={dialogOpen}
                 onOpenChange={(e) => setDialogOpen(e.open)}
             >

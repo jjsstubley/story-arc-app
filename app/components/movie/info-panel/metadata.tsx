@@ -37,7 +37,6 @@ const InfoPanelMetadata = ({ movie }: { movie: TmdbMovieDetailWAppendsProps }) =
             <MovieActionsDialog
                 movieId={movie.id}
                 movieTitle={movie.title ?? ""}
-                isInWatchlist={true}
                 open={dialogOpen}
                 onOpenChange={(e) => setDialogOpen(e.open)}
             >

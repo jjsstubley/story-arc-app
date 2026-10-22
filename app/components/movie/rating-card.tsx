@@ -1,7 +1,7 @@
 import { AbsoluteCenter, Box,  ProgressCircle, Text } from "@chakra-ui/react";
 import { TmdbMovieDetailWAppendsProps } from "~/interfaces/tmdb/movie/detail";
 import { formatReadableNumber } from "~/utils/helpers";
-import RatingReviewDialog from "~/components/user-actions/ratings/rating-review-dialog";
+import { RateAndReviewDialog } from "~/features/reviews";
 
 const RatingCard = ({movie} : { movie: TmdbMovieDetailWAppendsProps }) => {
     function getVoteAverage() {
@@ -44,13 +44,9 @@ const RatingCard = ({movie} : { movie: TmdbMovieDetailWAppendsProps }) => {
     );
 
     return (
-        <RatingReviewDialog
-            mediaId={movie.id}
-            mediaTitle={movie.title}
-            mediaType="movie"
-        >
+        <RateAndReviewDialog movieId={movie.id} movieTitle={movie.title}>
             {cardContent}
-        </RatingReviewDialog>
+        </RateAndReviewDialog>
     );
 };
 

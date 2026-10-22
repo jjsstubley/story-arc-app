@@ -10,7 +10,7 @@ import InfoPanelMetadata from "./metadata";
 import { WatchlistPicker } from "~/features/watchlists";
 import { MdOutlinePassword } from "react-icons/md";
 import { RatingSection } from "~/features/ratings";
-import ReviewsSection from "~/components/user-actions/reviews/reviews-section";
+import { ReviewsSection } from "~/features/reviews";
 
 
 import ProvidersSection from "~/components/media/info-panel/sections/providers";

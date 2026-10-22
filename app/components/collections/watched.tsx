@@ -34,7 +34,6 @@ export default function CollectionWatched({ item }: { item: CollectionItemInterf
         <MovieActionsDialog
             movieId={item.movie_id}
             movieTitle={movieTitle}
-            isInWatchlist={true}
             open={dialogOpen}
             onOpenChange={(e) => setDialogOpen(e.open)}
         >

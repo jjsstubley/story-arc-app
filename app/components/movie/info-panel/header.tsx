@@ -2,7 +2,7 @@ import { Box, CloseButton, Image, HStack } from "@chakra-ui/react";
 import RatingCard from "../rating-card";
 import BasePoster from "~/components/ui/base-poster";
 import { TmdbMovieDetailWAppendsProps } from "~/interfaces/tmdb/movie/detail";
-import FavouriteToggleWrapper from "~/components/user-actions/favourites/favourite-toggle-wrapper";
+import { FavouriteToggle } from "~/features/favourites";
 
 const InfoPanelHeader = ({movie, onClose} : { movie: TmdbMovieDetailWAppendsProps, onClose: () => void }) => {
   
@@ -33,7 +33,7 @@ const InfoPanelHeader = ({movie, onClose} : { movie: TmdbMovieDetailWAppendsProp
                 <RatingCard movie={movie} />
             </Box>
             <HStack position="absolute" top={4} right={4} zIndex={2} gap={2}>
-                <FavouriteToggleWrapper 
+                <FavouriteToggle 
                     movieId={movie.id} 
                     movieTitle={movie.title}
                 />

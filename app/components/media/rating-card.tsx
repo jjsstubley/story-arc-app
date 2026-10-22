@@ -4,7 +4,7 @@ import { TmdbTVSeriesDetailWAppendsProps } from "~/interfaces/tmdb/tv/series/det
 import { TVSeasonDetailsInterface } from "~/interfaces/tmdb/tv/season/details";
 import { TVEpisodeDetailsInterface } from "~/interfaces/tmdb/tv/episode/details";
 import { formatReadableNumber } from "~/utils/helpers";
-import RatingReviewDialog from "~/components/user-actions/ratings/rating-review-dialog";
+import { RateAndReviewDialog } from "~/features/reviews";
 
 type MediaDetails = TmdbTVSeriesDetailWAppendsProps | TmdbMovieDetailWAppendsProps | TVSeasonDetailsInterface | TVEpisodeDetailsInterface;
 
@@ -24,12 +24,8 @@ const RatingCard = ({media} : { media: MediaDetails }) => {
         }
     }
 
-    // Determine media type and extract ID and title
     const isMovie = 'title' in media;
-    const mediaId = media.id;
-    const mediaTitle = isMovie ? (media as TmdbMovieDetailWAppendsProps).title : (media as TmdbTVSeriesDetailWAppendsProps).name;
-    const mediaType = isMovie ? 'movie' : 'tv';
-    
+
     const cardContent = (
         <Box 
             colorPalette={getVoteAverage()} 
@@ -39,8 +35,8 @@ const RatingCard = ({media} : { media: MediaDetails }) => {
             display="flex" 
             alignItems="center" 
             gap={2}
-            cursor="pointer"
-            _hover={{ bg: "blackAlpha.700" }}
+            cursor={isMovie ? "pointer" : undefined}
+            _hover={isMovie ? { bg: "blackAlpha.700" } : undefined}
         >
             <ProgressCircle.Root size="lg" value={(parseFloat(media.vote_average.toString()) / 10) * 100} colorPalette={getVoteAverage()}>
                 <ProgressCircle.Circle >
@@ -55,20 +51,15 @@ const RatingCard = ({media} : { media: MediaDetails }) => {
         </Box>
     );
 
-    // Only wrap with dialog if it's a movie or TV series (not season/episode)
-    if (isMovie || 'name' in media) {
+    // Ratings and reviews are movie-only for now (user_ratings/user_reviews have no media type)
+    if (isMovie) {
         return (
-            <RatingReviewDialog
-                mediaId={mediaId}
-                mediaTitle={mediaTitle}
-                mediaType={mediaType}
-            >
+            <RateAndReviewDialog movieId={media.id} movieTitle={media.title}>
                 {cardContent}
-            </RatingReviewDialog>
+            </RateAndReviewDialog>
         );
     }
 
-    // For seasons/episodes, return without dialog
     return cardContent;
 };
 

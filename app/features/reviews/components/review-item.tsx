@@ -1,33 +1,25 @@
-import { Box, Text, HStack, Button, VStack } from "@chakra-ui/react";
-import { ReviewInterface } from "~/interfaces/user-interactions";
+import { Box, Button, HStack, Text, VStack } from "@chakra-ui/react";
 import { getFormattedDate } from "~/utils/helpers";
-import { deleteReviewById } from "./services";
+import type { Review } from "../types";
 
 interface ReviewItemProps {
-  review: ReviewInterface;
-  movieId: number;
-  isOwnReview?: boolean;
-  onDelete?: () => void;
+  review: Review;
+  /** Only passed for the user's own review */
   onEdit?: () => void;
+  onDelete?: () => void;
 }
 
-export default function ReviewItem({ review, movieId, isOwnReview, onDelete, onEdit }: ReviewItemProps) {
-  const handleDelete = async () => {
-    if (confirm("Are you sure you want to delete this review?")) {
-      const success = await deleteReviewById(movieId, review.id);
-      if (success) {
-        onDelete?.();
-      }
-    }
-  };
+export default function ReviewItem({ review, onEdit, onDelete }: ReviewItemProps) {
+  const isOwnReview = Boolean(onEdit || onDelete);
 
   return (
     <Box p={4} bg="gray.800" rounded="md" border="1px solid" borderColor="whiteAlpha.200">
       <VStack align="stretch" gap={2}>
         <HStack justify="space-between" align="start">
           <VStack align="start" gap={1} flex={1}>
+            {/* There are no public profiles yet, so other authors stay anonymous */}
             <Text fontSize="sm" fontWeight="medium">
-              {review.user_id || "Anonymous"}
+              {isOwnReview ? "You" : "Filmarc member"}
             </Text>
             <Text fontSize="xs" color="fg.muted">
               {getFormattedDate({
@@ -45,9 +37,11 @@ export default function ReviewItem({ review, movieId, isOwnReview, onDelete, onE
                   Edit
                 </Button>
               )}
-              <Button size="xs" variant="ghost" colorPalette="red" onClick={handleDelete}>
-                Delete
-              </Button>
+              {onDelete && (
+                <Button size="xs" variant="ghost" colorPalette="red" onClick={onDelete}>
+                  Delete
+                </Button>
+              )}
             </HStack>
           )}
         </HStack>
@@ -58,4 +52,3 @@ export default function ReviewItem({ review, movieId, isOwnReview, onDelete, onE
     </Box>
   );
 }
-

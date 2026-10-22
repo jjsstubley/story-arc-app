@@ -1,7 +1,8 @@
-import { Dialog, Portal, CloseButton, VStack, Heading, Text, Button, Box, Select, Textarea, createListCollection } from "@chakra-ui/react";
+import { Box, Button, CloseButton, Dialog, Heading, Portal, Select, Text, Textarea, VStack, createListCollection } from "@chakra-ui/react";
 import { useState } from "react";
-import { addToFavourites } from "./services";
-import { RATING_TIERS } from "~/features/ratings";
+import { RATING_TIERS, useUpdateRating } from "~/features/ratings";
+import { MAX_REVIEW_LENGTH, useSaveReview } from "~/features/reviews";
+import { useSetFavourite } from "../queries";
 
 const ratingTiers = createListCollection({
   items: Object.entries(RATING_TIERS).map(([tier, percentage]) => ({
@@ -15,49 +16,35 @@ interface FavouriteDialogProps {
   movieTitle: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess?: () => void;
 }
 
-export default function FavouriteDialog({
-  movieId,
-  movieTitle,
-  open,
-  onOpenChange,
-  onSuccess,
-}: FavouriteDialogProps) {
-  const [selectedRating, setSelectedRating] = useState<string>("");
+/** Favourite a movie, optionally rating and reviewing it at the same time */
+export default function FavouriteDialog({ movieId, movieTitle, open, onOpenChange }: FavouriteDialogProps) {
+  const [selectedRating, setSelectedRating] = useState("");
   const [reviewText, setReviewText] = useState("");
-  const [loading, setLoading] = useState(false);
+  const setFavourite = useSetFavourite(movieId);
+  const updateRating = useUpdateRating(movieId);
+  const saveReview = useSaveReview(movieId);
+  const review = reviewText.trim();
 
-  const handleSubmit = async () => {
-    setLoading(true);
-
-    const ratingPercentage = selectedRating ? parseInt(selectedRating) : undefined;
-    const review = reviewText.trim() ? reviewText.trim() : undefined;
-
-    const favourite = await addToFavourites(movieId, {
-      rating_percentage: ratingPercentage,
-      review_text: review,
-    });
-
-    if (favourite) {
-      onOpenChange(false);
-      onSuccess?.();
-      // Reset form
-      setSelectedRating("");
-      setReviewText("");
-    }
-    setLoading(false);
+  const close = () => {
+    onOpenChange(false);
+    setSelectedRating("");
+    setReviewText("");
   };
 
-  const handleSkip = async () => {
-    setLoading(true);
-    const favourite = await addToFavourites(movieId);
-    if (favourite) {
-      onOpenChange(false);
-      onSuccess?.();
-    }
-    setLoading(false);
+  // Favourite and rating update optimistically. The review isn't optimistic,
+  // so stay open until it saves; on failure the toast shows and the draft is kept.
+  const handleSubmit = () => {
+    setFavourite.mutate(true);
+    if (selectedRating) updateRating.mutate(parseInt(selectedRating));
+    if (review) saveReview.mutate(review, { onSuccess: close });
+    else close();
+  };
+
+  const handleSkip = () => {
+    setFavourite.mutate(true);
+    close();
   };
 
   return (
@@ -129,13 +116,13 @@ export default function FavouriteDialog({
               </VStack>
             </Dialog.Body>
             <Dialog.Footer>
-              <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
+              <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saveReview.isPending}>
                 Cancel
               </Button>
-              <Button variant="ghost" onClick={handleSkip} disabled={loading}>
+              <Button variant="ghost" onClick={handleSkip} disabled={saveReview.isPending}>
                 Skip
               </Button>
-              <Button onClick={handleSubmit} disabled={loading}>
+              <Button onClick={handleSubmit} loading={saveReview.isPending} disabled={review.length > MAX_REVIEW_LENGTH}>
                 Add to Favourites
               </Button>
             </Dialog.Footer>
@@ -148,4 +135,3 @@ export default function FavouriteDialog({
     </Dialog.Root>
   );
 }
-

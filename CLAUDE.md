@@ -20,6 +20,7 @@ The app is moving from type-based folders (`components/`, `utils/services/`, `in
 **`app/features/ratings/` is the reference implementation. Copy its shape for new or migrated features.**
 `app/features/watched/` follows the same shape and shows cache seeding from list data.
 `app/features/watchlists/` shows list queries seeded from loaders and a mutation that updates several caches.
+`app/features/reviews/` shows a route that is public to read (`publicApiRoute` loader) but needs an account to write (`apiRoute` action).
 Legacy folders still work, but don't add new feature code to them.
 
 ```
@@ -92,6 +93,8 @@ export const action = route;
   `~/features/watched`. `watchlist_items.is_seen` is overwritten from it by `applyWatchedStatus` in the
   watchlist loaders and is only authoritative for TV items (`media_type === "tv"`).
 - Rating, reviewing and favouriting a movie all require it to be watched.
+- Ratings, reviews and favourites are movie-only: their tables key on `tmdb_movie_id` with no media type,
+  so never write a TV id to them. One review per user per movie; reviews are publicly readable.
 - **Watchlists:** the client addresses lists as `"default"`, `"popcorn"` or a uuid (`watchlistRef(list)`).
   The server resolves `"default"` (creating it on first use); `"popcorn"` is a cookie, so its routes use
   `publicApiRoute` and work signed out. Add or remove movies with `useSetWatchlistMembership`, which refreshes
@@ -129,8 +132,9 @@ export const action = route;
 - `_layout.genres.$genre`, `_layout.tags.$tag` and `_layout.search.results` wrap themselves in their own
   `ReactQueryProvider`, because `_common/results-layout.tsx` uses a query key without the route identity.
   Fix the key before removing those providers.
-- `components/user-actions/ratings/rating-review-dialog.tsx` combines ratings, watched, watchlist and reviews,
-  so it stays outside the feature until those are migrated.
+- `components/user-actions/watchlist/watched-actions-modal.tsx` composes ratings, favourites and reviews.
+  It lives outside the features (like a route would) and only uses their public APIs.
+- There are no public user profiles, so other people's reviews show as "Filmarc member".
 - `features/watchlists/server/watchlists.server.ts` and `popcorn.server.ts` call `getMovieDetailsById` for
   every item, including TV series (`media_type === "tv"`), so TV items in watchlists get the wrong details.
 - TV watched state (`is_seen`, `user_watched_tv_episodes`) hasn't moved to React Query yet.

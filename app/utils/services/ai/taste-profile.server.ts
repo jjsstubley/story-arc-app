@@ -2,7 +2,7 @@ import { createHash } from "crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { openai, OPENAI_MODEL } from "./providers/openai";
 import { getUserRatings } from "~/features/ratings/index.server";
-import { getUserFavourites } from "~/utils/services/supabase/favourites.server";
+import { getUserFavourites } from "~/features/favourites/index.server";
 import { getMovieDetailsById } from "~/utils/services/external/tmdb/movies";
 import {
   getTasteProfile,
