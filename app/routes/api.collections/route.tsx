@@ -1,87 +1,24 @@
-import { ActionFunctionArgs, json, type LoaderFunctionArgs } from "@remix-run/node";
-import { createCollection, createCollectionWithItems, getAllUserCollections } from "~/utils/services/supabase/collections.server";
-import { getSupabaseServerClient } from "~/utils/supabase.server";
+import { createCollection, getUserCollections, parseCollectionFields, parseMovieIds } from "~/features/collections/index.server";
+import { apiRoute, readJsonBody } from "~/shared/api/route.server";
+import { ValidationError } from "~/shared/errors";
 
-// LOADER
-export async function loader({ request }: LoaderFunctionArgs) {
-  const headers = new Headers();
-  const supabase = getSupabaseServerClient(request, headers);
+const route = apiRoute({
+  GET: ({ user, supabase }) => getUserCollections(user.id, supabase),
 
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    return json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const collections = await getAllUserCollections(user.id, supabase);
-
-  return json({ collections }, { headers });
-}
-
-// ACTIONS
-export async function action({ request }: ActionFunctionArgs) {
-  const headers = new Headers();
-  const supabase = getSupabaseServerClient(request, headers);
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  let body;
-  try {
-    body = await request.json();
-  } catch {
-    return json({ error: "Invalid JSON" }, { status: 400 });
-  }
-
-  const { name, description, tags, movieIds, generated_from, is_public } = body;
-
-  if (!name) {
-    return json({ error: "Collection name is required" }, { status: 400 });
-  }
-
-  try {
-    let newCollection;
-    
-    // If movieIds are provided, create collection with items (forking)
-    if (movieIds && Array.isArray(movieIds) && movieIds.length > 0) {
-      newCollection = await createCollectionWithItems(
-        user.id,
-        {
-          name,
-          description,
-          tags,
-          generated_from,
-          is_public: is_public ?? false
-        },
-        movieIds,
-        supabase
-      );
-    } else {
-      // Otherwise, create empty collection
-      newCollection = await createCollection(
-        {
-          user_id: user.id,
-          name,
-          description,
-          tags,
-          generated_from,
-          is_public: is_public ?? false
-        },
-        supabase
-      );
+  POST: async ({ request, user, supabase }) => {
+    const body = await readJsonBody(request);
+    const { name, description, tags } = parseCollectionFields(body, { requireName: true });
+    const movieIds = parseMovieIds(body.movieIds);
+    if (body.forkedFrom !== undefined && typeof body.forkedFrom !== "string") {
+      throw new ValidationError("forkedFrom must be a collection id", "INVALID_FORKED_FROM");
     }
+    return createCollection(
+      user.id,
+      { name: name!, description, tags, movieIds, forkedFrom: body.forkedFrom as string | undefined },
+      supabase
+    );
+  },
+});
 
-    return json({ collection: newCollection }, { status: 201, headers });
-  } catch (error: unknown) {
-    console.error("Create Collection Error:", error);
-    const message = error instanceof Error ? error.message : "Unknown server error";
-    return json({ error: message }, { status: 500 });
-  }
-}
-
-
-
+export const loader = route;
+export const action = route;

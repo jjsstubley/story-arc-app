@@ -5,8 +5,12 @@ import { getMovieBySearchQuery, getBestMovieMatch } from "~/utils/services/exter
 import { getMovieDetailsById } from "~/utils/services/external/tmdb/movies";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { appendRecommendations, findSimilarQuery, getRecommendationsByQueryId, saveAiQueryAndRecommendations } from "~/utils/services/supabase/ai-recommendations.server";
-import { createCollectionWithItems, findCollectionIdByAiQueryId } from "~/utils/services/supabase/collections.server";
-import { addMovieToCollection } from "~/utils/services/supabase/collection-items.server";
+import {
+  addMovieToCollection,
+  createGeneratedCollection,
+  findCollectionIdByAiQueryId,
+  requireOwnedCollection,
+} from "~/features/collections/index.server";
 import { getWatchedMovieIds } from "~/features/watched/index.server";
 import type { TasteProfile } from "~/utils/services/supabase/taste-profiles.server";
 import { getOrBuildTasteProfile } from "./taste-profile.server";
@@ -447,8 +451,10 @@ async function persistSuggestions({
   if (aiQueryId) {
     await appendRecommendations(aiQueryId, recommendations, supabase);
     if (collectionId) {
+      // collectionId comes from the client, so check it's this user's before appending
+      await requireOwnedCollection(collectionId, userId, supabase);
       for (const movieId of movieIds) {
-        await addMovieToCollection(collectionId, movieId, userId, supabase);
+        await addMovieToCollection(collectionId, movieId, supabase);
       }
     }
     return { aiQueryId, collectionId: collectionId ?? null };
@@ -463,20 +469,19 @@ async function persistSuggestions({
       .flatMap((s) => s.tags)
       .filter((tag, index, self) => self.indexOf(tag) === index);
 
-    const collection = await createCollectionWithItems(
+    // Private to this user: generated lists are never public
+    const collection = await createGeneratedCollection(
       userId,
       {
         name: collectionTitle.trim() || `AI Recommendations: ${query}`,
         description: `AI-generated recommendations based on: "${query}"`,
         tags: allTags,
-        generated_from: {
+        generatedFrom: {
           type: "ai_recommendation",
           query: query,
           ai_query_id: aiQuery.id,
           context,
         },
-        is_public: false,
-        is_system_generated: true,
       },
       movieIds,
       supabase

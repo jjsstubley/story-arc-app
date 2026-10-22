@@ -5,8 +5,7 @@ import { useLoaderData } from "@remix-run/react";
 import HomeDashboard from "./dashboards/home";
 import { getMoviesByPopularity, getMoviesByTopRated, getMoviesNowPlaying } from "~/utils/services/external/tmdb/movie-lists";
 import { getTrendingMovies, getTrendingPeople, getTrendingTvShows } from "~/utils/services/external/tmdb/trending";
-import { getMovieDetailsById } from "~/utils/services/external/tmdb/movies";
-import { CollectionItemInterface, CollectionsInterface } from "~/interfaces/collections";
+import { getPublicCollectionsWithMovies } from "~/features/collections/index.server";
 import { MovieListsInterface } from "~/interfaces/tmdb/movie-lists";
 import { TrendingMoviesInterface, TrendingTVSeriesListsInterface } from "~/interfaces/tmdb/trending";
 
@@ -15,53 +14,7 @@ export const loader: LoaderFunction = async ({ request } : LoaderFunctionArgs) =
   const supabase = getSupabaseServerClient(request, headers);
   const { data: { session } } = await supabase.auth.getSession();
 
-  const { data: collections } = await supabase
-    .from('collections')
-    .select(`
-      *,
-      collection_items (
-        movie_id,
-        position,
-        added_at,
-        notes,
-        source
-      )
-    `)
-    .eq('is_system_generated', true)
-    .order('created_at', { ascending: false });
-  let collectionsWithMovies: CollectionsInterface[] = [];
-  console.log('collections', collections)
-  if (collections) {
-    const movieIds = Array.from(
-      new Set(
-        collections
-          ?.flatMap(collection => collection.collection_items.map((item: CollectionItemInterface) => item.movie_id)) ?? []
-      )
-    );
-
-    const movieDataMap = new Map<number, unknown>();
-
-    await Promise.all(
-      movieIds.map(async (id) => {
-        try {
-          const data = await getMovieDetailsById({movie_id: id});
-          movieDataMap.set(id, data);
-        } catch (err) {
-          console.error(`Failed to fetch movie ID ${id}`, err);
-        }
-      })
-    );
-
-    collectionsWithMovies = collections.map((collection) => ({
-      ...collection,
-      collection_items: collection.collection_items.map((item: CollectionItemInterface) => ({
-        ...item,
-        movie: movieDataMap.get(item.movie_id) || null,
-      }))
-    }));
-  }
-
-  console.log('movieIds', collectionsWithMovies[0]?.collection_items[1])
+  const collections = await getPublicCollectionsWithMovies(supabase);
 
   const movieLists = await Promise.all([
     await getMoviesByPopularity({page: 1}),
@@ -79,7 +32,7 @@ export const loader: LoaderFunction = async ({ request } : LoaderFunctionArgs) =
 
   const trendingPeople = await getTrendingPeople({time: 'day'});
 
-  return json({ session, movieLists, trendingPeople, collectionsWithMovies }, { headers });
+  return json({ session, movieLists, trendingPeople, collections }, { headers });
 };
 
 export const meta: MetaFunction = () => {
@@ -91,6 +44,6 @@ export const meta: MetaFunction = () => {
 
 
 export default function Index() {
-  const { movieLists, trendingPeople, collectionsWithMovies } = useLoaderData<typeof loader>();
-  return <HomeDashboard movieLists={movieLists} trendingPeople={trendingPeople} collections={collectionsWithMovies} />;
+  const { movieLists, trendingPeople, collections } = useLoaderData<typeof loader>();
+  return <HomeDashboard movieLists={movieLists} trendingPeople={trendingPeople} collections={collections} />;
 }

@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import { useRevalidator } from "@remix-run/react";
+import { useState } from "react";
 import { 
   Button, 
   Dialog, 
@@ -9,36 +8,36 @@ import {
   Textarea, 
   VStack, 
   Box,
-  Text
+  Text,
+  type Combobox,
 } from "@chakra-ui/react";
-import { useWatchlistContext } from "~/components/providers/watchlist-context";
-import { CollectionsInterface } from "~/interfaces/collections";
+import { MAX_DESCRIPTION_LENGTH, MAX_NAME_LENGTH } from "../limits";
+import { useUpdateCollection } from "../queries";
+import type { Collection } from "../types";
 import { AsyncMultipleCombobox } from "~/components/ui/combobox/async-multiple";
-import { Combobox } from "@chakra-ui/react";
+import { InsideModal } from "~/shared/ui/portal-context";
 
 interface EditCollectionDialogProps {
-  collection: CollectionsInterface;
+  collection: Collection;
   trigger: React.ReactNode;
-  onSuccess?: () => void;
 }
 
-export default function EditCollectionDialog({ collection, trigger, onSuccess }: EditCollectionDialogProps) {
-  const revalidator = useRevalidator();
-  const { updateWatchlist } = useWatchlistContext();
-  const [name, setName] = useState(collection.name || "");
-  const [description, setDescription] = useState(collection.description || "");
-  const [tags, setTags] = useState<string[]>(collection.tags || []);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+export default function EditCollectionDialog({ collection, trigger }: EditCollectionDialogProps) {
+  const updateCollection = useUpdateCollection(collection.id);
+  const [name, setName] = useState(collection.name);
+  const [description, setDescription] = useState(collection.description ?? "");
+  const [tags, setTags] = useState<string[]>(collection.tags ?? []);
   const [isOpen, setIsOpen] = useState(false);
 
-  // Update local state when collection changes or dialog opens
-  useEffect(() => {
-    if (collection && isOpen) {
-      setName(collection.name || "");
-      setDescription(collection.description || "");
-      setTags(collection.tags || []);
+  // Start each edit from the saved values, not a previously abandoned draft
+  const handleOpenChange = (open: boolean) => {
+    if (open) {
+      setName(collection.name);
+      setDescription(collection.description ?? "");
+      setTags(collection.tags ?? []);
     }
-  }, [collection, isOpen]);
+    setIsOpen(open);
+  };
 
   const handleKeywordSelect = (details: Combobox.ValueChangeDetails | null) => {
     if (details) {
@@ -46,47 +45,14 @@ export default function EditCollectionDialog({ collection, trigger, onSuccess }:
     }
   };
 
-  const handleSubmit = async () => {
-    if (!name.trim()) {
-      alert("Collection name is required");
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const response = await fetch(`/api/collections/${collection.id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: name.trim(),
-          description: description.trim() || null,
-          tags: tags.length > 0 ? tags : [],
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to update collection");
-      }
-
-      const { collection: updatedCollection } = await response.json();
-      
-      updateWatchlist(collection.id);
-      revalidator.revalidate();
-      onSuccess?.();
-      setIsOpen(false);
-    } catch (error) {
-      console.error("Error updating collection:", error);
-      alert(error instanceof Error ? error.message : "Failed to update collection");
-    } finally {
-      setIsSubmitting(false);
-    }
+  // Optimistic: the page shows the new details straight away and rolls back with a toast on failure
+  const handleSubmit = () => {
+    updateCollection.mutate({ name: name.trim(), description: description.trim() || null, tags });
+    setIsOpen(false);
   };
 
   return (
-    <Dialog.Root open={isOpen} onOpenChange={setIsOpen} size="md" motionPreset="slide-in-bottom">
+    <Dialog.Root open={isOpen} onOpenChange={(e) => handleOpenChange(e.open)} size="md" motionPreset="slide-in-bottom">
       <Dialog.Trigger asChild>
         {trigger}
       </Dialog.Trigger>
@@ -111,6 +77,7 @@ export default function EditCollectionDialog({ collection, trigger, onSuccess }:
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Enter collection name"
+                    maxLength={MAX_NAME_LENGTH}
                   />
                 </Box>
 
@@ -121,11 +88,14 @@ export default function EditCollectionDialog({ collection, trigger, onSuccess }:
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Enter collection description"
                     rows={3}
+                    maxLength={MAX_DESCRIPTION_LENGTH}
                   />
                 </Box>
 
                 <Box>
                   <Text mb={2} fontSize="sm" fontWeight="semibold">Keywords</Text>
+                  {/* The dropdown must render inside the modal to be clickable */}
+                  <InsideModal>
                   <AsyncMultipleCombobox 
                     suggestions={[]} 
                     onSelect={handleKeywordSelect} 
@@ -154,23 +124,15 @@ export default function EditCollectionDialog({ collection, trigger, onSuccess }:
                       );
                     }}
                   </AsyncMultipleCombobox>
+                  </InsideModal>
                 </Box>
               </VStack>
             </Dialog.Body>
             <Dialog.Footer>
-              <Button 
-                variant="outline" 
-                onClick={() => setIsOpen(false)}
-                disabled={isSubmitting}
-              >
+              <Button variant="outline" onClick={() => setIsOpen(false)}>
                 Cancel
               </Button>
-              <Button 
-                onClick={handleSubmit}
-                isLoading={isSubmitting}
-                loadingText="Updating..."
-                colorScheme="orange"
-              >
+              <Button onClick={handleSubmit} colorPalette="orange" disabled={!name.trim()}>
                 Update Collection
               </Button>
             </Dialog.Footer>

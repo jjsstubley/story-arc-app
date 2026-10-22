@@ -1,64 +1,35 @@
-import { json, LoaderFunctionArgs, LoaderFunction, type MetaFunction } from "@remix-run/node";
-
-import { getSupabaseServerClient } from "~/utils/supabase.server";
+import { json, type LoaderFunctionArgs, type MetaFunction } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
+import { getCollectionWithMovies, requireCollectionIdParam } from "~/features/collections/index.server";
+import { getErrorMessage, isAppError } from "~/shared/errors";
+import { getSupabaseServerClient } from "~/utils/supabase.server";
 import CollectionDashboard from "./dashboards/CollectionDashboard";
 
-import { getCollectionWMoviesById } from "~/utils/services/supabase/collections.server";
-
-export const loader: LoaderFunction = async ({ request, params } : LoaderFunctionArgs) => {
+export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const headers = new Headers();
-  const { id } = params; 
   const supabase = getSupabaseServerClient(request, headers);
-  const { data: { session } } = await supabase.auth.getSession()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser();
 
-  console.log('LoaderFunction id', id)
-  
-  if (!id) {
-    return json({ error: "Collection ID is required"})
+  try {
+    // Curated collections work signed out; private ones only for their owner
+    const collection = await getCollectionWithMovies(requireCollectionIdParam(params), user?.id ?? null, supabase);
+    return json({ collection, viewerId: user?.id ?? null, error: null }, { headers });
+  } catch (error) {
+    if (!isAppError(error)) console.error("Error loading collection:", error);
+    const status = isAppError(error) ? error.status : 500;
+    return json(
+      { collection: null, viewerId: user?.id ?? null, error: getErrorMessage(error, "Couldn't load this collection.") },
+      { status, headers }
+    );
   }
-
-  // Allow logged-out users to access system-generated collections
-  // For non-system-generated collections, user must be signed in
-  const userId = user?.id || null;
-  const collection = await getCollectionWMoviesById(id, userId, supabase)
-  console.log('collection', collection)
-
-  if (!collection) {
-    return json({ error: "Collection not found or access denied" }, { status: 404, headers });
-  }
-
-  // If collection is not system-generated and user is not logged in, deny access
-  if (!collection.is_system_generated && !user) {
-    return json({ error: "User must be signed in to view this collection" }, { status: 401, headers });
-  }
-
-  // If collection is not system-generated and user doesn't own it, deny access
-  if (!collection.is_system_generated && user && collection.user_id !== user.id) {
-    return json({ error: "Access denied" }, { status: 403, headers });
-  }
-
-  return json({ session, collection }, { headers });
-
 };
 
-export const meta: MetaFunction<typeof loader> = () => {
-  return [
-    { title: "Story Arc | Collection | {Collection ID}" },
-    { name: "description", content: "Query-based film search engine" },
-    // {
-    //   rel: "preload",
-    //   as: "image",
-    //   href: `https://image.tmdb.org/t/p/original/${data.watchlist.details.backdrop_path}`,
-    // },
-  ];
-};
+export const meta: MetaFunction<typeof loader> = ({ data }) => [
+  { title: data?.collection ? `${data.collection.name} | Story Arc` : "Collection | Story Arc" },
+  { name: "description", content: data?.collection?.description ?? "A film collection on Story Arc" },
+];
 
-export default function Index() {
-  const { collection, error, session } = useLoaderData<typeof loader>();
-  
-  return (
-    <CollectionDashboard collection={collection} error={error} session={session} />
-  );
+export default function CollectionRoute() {
+  const { collection, viewerId, error } = useLoaderData<typeof loader>();
+  return <CollectionDashboard collection={collection} viewerId={viewerId} error={error} />;
 }

@@ -21,6 +21,7 @@ The app is moving from type-based folders (`components/`, `utils/services/`, `in
 `app/features/watched/` follows the same shape and shows cache seeding from list data.
 `app/features/watchlists/` shows list queries seeded from loaders and a mutation that updates several caches.
 `app/features/reviews/` shows a route that is public to read (`publicApiRoute` loader) but needs an account to write (`apiRoute` action).
+`app/features/collections/` shows a page query seeded from its loader (`useCollection(id, { initialData })`) so mutations update the page without revalidating.
 Legacy folders still work, but don't add new feature code to them.
 
 ```
@@ -95,6 +96,11 @@ export const action = route;
 - Rating, reviewing and favouriting a movie all require it to be watched.
 - Ratings, reviews and favourites are movie-only: their tables key on `tmdb_movie_id` with no media type,
   so never write a TV id to them. One review per user per movie; reviews are publicly readable.
+- **Collections:** visibility is `is_public`, never `is_system_generated`. Curated collections have no owner and are
+  public; a user's own lists and their AI/generated lists (`is_system_generated = true`) are private to them. Users can't
+  make a collection public (RLS enforces it); curated ones are created with the service role. Read and write through
+  `~/features/collections`. TMDB film series ("The Matrix Collection") are a different thing: `api.tmdb-collections.$collectionId`
+  and `components/collections/` (info panel, previews).
 - **Watchlists:** the client addresses lists as `"default"`, `"popcorn"` or a uuid (`watchlistRef(list)`).
   The server resolves `"default"` (creating it on first use); `"popcorn"` is a cookie, so its routes use
   `publicApiRoute` and work signed out. Add or remove movies with `useSetWatchlistMembership`, which refreshes

@@ -13,13 +13,14 @@ import {
   SimpleGrid,
   Box,
   Text,
-  Heading
 } from "@chakra-ui/react";
-import { CollectionsInterface } from "~/interfaces/collections";
-import MediaImage from "../media/common/movie-image";
+import MediaImage from "~/components/media/common/movie-image";
+import { MAX_NAME_LENGTH } from "../limits";
+import { useCreateCollection } from "../queries";
+import type { CollectionWithMovies } from "../types";
 
 interface ForkCollectionDialogProps {
-  sourceCollection: CollectionsInterface;
+  sourceCollection: CollectionWithMovies;
   trigger: React.ReactNode;
 }
 
@@ -27,11 +28,11 @@ export default function ForkCollectionDialog({ sourceCollection, trigger }: Fork
   const navigate = useNavigate();
   const [name, setName] = useState(sourceCollection.name || "");
   const [description, setDescription] = useState(sourceCollection.description || "");
-  const [tags, setTags] = useState<string[]>(sourceCollection.tags || []);
+  const tags = sourceCollection.tags ?? [];
   const [selectedMovieIds, setSelectedMovieIds] = useState<number[]>(
     sourceCollection.collection_items?.map(item => item.movie_id) || []
   );
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const createCollection = useCreateCollection();
 
   const handleMovieToggle = (movieId: number) => {
     setSelectedMovieIds(prev => 
@@ -50,42 +51,17 @@ export default function ForkCollectionDialog({ sourceCollection, trigger }: Fork
     }
   };
 
-  const handleSubmit = async () => {
-    if (!name.trim()) {
-      alert("Collection name is required");
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const response = await fetch("/api/collections", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name,
-          description: description || null,
-          tags: tags.length > 0 ? tags : [],
-          movieIds: selectedMovieIds,
-          generated_from: sourceCollection.generated_from || {},
-          is_public: false
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to create collection");
-      }
-
-      const { collection } = await response.json();
-      navigate(`/collections/${collection.id}`);
-    } catch (error) {
-      console.error("Error creating collection:", error);
-      alert(error instanceof Error ? error.message : "Failed to create collection");
-    } finally {
-      setIsSubmitting(false);
-    }
+  const handleSubmit = () => {
+    createCollection.mutate(
+      {
+        name: name.trim(),
+        description: description.trim() || null,
+        tags,
+        movieIds: selectedMovieIds,
+        forkedFrom: sourceCollection.id,
+      },
+      { onSuccess: (collection) => navigate(`/collections/${collection.id}`) }
+    );
   };
 
   return (
@@ -111,6 +87,7 @@ export default function ForkCollectionDialog({ sourceCollection, trigger }: Fork
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Enter collection name"
+                    maxLength={MAX_NAME_LENGTH}
                   />
                 </Box>
 
@@ -147,8 +124,8 @@ export default function ForkCollectionDialog({ sourceCollection, trigger }: Fork
                         overflow="hidden"
                         _hover={{ borderColor: "orange.300" }}
                       >
-                        <MediaImage 
-                          backdrop_path={item.movie.backdrop_path} 
+                        <MediaImage
+                          backdrop_path={item.movie?.backdrop_path ?? ""}
                           height="120px"
                         />
                         <Box
@@ -162,15 +139,15 @@ export default function ForkCollectionDialog({ sourceCollection, trigger }: Fork
                           <Checkbox.Root
                             checked={selectedMovieIds.includes(item.movie_id)}
                             onCheckedChange={() => handleMovieToggle(item.movie_id)}
-                            colorScheme="orange"
+                            colorPalette="orange"
                           >
                             <Checkbox.HiddenInput />
                             <Checkbox.Control />
                           </Checkbox.Root>
                         </Box>
                         <Box p={2} bg="blackAlpha.800">
-                          <Text fontSize="xs" fontWeight="semibold" noOfLines={2}>
-                            {item.movie.title}
+                          <Text fontSize="xs" fontWeight="semibold" lineClamp={2}>
+                            {item.movie?.title ?? `Movie ${item.movie_id}`}
                           </Text>
                         </Box>
                       </Box>
@@ -183,11 +160,12 @@ export default function ForkCollectionDialog({ sourceCollection, trigger }: Fork
               <Dialog.ActionTrigger asChild>
                 <Button variant="outline">Cancel</Button>
               </Dialog.ActionTrigger>
-              <Button 
+              <Button
                 onClick={handleSubmit}
-                isLoading={isSubmitting}
+                loading={createCollection.isPending}
                 loadingText="Creating..."
-                colorScheme="orange"
+                colorPalette="orange"
+                disabled={!name.trim()}
               >
                 Create Collection
               </Button>

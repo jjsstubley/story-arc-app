@@ -24,7 +24,7 @@ import { Panel, PanelGroup } from "react-resizable-panels";
 import ArcSidePanel from "~/components/sidepanel/arc-side-panel";
 import MobileNav, { MOBILE_NAV_HEIGHT } from "~/components/layout/mobile-nav";
 import { decodeValues } from "~/utils/helpers";
-import { getAllUserCollections } from "~/utils/services/supabase/collections.server";
+import { getPublicCollectionSummaries } from "~/features/collections/index.server";
 
 export const loader: LoaderFunction = async ({ request } : LoaderFunctionArgs) => {
   const headers = new Headers();
@@ -38,22 +38,8 @@ export const loader: LoaderFunction = async ({ request } : LoaderFunctionArgs) =
 
   console.log('_layout session', session)
 
-  const { data: collections } = await supabase
-    .from('collections')
-    .select(`
-      *,
-      collection_items (
-        movie_id,
-        position,
-        added_at,
-        notes,
-        source
-      )
-    `)
-    .eq('is_system_generated', true)
-    .order('created_at', { ascending: false });
-
-    // Fetch movies for each genre in parallel
+  // Curated collections for the Discover section
+  const collections = await getPublicCollectionSummaries(supabase);
 
   let decodedFilters
 
@@ -71,16 +57,6 @@ export const loader: LoaderFunction = async ({ request } : LoaderFunctionArgs) =
     await getPopcornWatchlistWMovies(request)
   ]);
 
-  // Fetch user collections if logged in
-  let userCollections = [];
-  if (session?.user) {
-    try {
-      userCollections = await getAllUserCollections(session.user.id, supabase);
-    } catch (error) {
-      console.error("Failed to fetch user collections:", error);
-    }
-  }
-
   const filterOptions = {
     genres: genres.genres,
     providers: providers.results,
@@ -91,7 +67,6 @@ export const loader: LoaderFunction = async ({ request } : LoaderFunctionArgs) =
     collections,
     defaults: decodedFilters,
     watchlists: popcornWatchlist ? [popcornWatchlist] : [],
-    userCollections
   }
 
   return json({ session, filterOptions }, { headers });

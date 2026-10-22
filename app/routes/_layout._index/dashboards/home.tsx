@@ -9,7 +9,7 @@ import FeatureMovie from "~/components/movie/previews/feature";
 import MovieFeaturette from "~/components/movie/previews/featurette";
 import MoviePoster from "~/components/movie/previews/poster";
 import TVSeriesPoster from "~/components/tv/series/previews/poster";
-import { CollectionsInterface } from "~/interfaces/collections";
+import type { CollectionWithMovies } from "~/features/collections";
 import { MovieListsInterface } from "~/interfaces/tmdb/movie-lists";
 import { TmdbMovieSummaryInterface } from "~/interfaces/tmdb/movie/summary";
 import { PersonSummaryForInterface } from "~/interfaces/tmdb/people/summary";
@@ -22,7 +22,7 @@ const RANKED_COUNT = 10;
 interface HomeDashboardProps {
   movieLists: [MovieListsInterface, MovieListsInterface, MovieListsInterface, TrendingMoviesInterface, TrendingTVSeriesListsInterface];
   trendingPeople: TrendingPeopleInterface;
-  collections: CollectionsInterface[];
+  collections: CollectionWithMovies[];
 }
 
 export default function HomeDashboard({ movieLists, trendingPeople, collections }: HomeDashboardProps) {
@@ -100,10 +100,7 @@ export default function HomeDashboard({ movieLists, trendingPeople, collections 
           >
             <Row flex="0 0 170px">
               {collection.collection_items
-                .filter((item) => item.movie)
-                .map((item) => (
-                  <MoviePoster key={item.movie_id} item={item.movie} />
-                ))}
+                .map((item) => item.movie && <MoviePoster key={item.movie_id} item={item.movie} />)}
             </Row>
           </PageSection>
         ))}

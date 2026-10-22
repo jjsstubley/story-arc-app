@@ -8,7 +8,6 @@ import { GenreInterface } from "~/interfaces/tmdb/genre";
 import { FullProviderInterface } from "~/interfaces/tmdb/provider";
 import { PersonSummaryForInterface } from "~/interfaces/tmdb/people/summary";
 import { WatchlistInterface } from "~/interfaces/watchlist";
-import { CollectionsInterface } from "~/interfaces/collections";
 import DiscoverNavSection from "./sections/discover-nav-section";
 import LibraryNavSection from "./sections/library-nav-section";
 import SearchNavSection from "./sections/search-nav-section";
@@ -30,7 +29,6 @@ export interface FilterOptionsProps {
   sort_by?: string
   collections?: { id: string, name: string }[]
   watchlists?: WatchlistInterface[]
-  userCollections?: CollectionsInterface[]
 }
 
 export interface NavSection {
