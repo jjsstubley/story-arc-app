@@ -2,8 +2,7 @@ import { json, LoaderFunctionArgs, LoaderFunction, type MetaFunction } from "@re
 
 import { getSupabaseServerClient } from "~/utils/supabase.server";
 import { useLoaderData } from "@remix-run/react";
-import DashboardLoggedOut from "./dashboards/loggedOut";
-import DashboardLoggedIn from "./dashboards/loggedIn";
+import HomeDashboard from "./dashboards/home";
 import { getMoviesByPopularity, getMoviesByTopRated, getMoviesNowPlaying } from "~/utils/services/external/tmdb/movie-lists";
 import { getTrendingMovies, getTrendingPeople, getTrendingTvShows } from "~/utils/services/external/tmdb/trending";
 import { getMovieDetailsById } from "~/utils/services/external/tmdb/movies";
@@ -92,14 +91,6 @@ export const meta: MetaFunction = () => {
 
 
 export default function Index() {
-  const { session, movieLists, trendingPeople, collectionsWithMovies } = useLoaderData<typeof loader>();
-  console.log('Index session', session)
-  if (!session) {
-    return (
-      <DashboardLoggedOut movieLists={movieLists} trendingPeople={trendingPeople} collections={collectionsWithMovies}/>
-    )
-  }
-  return (
-    <DashboardLoggedIn movieLists={movieLists} trendingPeople={trendingPeople} collections={collectionsWithMovies}/>
-  );
+  const { movieLists, trendingPeople, collectionsWithMovies } = useLoaderData<typeof loader>();
+  return <HomeDashboard movieLists={movieLists} trendingPeople={trendingPeople} collections={collectionsWithMovies} />;
 }

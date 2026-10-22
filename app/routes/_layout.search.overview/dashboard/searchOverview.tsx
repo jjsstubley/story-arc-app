@@ -1,23 +1,21 @@
-import { AbsoluteCenter, Badge, Box, Button, Flex, Heading, HStack, Image, ProgressCircle, SimpleGrid, Text, Wrap } from "@chakra-ui/react"
+import { Badge, Box, Button, Flex, Heading, HStack, Image, SimpleGrid, Text, Wrap } from "@chakra-ui/react"
 import { Link } from "@remix-run/react";
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
 import { BsBuilding } from "react-icons/bs";
 import CreditAvatar from "~/components/credit/credit-avatar";
 import { EmblaCarousel } from "~/components/emblaCarousel";
 import MediaTriggerWrapper from "~/components/media/media-trigger-wrapper";
 import MoviePoster from "~/components/movie/previews/poster";
-import WatchListDropdown from "~/components/user-actions/watchlist/dropdown";
-import { usePosterGradientColor } from "~/hooks/use-poster-gradient-color";
+import { PageSection } from "~/components/layout/page-section";
+import { SpotlightHero } from "~/components/media/spotlight-hero";
 import { KeywordsPaginationInterface } from "~/interfaces/tmdb/keywords";
 import { TmdbCollectionsInterface, TmdbCollectionsPaginationInterface } from "~/interfaces/tmdb/tmdb-collections";
 import { CompanyInterface, CompanyPaginationInterface } from "~/interfaces/tmdb/company";
 import { TmdbMoviePaginationInterface, TmdbMovieSummaryInterface } from "~/interfaces/tmdb/movie/summary";
 import { TrendingPeopleInterface } from "~/interfaces/tmdb/trending";
 import { PersonSummaryForInterface } from "~/interfaces/tmdb/people/summary";
-import { formatReadableNumber, getSubtleBackgroundColor, slugify } from "~/utils/helpers";
+import { getSubtleBackgroundColor, slugify } from "~/utils/helpers";
 
-/** Leaves room for the sticky bar when jumping to a section */
-const SECTION_SCROLL_MARGIN = "88px";
 const VISIBLE_COMPANIES = 10;
 
 interface SearchOverviewProps {
@@ -47,7 +45,7 @@ export default function SearchOverview({ movies, keywords, people, collections, 
       <SearchBar query={query} sections={sections} />
 
       {topResult ? (
-        <TopResultHero movie={topResult} />
+        <SpotlightHero movie={topResult} eyebrow="Top result" />
       ) : (
         sections.length === 0 && (
           <Box px={8} py={20} textAlign="center">
@@ -59,7 +57,7 @@ export default function SearchOverview({ movies, keywords, people, collections, 
 
       <Flex direction="column" gap={12} px={{ base: 4, md: 8 }} py={8}>
         {moreMovies.length > 0 && (
-          <Section id="matches" title="More matches" subtitle="Other movies and shows" count={moreMovies.length}>
+          <PageSection id="matches" title="More matches" subtitle="Other movies and shows" count={moreMovies.length}>
             <Box mx={-2}>
               <EmblaCarousel flex="0 0 150px">
                 {moreMovies.map((movie) => (
@@ -67,11 +65,11 @@ export default function SearchOverview({ movies, keywords, people, collections, 
                 ))}
               </EmblaCarousel>
             </Box>
-          </Section>
+          </PageSection>
         )}
 
         {sortedPeople.length > 0 && (
-          <Section id="people" title="People" subtitle="Cast & crew" count={sortedPeople.length}>
+          <PageSection id="people" title="People" subtitle="Cast & crew" count={sortedPeople.length}>
             <Box mx={-2}>
               <EmblaCarousel flex="0 0 140px">
                 {sortedPeople.map((person) => (
@@ -79,27 +77,27 @@ export default function SearchOverview({ movies, keywords, people, collections, 
                 ))}
               </EmblaCarousel>
             </Box>
-          </Section>
+          </PageSection>
         )}
 
         {collections.results.length > 0 && (
-          <Section id="collections" title="Collections" subtitle="Film series" count={collections.results.length}>
+          <PageSection id="collections" title="Collections" subtitle="Film series" count={collections.results.length}>
             <SimpleGrid columns={{ base: 1, lg: 2 }} gap={4}>
               {collections.results.map((collection) => (
                 <CollectionCard key={collection.id} collection={collection} />
               ))}
             </SimpleGrid>
-          </Section>
+          </PageSection>
         )}
 
         {companies.results.length > 0 && (
-          <Section id="companies" title="Companies" subtitle="Production companies" count={companies.results.length}>
+          <PageSection id="companies" title="Companies" subtitle="Production companies" count={companies.results.length}>
             <CompanyGrid companies={companies.results} />
-          </Section>
+          </PageSection>
         )}
 
         {keywords.results.length > 0 && (
-          <Section id="keywords" title="Keywords" subtitle="Browse films by theme" count={keywords.results.length}>
+          <PageSection id="keywords" title="Keywords" subtitle="Browse films by theme" count={keywords.results.length}>
             <Wrap gap={2}>
               {keywords.results.map((keyword) => (
                 <Link key={keyword.id} to={`/tags/${slugify(keyword.name)}?id=${keyword.id}`}>
@@ -118,7 +116,7 @@ export default function SearchOverview({ movies, keywords, people, collections, 
                 </Link>
               ))}
             </Wrap>
-          </Section>
+          </PageSection>
         )}
       </Flex>
     </Box>
@@ -175,119 +173,6 @@ function SearchBar({ query, sections }: { query: string; sections: { id: string;
           </HStack>
         )}
       </Flex>
-    </Box>
-  );
-}
-
-function ratingPalette(voteAverage: number) {
-  if (voteAverage < 4) return "red";
-  if (voteAverage < 6) return "orange";
-  if (voteAverage < 7.5) return "yellow";
-  return "green";
-}
-
-function TopResultHero({ movie }: { movie: TmdbMovieSummaryInterface }) {
-  const tint = usePosterGradientColor(movie.id, movie.poster_path, movie.id.toString());
-  const voteAverage = Number(movie.vote_average) || 0;
-  const year = movie.release_date?.split("-")[0];
-  const trigger = (children: ReactNode) => (
-    <MediaTriggerWrapper media={{ type: "movie", data: movie }} variant={movie.media_type === "tv" ? "link" : "info-panel"}>
-      {children}
-    </MediaTriggerWrapper>
-  );
-
-  return (
-    <Box position="relative" overflow="hidden" bg="bg.muted">
-      {movie.backdrop_path && (
-        <Box
-          position="absolute"
-          inset={0}
-          bgImage={`url(https://image.tmdb.org/t/p/w1280${movie.backdrop_path})`}
-          bgSize="cover"
-          bgPos="center 25%"
-          opacity={0.55}
-        />
-      )}
-      <Box position="absolute" inset={0} bgGradient="to-br" gradientFrom={tint} gradientTo="transparent" opacity={0.7} />
-      <Box position="absolute" inset={0} bgGradient="to-t" gradientFrom="bg.muted" gradientVia="bg.muted/50" gradientTo="transparent" />
-      <Box position="absolute" inset={0} bgGradient="to-r" gradientFrom="bg.muted/80" gradientTo="transparent" />
-
-      <Flex position="relative" gap={{ base: 5, md: 8 }} px={{ base: 4, md: 8 }} pt={{ base: 8, md: 16 }} pb={8} align="flex-end">
-        {movie.poster_path && trigger(
-          <Image
-            src={`https://image.tmdb.org/t/p/w342${movie.poster_path}`}
-            alt={movie.title}
-            width={{ base: "96px", md: "170px" }}
-            aspectRatio={2 / 3}
-            objectFit="cover"
-            rounded="md"
-            outline="1px solid"
-            outlineColor="whiteAlpha.300"
-            shadow="0 16px 40px rgba(0,0,0,0.6)"
-            cursor="pointer"
-            transition="transform 0.3s"
-            _hover={{ transform: "translateY(-4px)" }}
-            flexShrink={0}
-          />
-        )}
-        <Box flex={1} minW={0}>
-          <Text fontSize="xs" fontWeight="semibold" textTransform="uppercase" letterSpacing="0.3em" color="orange.400" mb={2}>
-            Top result
-          </Text>
-          <Heading
-            as="h2"
-            fontSize={{ base: "3xl", md: "6xl" }}
-            lineHeight="1.05"
-            fontWeight="light"
-            letterSpacing="0.06em"
-            textShadow="0 2px 12px rgba(0,0,0,0.6)"
-            lineClamp={2}
-          >
-            {movie.title}
-          </Heading>
-          <HStack mt={3} gap={3} color="fg.muted" fontSize="sm" wrap="wrap">
-            {year && <Text>{year}</Text>}
-            {voteAverage > 0 && (
-              <HStack gap={2}>
-                <ProgressCircle.Root size="sm" value={voteAverage * 10} colorPalette={ratingPalette(voteAverage)}>
-                  <ProgressCircle.Circle>
-                    <ProgressCircle.Track />
-                    <ProgressCircle.Range />
-                  </ProgressCircle.Circle>
-                  <AbsoluteCenter>
-                    <Text fontSize="2xs" fontWeight="semibold" color="fg">{Math.round(voteAverage * 10)}</Text>
-                  </AbsoluteCenter>
-                </ProgressCircle.Root>
-                <Text>{formatReadableNumber(Number(movie.vote_count) || 0)} ratings</Text>
-              </HStack>
-            )}
-          </HStack>
-          {movie.overview && (
-            <Text mt={4} color="whiteAlpha.800" maxW="65ch" lineClamp={3} display={{ base: "none", sm: "-webkit-box" }}>
-              {movie.overview}
-            </Text>
-          )}
-          <HStack mt={5} gap={3}>
-            {trigger(<Button size="sm" colorPalette="orange">View details</Button>)}
-            <WatchListDropdown movieId={movie.id} />
-          </HStack>
-        </Box>
-      </Flex>
-    </Box>
-  );
-}
-
-function Section({ id, title, subtitle, count, children }: { id: string; title: string; subtitle: string; count: number; children: ReactNode }) {
-  return (
-    <Box as="section" id={id} scrollMarginTop={SECTION_SCROLL_MARGIN} aria-labelledby={`${id}-heading`}>
-      <Flex align="baseline" gap={3} mb={1}>
-        <Heading id={`${id}-heading`} as="h3" fontSize="2xl" fontWeight="light" letterSpacing="0.06em">
-          {title}
-        </Heading>
-        <Text fontSize="sm" color="orange.400" fontWeight="semibold">{count}</Text>
-      </Flex>
-      <Text fontSize="sm" color="fg.muted" mb={5}>{subtitle}</Text>
-      {children}
     </Box>
   );
 }
