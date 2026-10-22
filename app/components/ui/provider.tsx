@@ -23,6 +23,8 @@ const customConfig = defineConfig({
   '.main-panel-group, .main-content-panel': {
     mdDown: {
       overflow: 'visible !important',
+      // overflow: hidden was also what stopped this flex item growing to its widest child
+      minWidth: 0,
     },
   },
   },

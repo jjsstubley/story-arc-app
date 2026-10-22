@@ -35,7 +35,7 @@ export const EmblaCarousel = ({
 
   return (
     <Box className={`embla`}>
-      <Box className={`embla__viewport`} ref={emblaRef}  width="100%">
+      <Box className={`embla__viewport`} ref={emblaRef} width="100%" overflow="hidden">
         <Box className="embla__container" display="flex" width="100%" gap={2} >
           {React.Children.map(children, (child) => (
             <Box className={`embla__slide`} px={2} minW={minW} flex={flex}>{child}</Box>
