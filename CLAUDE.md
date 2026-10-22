@@ -132,6 +132,8 @@ export const action = route;
 - `_layout/route.tsx` is the shell. From `md` up: side panel | content | resizable info panel.
   Below `md`: the side panel is hidden, `components/layout/mobile-nav.tsx` shows a bottom tab bar that opens each
   nav section as a bottom sheet, and the info panel opens as a full-height drawer.
+- The layout owns the main panel's height and scrolling (fixed height and `overflowY="auto"` from `md` up, normal
+  page scroll on phones). Page components must not set `height="calc(100vh - ...)"` or their own scroll container.
 - Nav sections are defined once in `components/sidepanel/nav-sections.tsx`; add sections there, not in either shell.
 - Hide/show shell pieces with responsive `display` (CSS), not `useBreakpointValue`, so server HTML matches the
   phone layout. `useBreakpointValue` is only safe for UI that opens after a click (like the info panel).

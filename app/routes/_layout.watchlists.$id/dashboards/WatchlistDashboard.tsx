@@ -19,7 +19,7 @@ export default function WatchlistDashboard({ watchlist, error}: {watchlist?: Wat
   // Handle error state
   if (error) {
     return (
-      <Box position="relative" flex={1} overflow="auto" height="calc(100vh - 100px)">
+      <Box position="relative" flex={1}>
         <Box position="absolute" top={5} left={5} zIndex={1}>
           <BackButton />
         </Box>
@@ -46,7 +46,7 @@ export default function WatchlistDashboard({ watchlist, error}: {watchlist?: Wat
   // Handle null watchlist (shouldn't happen with fixed getPopcornWatchlistWMovies, but safety check)
   if (!watchlist) {
     return (
-      <Box position="relative" flex={1} overflow="auto" height="calc(100vh - 100px)">
+      <Box position="relative" flex={1}>
         <Box position="absolute" top={5} left={5} zIndex={1}>
           <BackButton />
         </Box>
@@ -71,7 +71,7 @@ export default function WatchlistDashboard({ watchlist, error}: {watchlist?: Wat
   }
 
   return (
-    <Box position="relative" flex={1} overflow="auto" height="calc(100vh - 100px)">
+    <Box position="relative" flex={1}>
       <FixedWatchlistHeader
         watchlist={watchlist}
         gradientColor={gradientColor}

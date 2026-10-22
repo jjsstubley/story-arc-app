@@ -12,7 +12,7 @@ import { getFormattedDate } from "~/utils/helpers";
 export default function PersonDetails({ personDetails, images, allCredits }: { personDetails: PersonDetailsInterface, images: ImagesInterface, allCredits: CreditListInterface}) {
   console.log('images', images)
   return (
-    <Box position="relative" flex={1} overflow="auto" height="calc(100vh - 100px)">
+    <Box position="relative" flex={1}>
       <Box position="relative" width="100%" mb={4} backgroundColor="transparent" bgGradient="to-b" rounded="md" gradientFrom="orange.900" gradientTo="transparent">
         {/* <Box position="absolute" top={5} left={5} zIndex={1}>
           <BackButton />

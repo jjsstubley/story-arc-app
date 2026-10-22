@@ -19,7 +19,7 @@ export default function CollectionDashboard({ collection, error, session}: {coll
 
   if (error || !collection) {
     return (
-      <Box position="relative" flex={1} overflow="auto" height="calc(100vh - 100px)" display="flex" alignItems="center" justifyContent="center">
+      <Box position="relative" flex={1} minH="60vh" display="flex" alignItems="center" justifyContent="center">
         <Box textAlign="center" p={8}>
           <Heading size="lg" mb={4}>Collection Not Available</Heading>
           <Text mb={4} color="gray.400">{error || "Collection not found"}</Text>
@@ -36,7 +36,7 @@ export default function CollectionDashboard({ collection, error, session}: {coll
   }
 
   return (
-    <Box position="relative" flex={1} overflow="auto" height="calc(100vh - 100px)">
+    <Box position="relative" flex={1}>
       <FixedCollectionHeader
         collection={collection}
         gradientColor={gradientColor}

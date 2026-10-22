@@ -73,7 +73,7 @@ export default function DashboardLoggedIn({ movieLists, trendingPeople, collecti
   ]
 
   return (
-    <Box overflow="auto" height="calc(100vh - 100px)">
+    <Box>
         <Box as="section" display="grid" gap={2} gridColumn={1} flex="1" p={4} overflow="hidden">
           {
             MovieListCategories.map((list, index) => (

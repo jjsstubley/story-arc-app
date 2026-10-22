@@ -30,7 +30,7 @@ export default function TVSeriesDashboard({
   }
 
   return (
-    <Box position="relative" flex={1} overflow="auto" height="calc(100vh - 100px)">
+    <Box position="relative" flex={1}>
       <FixedSeriesHeader
         series={series}
         gradientColor={gradientColor}

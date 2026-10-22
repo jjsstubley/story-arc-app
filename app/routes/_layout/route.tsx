@@ -134,7 +134,7 @@ export default function Layout() {
                   <ArcSidePanel filters={filterOptions} session={session}/>
                   <Box w="8px" display={{ base: "none", md: "block" }} />
                   <Panel defaultSize={50} minSize={20} maxSize={80} order={1}>
-                    <Box bgColor="bg.muted" rounded="lg" flex="1">
+                    <Box bgColor="bg.muted" rounded="lg" flex="1" h={{ md: "calc(100vh - 100px)" }} overflowY={{ md: "auto" }}>
                       <Outlet key={location.key} context={{ background: location }} />
                     </Box>
                   </Panel>

@@ -18,7 +18,7 @@ import { PersonSummaryForInterface } from "~/interfaces/tmdb/people/summary";
 export default function SearchOverview({ movies, keywords, people, collections, companies, query }: {movies: TmdbMoviePaginationInterface, keywords: KeywordsPaginationInterface, people: TrendingPeopleInterface, collections: TmdbCollectionsPaginationInterface, companies: CompanyPaginationInterface, query: string}) {
 
   return (
-    <Box overflow="auto" height="calc(100vh - 100px)" >
+    <Box >
         <Box as="section" display="grid" gap={2} gridColumn={1} flex="1" p={4} overflow="hidden">
           <Heading as="h1" pb={4}>Results for &quot;{query}&quot;</Heading>
           <Box display="flex" justifyContent="space-between" flexWrap="wrap" gap={4}>

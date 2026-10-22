@@ -101,7 +101,7 @@ export default function SearchListView({ results, decodedFilters }: SearchListVi
   ]
 
   return (
-    <Box overflow="auto" height="calc(100vh - 100px)">
+    <Box>
         <Box as="section" display="grid" gap={4} gridColumn={1} flex="1" p={4} overflow="hidden">
           {
             MovieListCategories.map((list, index) => (

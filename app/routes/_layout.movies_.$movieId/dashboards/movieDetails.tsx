@@ -20,7 +20,7 @@ interface MovieDetailsProps {
 
 export default function MovieDetails({ movieData }: MovieDetailsProps) {
   return (
-    <Box position="relative" flex={1} p={4}  ml="-16px" mr="-16px" mt="-16px" mb="-16px" overflow="auto" height="calc(100vh - 100px)">
+    <Box position="relative" flex={1}>
       <Box position="relative" width="100%" height="100%">
         <Box position="absolute" top={5} left={5} zIndex={1}>
           <BackButton />

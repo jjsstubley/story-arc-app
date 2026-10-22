@@ -46,7 +46,7 @@ export default function SeasonDashboard({
   const totalEpisodes = sortedEpisodes.length;
 
   return (
-    <Box position="relative" flex={1} overflow="auto" height="calc(100vh - 100px)">
+    <Box position="relative" flex={1}>
       {season && (
         <FixedSeasonHeader
           season={season}
