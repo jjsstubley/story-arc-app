@@ -18,6 +18,13 @@ const customConfig = defineConfig({
       '&::-webkit-scrollbar-thumb:hover': {
       background: 'rgba(100, 100, 100, 1)',
       },
+  // react-resizable-panels sets an inline overflow: hidden on the group and panels. Below md the
+  // page scrolls the window, so let sticky headers inside the content panel stick to it.
+  '.main-panel-group, .main-content-panel': {
+    mdDown: {
+      overflow: 'visible !important',
+    },
+  },
   },
 })
 

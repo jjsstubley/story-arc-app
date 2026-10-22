@@ -7,7 +7,8 @@ import { FaTv } from "react-icons/fa";
 import { GiFilmSpool } from "react-icons/gi";
 import InfoPanelHeader from "./header";
 import InfoPanelMetadata from "./metadata";
-import { InfoPanelStickyBar, useScrolledPast } from "~/components/media/info-panel/sticky-bar";
+import { InfoPanelStickyBar } from "~/components/media/info-panel/sticky-bar";
+import { useScrolledPast } from "~/hooks/use-scrolled-past";
 import TVSeriesCheckboxCards from "~/components/user-actions/watchlist/tv-series-checkbox-cards";
 import { MdOutlinePassword } from "react-icons/md";
 
