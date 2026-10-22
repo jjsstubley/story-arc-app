@@ -7,6 +7,7 @@ import { FaTv, FaUser, FaStar, FaComment } from "react-icons/fa";
 import { GiFilmSpool } from "react-icons/gi";
 import InfoPanelHeader from "./header";
 import InfoPanelMetadata from "./metadata";
+import { InfoPanelStickyBar, useScrolledPast } from "~/components/media/info-panel/sticky-bar";
 import { WatchlistPicker } from "~/features/watchlists";
 import { MdOutlinePassword } from "react-icons/md";
 import { RatingSection } from "~/features/ratings";
@@ -88,10 +89,24 @@ export function MovieInfoPanel({ movie, onClose }: { movie: TmdbMovieDetailWAppe
     ]
     // Hide TMDB reference sections that have nothing to show; action sections always render.
     const visibleSections = sections.filter((section) => !section.isEmpty);
+    const { sentinelRef, anchorRef, scrolledPast } = useScrolledPast();
 
     return (
       <Box>
+        <InfoPanelStickyBar
+          anchorRef={anchorRef}
+          visible={scrolledPast}
+          onClose={onClose}
+          title={movie.title}
+          date={movie.release_date}
+          genres={movie.genres}
+          voteAverage={Number(movie.vote_average)}
+          posterPath={movie.poster_path}
+          backdropPath={movie.backdrop_path}
+        />
         <InfoPanelHeader movie={movie} onClose={onClose} />
+        {/* Sits just below the title (shifted visually, which is what the observer sees): once it scrolls out of view, the sticky bar takes over */}
+        <Box ref={sentinelRef} position="relative" top="56px" height={0} />
         <Box p={4} pt={0}>
             <InfoPanelMetadata movie={movie} />
             <Separator my={4} />

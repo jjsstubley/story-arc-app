@@ -7,6 +7,7 @@ import { FaTv } from "react-icons/fa";
 import { GiFilmSpool } from "react-icons/gi";
 import InfoPanelHeader from "./header";
 import InfoPanelMetadata from "./metadata";
+import { InfoPanelStickyBar, useScrolledPast } from "~/components/media/info-panel/sticky-bar";
 import TVSeriesCheckboxCards from "~/components/user-actions/watchlist/tv-series-checkbox-cards";
 import { MdOutlinePassword } from "react-icons/md";
 
@@ -72,10 +73,24 @@ export function TVSeriesInfoPanel({ series, onClose }: { series: TmdbTVSeriesDet
     ]
     // Hide TMDB reference sections that have nothing to show; action sections always render.
     const visibleSections = sections.filter((section) => !section.isEmpty);
+    const { sentinelRef, anchorRef, scrolledPast } = useScrolledPast();
 
     return (
       <Box>
+        <InfoPanelStickyBar
+          anchorRef={anchorRef}
+          visible={scrolledPast}
+          onClose={onClose}
+          title={series.name}
+          date={series.first_air_date}
+          genres={series.genres}
+          voteAverage={Number(series.vote_average)}
+          posterPath={series.poster_path}
+          backdropPath={series.backdrop_path}
+        />
         <InfoPanelHeader series={series} onClose={onClose} />
+        {/* Sits just below the title (shifted visually, which is what the observer sees): once it scrolls out of view, the sticky bar takes over */}
+        <Box ref={sentinelRef} position="relative" top="56px" height={0} />
         <Box p={4} pt={0}>
             <InfoPanelMetadata series={series} />
             <Separator my={4} />
