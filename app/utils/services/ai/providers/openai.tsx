@@ -1,17 +1,8 @@
 
-import OpenAI from "openai";
 import { ProviderEvent, SuggestionProvider, SuggestionRequest, MovieSuggestion } from "../suggestionProvider";
 import { createSuggestionStreamParser } from "../json-stream";
-import type { TasteProfile } from "~/utils/services/supabase/taste-profiles.server";
-
-// In Remix server-side code, use process.env
-const apiKey = process.env.OPENAI_API_KEY;
-
-export const openai = new OpenAI({
-  apiKey: apiKey,
-});
-
-export const OPENAI_MODEL = "gpt-4o-mini";
+import { isOpenAiConfigured, openai, OPENAI_MODEL } from "../openai-client.server";
+import { describeTaste } from "~/features/taste/index.server";
 
 const MAX_EXCLUDED_TITLES = 150;
 
@@ -70,24 +61,6 @@ const responseSchema = {
   },
 } as const;
 
-function createTasteSection(taste: TasteProfile) {
-  const loved = taste.anchors
-    .filter((a) => !["Bad", "Awful"].includes(a.tier))
-    .map((a) => `${a.title} (${a.year}) — ${a.tier}`);
-  const disliked = taste.anchors
-    .filter((a) => ["Bad", "Awful"].includes(a.tier))
-    .map((a) => `${a.title} (${a.year})`);
-
-  return `
-    User taste:
-    ${taste.summary}
-    Likes: ${taste.likes.join(", ")}
-    Dislikes: ${taste.dislikes.join(", ")}
-    Highly rated films: ${loved.join("; ")}
-    ${disliked.length ? `Rated poorly: ${disliked.join("; ")}` : ""}
-  `;
-}
-
 function createPrompt({ query, excludeTitles, page, taste }: SuggestionRequest) {
   const excluded = excludeTitles.slice(0, MAX_EXCLUDED_TITLES);
   const exclusionNote: string = excluded.length
@@ -97,7 +70,7 @@ function createPrompt({ query, excludeTitles, page, taste }: SuggestionRequest) 
   return `
     User is looking for: "${query}"
 
-    ${taste ? createTasteSection(taste) : ""}
+    ${taste ? describeTaste(taste) : ""}
 
     ${exclusionNote}
 
@@ -142,7 +115,7 @@ export function mapOpenAiError(error: unknown): Error {
 
 export const OpenAiProvider: SuggestionProvider = {
   async *streamSuggestions(request: SuggestionRequest): AsyncIterable<ProviderEvent> {
-    if (!apiKey || apiKey.trim().length === 0) {
+    if (!isOpenAiConfigured()) {
       throw new Error("OpenAI API key is not configured. Please set OPENAI_API_KEY environment variable.");
     }
 

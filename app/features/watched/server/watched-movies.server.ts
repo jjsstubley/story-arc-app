@@ -75,6 +75,23 @@ export async function getWatchedMovieIds(
   return new Set((data || []).map((row) => Number(row.tmdb_movie_id)));
 }
 
+/** The user's most recently watched movie ids, newest first */
+export async function getRecentlyWatchedMovieIds(
+  userId: string,
+  limit: number,
+  supabase: SupabaseClient
+): Promise<number[]> {
+  const { data, error } = await supabase
+    .from(collection)
+    .select("tmdb_movie_id")
+    .eq("user_id", userId)
+    .order("watched_at", { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+  return (data || []).map((row) => Number(row.tmdb_movie_id));
+}
+
 export async function getMovieWatchedStatus(
   userId: string,
   tmdbMovieId: number,

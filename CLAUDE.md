@@ -101,6 +101,11 @@ export const action = route;
   make a collection public (RLS enforces it); curated ones are created with the service role. Read and write through
   `~/features/collections`. TMDB film series ("The Matrix Collection") are a different thing: `api.tmdb-collections.$collectionId`
   and `components/collections/` (info panel, previews).
+- **Taste:** `~/features/taste` owns the taste profile (`user_taste_profiles`), the user's own preferences
+  (`user_taste_preferences`) and the "For you" lists, which are private generated collections with
+  `generated_from.type = 'taste'`. The profile is rebuilt only when its fingerprint (ratings, favourites, recent watched,
+  watchlist, preferences) changes. Lists regenerate from the client when stale, at most once a day automatically, with a
+  manual refresh (5-minute cooldown) and a per-user lock (`lists_generating_since`). Loaders only read; never generate in a loader.
 - **Watchlists:** the client addresses lists as `"default"`, `"popcorn"` or a uuid (`watchlistRef(list)`).
   The server resolves `"default"` (creating it on first use); `"popcorn"` is a cookie, so its routes use
   `publicApiRoute` and work signed out. Add or remove movies with `useSetWatchlistMembership`, which refreshes
@@ -116,6 +121,10 @@ export const action = route;
   `user_watched_movies_rls.test.sql`: two users, checks for signed-out (`anon`), own rows and the other user's rows.
 - Functions are `SECURITY INVOKER` so RLS applies. Never filter on a caller-supplied `user_id` inside a
   `SECURITY DEFINER` function; that lets anyone read any user's rows (see `fix_ai_queries_fuzzy_matching.sql`).
+- After `npx supabase migration up` locally, new columns may 404 until PostgREST reloads its schema:
+  `docker exec supabase_db_story-arc-app psql -U postgres -c "NOTIFY pgrst, 'reload schema'"`.
+- PostgREST can reject an `.or()` filter on an update with 42703 "column does not exist". Use plain filters
+  (e.g. compare-and-set on the value you read, as in `features/taste/server/lists.server.ts`).
 - The app uses the anon key with the user's session, so RLS is what protects user data. Server services
   still filter by `user.id`, but that doesn't replace a policy.
 

@@ -14,6 +14,7 @@ export {
 export {
   getWatchlistItem,
   getWatchlistMembership,
+  getWatchlistMovieIds,
   isMovieInWatchlist,
   setWatchlistMembership,
   updateWatchlistItem,

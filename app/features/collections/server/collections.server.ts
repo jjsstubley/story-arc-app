@@ -85,6 +85,43 @@ export async function getUserCollections(userId: string, supabase: SupabaseClien
   return data ?? [];
 }
 
+/** The user's generated collections of one kind (generated_from.type), oldest first, with their movies */
+export async function getGeneratedCollectionsWithMovies(
+  userId: string,
+  type: string,
+  supabase: SupabaseClient
+): Promise<CollectionWithMovies[]> {
+  const { data, error } = await supabase
+    .from(collections)
+    .select(`*, collection_items (${ITEM_COLUMNS})`)
+    .eq('user_id', userId)
+    .eq('is_system_generated', true)
+    .eq('generated_from->>type', type)
+    .order('created_at', { ascending: true });
+
+  if (error) throw error;
+  return attachMovies(data ?? []);
+}
+
+/** Deletes the user's generated collections of one kind, keeping any listed in `keepIds` */
+export async function deleteGeneratedCollections(
+  userId: string,
+  type: string,
+  keepIds: string[],
+  supabase: SupabaseClient
+): Promise<void> {
+  let query = supabase
+    .from(collections)
+    .delete()
+    .eq('user_id', userId)
+    .eq('is_system_generated', true)
+    .eq('generated_from->>type', type);
+  if (keepIds.length > 0) query = query.not('id', 'in', `(${keepIds.join(',')})`);
+
+  const { error } = await query;
+  if (error) throw error;
+}
+
 /**
  * A collection with its movies, if the user may see it: public collections
  * for anyone, private ones only for their owner.

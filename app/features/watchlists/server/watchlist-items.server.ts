@@ -129,3 +129,17 @@ export async function getWatchlistItem(
 
   return data;
 }
+
+/** Movies the user has saved to any of their watchlists, most recently added first */
+export async function getWatchlistMovieIds(userId: string, limit: number, supabase: SupabaseClient): Promise<number[]> {
+  const { data, error } = await supabase
+    .from(collection)
+    .select("tmdb_movie_id")
+    .eq("user_id", userId)
+    .eq("media_type", "movie")
+    .order("added_at", { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+  return [...new Set((data || []).map((row) => Number(row.tmdb_movie_id)))];
+}

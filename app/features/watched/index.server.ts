@@ -3,6 +3,7 @@ export {
   addWatchedMovie,
   applyWatchedStatus,
   getMovieWatchedStatus,
+  getRecentlyWatchedMovieIds,
   getWatchedMovieIds,
   isMovieWatched,
   removeWatchedMovie,

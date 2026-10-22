@@ -2,7 +2,7 @@ import {  Box, Heading, Stack, Text, ButtonGroup, Button, Separator, VStack } fr
 import { Link } from "@remix-run/react";
 
 import { RiFireFill } from "react-icons/ri";
-import { LuPopcorn } from "react-icons/lu";
+import { LuPopcorn, LuSparkles } from "react-icons/lu";
 
 import DefaultWatchlist from "../../watchlist/default-watchlist";
 import { useState } from "react";
@@ -29,7 +29,29 @@ export default function LibraryNavSection({ watchlists = [] }: { watchlists?: Wa
     // ]       
   return (
     <Box>
-        {/* <SearchFeature genres={genres} /> */}
+        <Link to="/for-you">
+          <Box
+            display="flex"
+            alignItems="center"
+            gap={3}
+            p={3}
+            mb={4}
+            rounded="md"
+            border="1px solid"
+            borderColor="orange.800"
+            bgGradient="to-r"
+            gradientFrom="orange.900/40"
+            gradientTo="transparent"
+            _hover={{ borderColor: "orange.500" }}
+            transition="border-color 0.2s"
+          >
+            <LuSparkles color="var(--chakra-colors-orange-400)" />
+            <Box>
+              <Text fontSize="sm" fontWeight="semibold">For you</Text>
+              <Text fontSize="xs" color="fg.muted">Your taste profile and lists made for you</Text>
+            </Box>
+          </Box>
+        </Link>
         <ButtonGroup variant="outline" wrap="wrap">
             <Button p={2} size="sm" rounded="full" variant={filter === 'all' ? 'solid' : 'outline'} onClick={() => setFilter('all')}>
                 All

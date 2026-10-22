@@ -10,6 +10,7 @@ import MovieFeaturette from "~/components/movie/previews/featurette";
 import MoviePoster from "~/components/movie/previews/poster";
 import TVSeriesPoster from "~/components/tv/series/previews/poster";
 import type { CollectionWithMovies } from "~/features/collections";
+import { ForYouHomeRow } from "~/features/taste";
 import { MovieListsInterface } from "~/interfaces/tmdb/movie-lists";
 import { TmdbMovieSummaryInterface } from "~/interfaces/tmdb/movie/summary";
 import { PersonSummaryForInterface } from "~/interfaces/tmdb/people/summary";
@@ -23,9 +24,10 @@ interface HomeDashboardProps {
   movieLists: [MovieListsInterface, MovieListsInterface, MovieListsInterface, TrendingMoviesInterface, TrendingTVSeriesListsInterface];
   trendingPeople: TrendingPeopleInterface;
   collections: CollectionWithMovies[];
+  signedIn: boolean;
 }
 
-export default function HomeDashboard({ movieLists, trendingPeople, collections }: HomeDashboardProps) {
+export default function HomeDashboard({ movieLists, trendingPeople, collections, signedIn }: HomeDashboardProps) {
   const [popular, nowPlaying, topRated, trendingMovies, trendingTv] = movieLists;
   const popularMovies = popular.results as TmdbMovieSummaryInterface[];
 
@@ -34,6 +36,8 @@ export default function HomeDashboard({ movieLists, trendingPeople, collections 
       <RotatingSpotlight movies={popularMovies.slice(0, SPOTLIGHT_COUNT)} eyebrow="Popular now" />
 
       <Flex direction="column" gap={14} px={{ base: 4, md: 8 }} py={10}>
+        {signedIn && <ForYouHomeRow />}
+
         <PageSection eyebrow="Today" title="Top 10 movies" subtitle="What everyone is watching right now">
           <Row flex="0 0 auto">
             {(trendingMovies.results as TmdbMovieSummaryInterface[]).slice(0, RANKED_COUNT).map((movie, i) => (

@@ -6,7 +6,10 @@ BEGIN;
 CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA extensions;
 SELECT plan(17);
 
--- Fixtures (as postgres, so RLS doesn't apply yet)
+-- Fixtures (as postgres, so RLS doesn't apply yet). Start from empty tables so
+-- rows already in a dev database don't change the results; ROLLBACK restores them.
+DELETE FROM collections;
+
 INSERT INTO auth.users (id, email) VALUES
   ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'a@test.com'),
   ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'b@test.com');

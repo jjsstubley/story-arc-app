@@ -1,4 +1,4 @@
-import type { TasteProfile } from "~/utils/services/supabase/taste-profiles.server";
+import type { TasteContext } from "~/features/taste";
 
 export interface MovieSuggestion {
   title: string;
@@ -13,7 +13,7 @@ export interface SuggestionRequest {
   query: string;
   excludeTitles: string[];
   page: number;
-  taste?: TasteProfile | null;
+  taste?: TasteContext | null;
 }
 
 export type ProviderEvent =

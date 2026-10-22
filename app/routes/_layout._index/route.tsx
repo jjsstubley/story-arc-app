@@ -44,6 +44,6 @@ export const meta: MetaFunction = () => {
 
 
 export default function Index() {
-  const { movieLists, trendingPeople, collections } = useLoaderData<typeof loader>();
-  return <HomeDashboard movieLists={movieLists} trendingPeople={trendingPeople} collections={collections} />;
+  const { movieLists, trendingPeople, collections, session } = useLoaderData<typeof loader>();
+  return <HomeDashboard movieLists={movieLists} trendingPeople={trendingPeople} collections={collections} signedIn={Boolean(session)} />;
 }
