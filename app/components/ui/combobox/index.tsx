@@ -14,6 +14,7 @@ import {
 import { ReactNode, useState } from "react"
 import { ComboboxItemProp } from "./interfaces/combobox-item";
 import { BaseComboboxProps } from "./interfaces/combobox";
+import { usePortalled } from "~/shared/ui/portal-context";
 
 
 interface ComboboxProps extends BaseComboboxProps {
@@ -31,6 +32,7 @@ export const CommandCombobox = ({
   children, 
   colorPalette='orange', 
   defaultTags  }: ComboboxProps) => {
+  const portalled = usePortalled();
 
     const [value, setValue] = useState<string[]>([])
     const { contains } = useFilter({ sensitivity: "base" })
@@ -69,7 +71,7 @@ export const CommandCombobox = ({
             <Combobox.Trigger />
           </Combobox.IndicatorGroup>
         </Combobox.Control>
-        <Portal>
+        <Portal disabled={!portalled}>
           <Combobox.Positioner>
             <Combobox.Content>
               <Combobox.Empty>No items found</Combobox.Empty>

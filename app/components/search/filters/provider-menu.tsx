@@ -1,6 +1,7 @@
 import { createListCollection, Portal, Select, Image, Box, Text } from "@chakra-ui/react";
 import { useMemo } from "react";
 import { FullProviderInterface, WatchProvidersInterface } from "~/interfaces/provider";
+import { usePortalled } from "~/shared/ui/portal-context";
 
 interface ProviderItemInterface {
   label: string,
@@ -8,6 +9,7 @@ interface ProviderItemInterface {
 }
 
 const ProviderMenu = ({ onChange, providers} : {value: string, onChange: (value: ProviderItemInterface[]) => void, providers: WatchProvidersInterface}) => {
+  const portalled = usePortalled();
   
   const collection = useMemo(() => {
     return createListCollection({
@@ -39,7 +41,7 @@ const ProviderMenu = ({ onChange, providers} : {value: string, onChange: (value:
           <Select.Indicator />
         </Select.IndicatorGroup>
       </Select.Control>
-      <Portal>
+      <Portal disabled={!portalled}>
         <Select.Positioner>
           <Select.Content>
             {collection.items.map((provider: FullProviderInterface) => (

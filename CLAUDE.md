@@ -123,8 +123,19 @@ export const action = route;
 
 ## Chakra gotchas
 
-- A `Select`/`Menu`/`Combobox` inside a `Dialog` must not portal its positioner (`<Portal disabled>`):
-  a modal dialog blocks interaction with portalled content. Shared components take a `portalled` prop for this.
+- A `Select`/`Menu`/`Combobox` inside a `Dialog` or `Drawer` must not portal its positioner (`<Portal disabled>`):
+  a modal blocks interaction with portalled content. Shared popups call `usePortalled(props.portalled)` from
+  `~/shared/ui/portal-context`; wrap a modal's body in `<InsideModal>` when it reuses components written for the page.
+
+## Layout and mobile
+
+- `_layout/route.tsx` is the shell. From `md` up: side panel | content | resizable info panel.
+  Below `md`: the side panel is hidden, `components/layout/mobile-nav.tsx` shows a bottom tab bar that opens each
+  nav section as a bottom sheet, and the info panel opens as a full-height drawer.
+- Nav sections are defined once in `components/sidepanel/nav-sections.tsx`; add sections there, not in either shell.
+- Hide/show shell pieces with responsive `display` (CSS), not `useBreakpointValue`, so server HTML matches the
+  phone layout. `useBreakpointValue` is only safe for UI that opens after a click (like the info panel).
+- Check phone layouts at 390px wide; pages must not scroll horizontally.
 
 ## Not yet migrated (known gaps)
 

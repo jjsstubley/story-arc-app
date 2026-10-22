@@ -15,6 +15,7 @@ import { ReactNode, useEffect, useState } from "react"
 import { ComboboxItemProp } from "./interfaces/combobox-item";
 import { BaseComboboxProps } from "./interfaces/combobox";
 import ComboTags from "./combo-tags";
+import { usePortalled } from "~/shared/ui/portal-context";
 
 
 interface ComboboxProps extends BaseComboboxProps {
@@ -27,6 +28,7 @@ interface ComboboxProps extends BaseComboboxProps {
 }
 
 export const AsyncMultipleCombobox = ({ suggestions, onSelect, startElement, placeholder = "Type to search", defaultOpen = false, children, fetchUrl, colorPalette="orange", defaultTags, hideTags=false }: ComboboxProps) => {
+  const portalled = usePortalled();
   const [searchValue, setSearchValue] = useState("")
   const [tags, setTags] = useState<string[]>(defaultTags ?? [])
   const [tagItems, setTagItems] = useState<ComboboxItemProp[]>([])
@@ -139,7 +141,7 @@ export const AsyncMultipleCombobox = ({ suggestions, onSelect, startElement, pla
           <Combobox.Trigger />
         </Combobox.IndicatorGroup>
       </Combobox.Control>
-      <Portal>
+      <Portal disabled={!portalled}>
         <Combobox.Positioner style={{ zIndex: 1500 }}>
           <Combobox.Content style={{ zIndex: 1500 }}>
             <Combobox.Empty>No items found</Combobox.Empty>

@@ -11,6 +11,7 @@ import { ReactNode, useMemo, useState, useEffect } from "react"
 import { ComboboxItemProp } from "./interfaces/combobox-item";
 import { BaseComboboxProps } from "./interfaces/combobox";
 import ComboTags from "./combo-tags";
+import { usePortalled } from "~/shared/ui/portal-context";
 
 interface ComboboxProps extends BaseComboboxProps {
     onSelect: (details: Combobox.ValueChangeDetails  | null) => void;
@@ -34,6 +35,7 @@ export const MultipleCombobox = ({
     hideTags=false
    }: ComboboxProps
 ) => {
+  const portalled = usePortalled();
   const [searchValue, setSearchValue] = useState("")
   const [tags, setTags] = useState<string[]>(defaultTags ?? [])
   const [tagItems, setTagItems] = useState<ComboboxItemProp[]>([])
@@ -118,7 +120,7 @@ export const MultipleCombobox = ({
           <Combobox.Trigger />
         </Combobox.IndicatorGroup>
       </Combobox.Control>
-      <Portal>
+      <Portal disabled={!portalled}>
         <Combobox.Positioner>
           <Combobox.Content>
             <Combobox.Empty>No items found</Combobox.Empty>

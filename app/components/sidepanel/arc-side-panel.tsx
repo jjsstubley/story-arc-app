@@ -1,79 +1,13 @@
-import {  Accordion, Box, Heading, Stack, Text } from "@chakra-ui/react";
-import { CountriesInterface, LanguagesInterface } from "~/interfaces/tmdb/configuration";
-import { GenreInterface } from "~/interfaces/tmdb/genre";
-import { FullProviderInterface } from "~/interfaces/tmdb/provider";
-import { CiSearch } from "react-icons/ci";
+import { Accordion, Box, Heading, Stack, Text } from "@chakra-ui/react";
 import { Session } from "@supabase/supabase-js";
 import { UserAccountDropdown } from "~/components/ui/user-account-dropdown";
-import DiscoverNavSection from "./sections/discover-nav-section";
-import { WatchlistInterface } from "~/interfaces/watchlist";
-import { PersonSummaryForInterface } from "~/interfaces/tmdb/people/summary";
-import { LiaCompass } from "react-icons/lia";
-import SearchNavSection from "./sections/search-nav-section";
-import LibraryNavSection from "./sections/library-nav-section";
-import { IoLibrary } from "react-icons/io5";
-import { CollectionsInterface } from "~/interfaces/collections";
 import SidebarSignupCard from "~/components/auth/sidebar-signup-card";
-
-interface RequestFilterProps {
-  key: string,
-  type: string,
-  name?: string[],
-  value: number | string
-}
-
-interface FilterOptionsProps {
-  genres: GenreInterface[], 
-  providers: FullProviderInterface[], 
-  people: PersonSummaryForInterface[], 
-  regions: CountriesInterface[], 
-  languages: LanguagesInterface[]
-  defaults?: RequestFilterProps[]
-  sort_by?: string
-  collections?: { id: string, name: string }[]
-  watchlists?: WatchlistInterface[]
-  userCollections?: CollectionsInterface[]
-}
+import { getNavSections, type FilterOptionsProps } from "./nav-sections";
 
 const ArcSidePanel = ({filters, session} : {filters: FilterOptionsProps, session: Session | null}) => {
-  
-  const sections = [
-    {
-      label: "Discover",
-      value: "discover",
-      description: "Collections, Genres, and Stars",
-      icon: <LiaCompass color="orange" size={20} />, 
-      color: {
-        default: "orange.900/30",
-        hover: "orange.900/80",
-      },
-      content: <DiscoverNavSection collections={filters.collections || []} genres={filters.genres} people={filters.people} />
-    },
-    ...(session ? [{
-      label: "Your Stuff",
-      value: "library",
-      description: "Your watchlist, collections, and more",
-      icon: <IoLibrary color="orange" size={20} />,
-      color: {
-        default: "blue.900/30",
-        hover: "blue.900/80",
-      },
-      content: <LibraryNavSection watchlists={filters.watchlists || []} />
-    }] : []),
-    {
-      label: "Browse",
-      value: "search",
-      description: "Search by title, filters, or description",
-      icon: <CiSearch color="orange" size={20} />, 
-      color: {
-        default: "green.900/30",
-        hover: "green.900/80",
-      },
-      content: <SearchNavSection genres={filters.genres} providers={filters.providers} people={filters.people} regions={filters.regions} languages={filters.languages} defaults={filters.defaults} sort_by={filters.sort_by} />
-    },
-  ]       
+  const sections = getNavSections(filters, session);
   return (
-    <Box as="nav" w={{ base: "100%", md: "25%" }} minWidth="300px" height="calc(100vh - 100px)" overflow="hidden" display="flex" flexDirection="column">
+    <Box as="nav" w="25%" minWidth="300px" height="calc(100vh - 100px)" overflow="hidden" display={{ base: "none", md: "flex" }} flexDirection="column">
       <Box flex="1"  overflow="hidden" display="flex" flexDirection="column">
         <Accordion.Root defaultValue={["search"]} spaceY={2} height="100%" >
             {sections.map((section) => (

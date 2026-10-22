@@ -10,7 +10,7 @@ export default function AuthButtons() {
         </Button>
       } />
       <AuthDialog mode="signup" trigger={
-        <Button variant="solid" size="sm">
+        <Button variant="solid" size="sm" hideBelow="sm">
           Create Account
         </Button>
       } />

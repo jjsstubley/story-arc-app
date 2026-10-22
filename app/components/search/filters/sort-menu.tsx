@@ -1,6 +1,8 @@
 import { createListCollection, Portal, Select } from "@chakra-ui/react";
+import { usePortalled } from "~/shared/ui/portal-context";
 
 const SortMenu = ({value, label, onChange} : {value: string, label?: string, onChange: (value: string[]) => void;}) => {
+  const portalled = usePortalled();
   return (
     <Select.Root variant="outline" collection={frameworks} defaultValue={[value]} onValueChange={(e) => onChange(e.value)}>
       <Select.HiddenSelect />
@@ -13,7 +15,7 @@ const SortMenu = ({value, label, onChange} : {value: string, label?: string, onC
           <Select.Indicator />
         </Select.IndicatorGroup>
       </Select.Control>
-      <Portal>
+      <Portal disabled={!portalled}>
         <Select.Positioner>
           <Select.Content>
             {frameworks.items.map((framework: {label: string, value: string}) => (

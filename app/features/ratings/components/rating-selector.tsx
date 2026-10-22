@@ -1,5 +1,6 @@
 import { Box, HStack, Portal, Select, Skeleton, Text, createListCollection } from "@chakra-ui/react";
 import { InlineError } from "~/shared/ui/inline-error";
+import { usePortalled } from "~/shared/ui/portal-context";
 import { useRating, useUpdateRating } from "../queries";
 import { RATING_TIERS, RATING_TIER_OPTIONS } from "../tiers";
 import type { Rating } from "../types";
@@ -13,11 +14,13 @@ interface RatingSelectorProps {
   /**
    * Render the dropdown in a portal on document.body. Set to false inside a
    * Dialog: a modal dialog blocks interaction with portalled content.
+   * Defaults to false inside `InsideModal`.
    */
   portalled?: boolean;
 }
 
-export default function RatingSelector({ movieId, onRatingChange, size = "md", portalled = true }: RatingSelectorProps) {
+export default function RatingSelector({ movieId, onRatingChange, size = "md", portalled: portalledProp }: RatingSelectorProps) {
+  const portalled = usePortalled(portalledProp);
   const { data: rating, isPending, isError, error, refetch } = useRating(movieId);
   const updateRating = useUpdateRating(movieId);
 

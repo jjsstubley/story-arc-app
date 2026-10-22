@@ -20,8 +20,9 @@ import PopcornDialog from "~/components/user-actions/popcorn/popcorn-dialog";
 import AuthButtons from "~/components/auth/auth-buttons";
 import HeaderAvatar from "~/components/auth/header-avatar";
 
-import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
+import { Panel, PanelGroup } from "react-resizable-panels";
 import ArcSidePanel from "~/components/sidepanel/arc-side-panel";
+import MobileNav, { MOBILE_NAV_HEIGHT } from "~/components/layout/mobile-nav";
 import { decodeValues } from "~/utils/helpers";
 import { getAllUserCollections } from "~/utils/services/supabase/collections.server";
 
@@ -114,13 +115,13 @@ export default function Layout() {
     <Container>
       <WatchlistProvider> 
           <MediaPanelProvider> 
-            <Flex direction="column" minH="100vh" gap={4}>
-                <Box as="header" pt={4} display="flex" gap={4} alignItems="flex-start">
-                    <Box w={{ base: "100%", md: "25%" }} alignItems="center">
-                      <Heading as="h1" display="flex" alignItems="center" gap={1} > <Box rounded="full" bg="black" p={1} border="1px solid" borderColor="whiteAlpha.200" overflow="hidden"><Image src="/logo.jpg"  width={10} height={10} alt="Brand"/></Box> <Box as="span" fontFamily="'Bungee Hairline', system-ui" fontWeight="semibold">filmarc</Box></Heading>
+            <Flex direction="column" minH="100vh" gap={4} pb={{ base: `calc(${MOBILE_NAV_HEIGHT} + env(safe-area-inset-bottom) + 16px)`, md: 0 }}>
+                <Box as="header" pt={4} display="flex" gap={{ base: 2, md: 4 }} alignItems="center">
+                    <Box w={{ base: "auto", md: "25%" }} flexShrink={0} alignItems="center">
+                      <Heading as="h1" display="flex" alignItems="center" gap={1} > <Box rounded="full" bg="black" p={1} border="1px solid" borderColor="whiteAlpha.200" overflow="hidden"><Image src="/logo.jpg"  width={10} height={10} alt="Brand"/></Box> <Box as="span" hideBelow="sm" fontFamily="'Bungee Hairline', system-ui" fontWeight="semibold">filmarc</Box></Heading>
                     </Box>
                     <GlobalSearch />
-                    <Box display="flex" justifyContent="space-between" gap={4} alignItems="center">
+                    <Box display="flex" justifyContent="space-between" gap={{ base: 2, md: 4 }} alignItems="center" flexShrink={0}>
                       <PopcornDialog watchlists={filterOptions.watchlists} />
                       {session ? (
                         <HeaderAvatar session={session} />
@@ -131,18 +132,17 @@ export default function Layout() {
                 </Box>   
                 <PanelGroup direction="horizontal" className="main-panel-group">
                   <ArcSidePanel filters={filterOptions} session={session}/>
-                  <Box w="8px" />
+                  <Box w="8px" display={{ base: "none", md: "block" }} />
                   <Panel defaultSize={50} minSize={20} maxSize={80} order={1}>
                     <Box bgColor="bg.muted" rounded="lg" flex="1">
                       <Outlet key={location.key} context={{ background: location }} />
                     </Box>
                   </Panel>
-                  <PanelResizeHandle className="resize-handle" style={{ width: '8px', cursor: 'col-resize' }} />
-                  
                   <InfoPanelWrapper />
                  
                   {/* <SidePanel genres={filterOptions.genres.genres} providers={filterOptions.providers.results} people={filterOptions.people.results} regions={filterOptions.regions} languages={filterOptions.languages} defaults={decodedFilters} sort_by={sort} collections={collections}/> */}
                 </PanelGroup>
+                <MobileNav filters={filterOptions} session={session} />
             </Flex>
           </MediaPanelProvider> 
       </WatchlistProvider>
