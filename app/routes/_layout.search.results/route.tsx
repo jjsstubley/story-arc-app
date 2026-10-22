@@ -42,7 +42,8 @@ export default function Index() {
     <ReactQueryProvider>
       <ResultsLayout 
         payload={results} 
-        title={`Results for: `} 
+        eyebrow="Browse"
+        title="Results" 
         filters={decodedFilters}  
         sort_by={sort}
         callback={async (pageParam, sort, filters) => {

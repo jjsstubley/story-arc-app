@@ -6,10 +6,10 @@ import { useInfiniteQuery} from '@tanstack/react-query';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useEffect, useRef, useState } from "react";
 import { TmdbMovieSummaryInterface } from "~/interfaces/tmdb/movie/summary";
-import SortMenu from "~/components/search/filters/sort-menu";
 import { useLocation } from "@remix-run/react";
 import { RequestFilterProps } from "~/components/search/filter-search";
 import ActiveFiltersDisplay from "~/components/search/active-filters-display";
+import ResultsHeader from "./results-header";
 
 function useIntersectionObserver(callback: () => void) {
   const ref = useRef<HTMLDivElement | null>(null);
@@ -61,6 +61,8 @@ export function useResizeObserver(
 interface ResultsLayoutProps {
   payload: MovieListsInterface;
   title: string;
+  /** Small label above the title, e.g. "Genre" */
+  eyebrow?: string;
   filters?: RequestFilterProps[],
   sort_by: string;
   callback: (pageParam: number, sort: string, filters?: RequestFilterProps[]) => Promise<{
@@ -71,8 +73,9 @@ interface ResultsLayoutProps {
 }
 
 
-export default function ResultsLayout({ payload, title, callback, filters, sort_by }: ResultsLayoutProps) {
+export default function ResultsLayout({ payload, title, eyebrow, callback, filters, sort_by }: ResultsLayoutProps) {
   const parentRef = useRef(null);
+  const [scrolled, setScrolled] = useState(false);
   const [sort, setSort] = useState(sort_by);
   const location = useLocation();
   const columns = useBreakpointValue({ base: 1, sm: 2, md: 3, lg: 4, xl: 5 }) ?? 1;
@@ -178,7 +181,22 @@ export default function ResultsLayout({ payload, title, callback, filters, sort_
 
   return (
    
-        <Box as="section" ref={parentRef} flex="1" p={4} overflow="auto" width="100%" height="82vh" position="relative">
+        <Box
+          as="section"
+          ref={parentRef}
+          flex="1"
+          p={4}
+          overflow="auto"
+          width="100%"
+          // Fill the layout's main panel on desktop; it is the virtualizer's scroll element
+          height={{ base: "82vh", md: "100%" }}
+          position="relative"
+          onScroll={(e) => {
+            // Different thresholds each way so the header's own resize can't make it flicker
+            const top = e.currentTarget.scrollTop;
+            setScrolled((compact) => (compact ? top > 8 : top > 80));
+          }}
+        >
                {/* <Box  height="400px" width="100%" mb={8} position="absolute" top={0} left={0}>
                   <Box display="flex"  position="relative" flex={1} height="100%" rounded="lg">
                 
@@ -186,17 +204,16 @@ export default function ResultsLayout({ payload, title, callback, filters, sort_
                    
                   </Box>
                 </Box> */}
+            <ResultsHeader
+              eyebrow={eyebrow}
+              title={title}
+              totalResults={payload.total_results}
+              backdropPath={payload.results.find((movie) => movie.backdrop_path)?.backdrop_path}
+              sort={sort}
+              onSortChange={setSort}
+              compact={scrolled}
+            />
             <Box as="section" flex="1" overflow="hidden" >
-              <Box display="flex" justifyContent="space-between" alignItems="center">
-                <Box display="flex" justifyContent="space-between">
-                  <Heading as="h3" pb={4}>{title}</Heading>
-                </Box>
-                <Box display="flex" justifyContent="flex-end" mb={8} gap={4}>
-                  <Box width="200px">
-                    <SortMenu value={sort} onChange={(val) => setSort(val[0])}/>
-                  </Box>
-                </Box>
-              </Box>
               <ActiveFiltersDisplay filters={filters} />
               {
                 !isLoading && movies.length === 0 && (

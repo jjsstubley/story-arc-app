@@ -58,6 +58,7 @@ export default function Index() {
       {/* <CategoryDashboard genreList={genreList} /> */}
       <ResultsLayout 
         payload={genreList.movies} 
+        eyebrow="Genre"
         title={genreList.genre.name}  
         sort_by={'popularity.desc'} 
         callback={async (pageParam, sort) => {

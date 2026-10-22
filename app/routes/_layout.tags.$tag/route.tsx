@@ -54,6 +54,7 @@ export default function Index() {
     <ReactQueryProvider>
       <ResultsLayout 
         payload={tagList.movies} 
+        eyebrow="Keyword"
         title={tagList.tag.name}  
         sort_by={'popularity.desc'} 
         callback={async (pageParam, sort) => {
