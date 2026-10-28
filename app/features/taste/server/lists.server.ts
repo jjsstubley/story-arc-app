@@ -10,9 +10,11 @@ import { ConflictError } from "~/shared/errors";
 import { openai, OPENAI_MODEL } from "~/utils/services/ai/openai-client.server";
 import { findMovieIdFromTitleAndYear } from "~/utils/services/ai/tmdb-match.server";
 import { getMovieDetailsById } from "~/utils/services/external/tmdb/movies";
-import type { ForYouState, TasteContext, TasteProfile } from "../types";
-import { fingerprintSignals, getOrBuildTasteProfile, getTasteProfile, getTasteSignals, hasEnoughSignals } from "./profile.server";
+import type { ForYouState, TasteContext, TasteProfile, TasteSetupStatus } from "../types";
+import { getTastePreferences } from "./preferences.server";
+import { assessProfile, getOrBuildTasteProfile, getTasteProfile, getTasteSignals, hasEnoughSignals } from "./profile.server";
 import { describeTaste } from "./prompt.server";
+import { getSetupStatus } from "./setup.server";
 
 /** generated_from.type of "For you" collections */
 export const TASTE_LIST_TYPE = 'taste';
@@ -68,14 +70,15 @@ function isLocked(profile: TasteProfile | null): boolean {
 function toState(
   profile: TasteProfile | null,
   lists: CollectionWithMovies[],
-  currentFingerprint: string | null
+  currentFingerprint: string | null,
+  setup: TasteSetupStatus
 ): ForYouState {
   const generatedAt = profile?.lists_generated_at ?? null;
   const fresh = lists.length > 0 && currentFingerprint !== null && profile?.lists_fingerprint === currentFingerprint;
   const status = currentFingerprint === null ? "needs-signals" : isLocked(profile) ? "generating" : fresh ? "ready" : "stale";
   const dueForAutoRefresh = lists.length === 0 || !generatedAt || Date.now() - Date.parse(generatedAt) >= AUTO_REFRESH_INTERVAL_MS;
 
-  return { status, profile, lists, generatedAt, autoRefreshAllowed: status === "stale" && dueForAutoRefresh };
+  return { setup, status, profile, lists, generatedAt, autoRefreshAllowed: status === "stale" && dueForAutoRefresh };
 }
 
 /** The user's lists and whether they're up to date. Never generates anything. */
@@ -85,7 +88,8 @@ export async function getForYouState(userId: string, supabase: SupabaseClient): 
     getTasteProfile(userId, supabase),
     getGeneratedCollectionsWithMovies(userId, TASTE_LIST_TYPE, supabase),
   ]);
-  return toState(profile, lists, hasEnoughSignals(signals) ? fingerprintSignals(signals) : null);
+  const fingerprint = hasEnoughSignals(signals) ? assessProfile(profile, signals).fingerprint : null;
+  return toState(profile, lists, fingerprint, getSetupStatus(signals.preferences));
 }
 
 /**
@@ -213,8 +217,11 @@ export async function refreshForYouLists(
   const taste = await getOrBuildTasteProfile(userId, supabase);
   if (!taste) return getForYouState(userId, supabase);
 
-  const lists = await getGeneratedCollectionsWithMovies(userId, TASTE_LIST_TYPE, supabase);
-  const state = toState(taste, lists, taste.fingerprint);
+  const [lists, preferences] = await Promise.all([
+    getGeneratedCollectionsWithMovies(userId, TASTE_LIST_TYPE, supabase),
+    getTastePreferences(userId, supabase),
+  ]);
+  const state = toState(taste, lists, taste.fingerprint, getSetupStatus(preferences));
   const sinceLast = taste.lists_generated_at ? Date.now() - Date.parse(taste.lists_generated_at) : Infinity;
 
   if (state.status === "generating") return state;

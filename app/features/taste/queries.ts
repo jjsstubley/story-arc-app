@@ -1,8 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
 import { notifyError } from "~/shared/ui/notify";
-import { fetchForYou, fetchTastePreferences, refreshForYou, saveTastePreferences } from "./api";
-import type { ForYouState, TastePreferences } from "./types";
+import { fetchForYou, fetchTastePreferences, refreshForYou, saveTastePreferences, searchTaste } from "./api";
+import type { ForYouState, TastePreferences, TastePreferencesUpdate, TasteSearchType } from "./types";
 
 const GENERATING_POLL_MS = 5000;
 
@@ -10,7 +10,21 @@ export const tasteKeys = {
   all: ["taste"] as const,
   forYou: () => [...tasteKeys.all, "for-you"] as const,
   preferences: () => [...tasteKeys.all, "preferences"] as const,
+  search: (type: TasteSearchType, query: string) => [...tasteKeys.all, "search", type, query] as const,
 };
+
+const MIN_SEARCH_LENGTH = 2;
+
+/** People or subgenres matching `query`; pass an already debounced query */
+export function useTasteSearch(type: TasteSearchType, query: string) {
+  const trimmed = query.trim();
+  return useQuery({
+    queryKey: tasteKeys.search(type, trimmed),
+    queryFn: ({ signal }) => searchTaste(type, trimmed, signal),
+    enabled: trimmed.length >= MIN_SEARCH_LENGTH,
+    staleTime: 5 * 60 * 1000,
+  });
+}
 
 /** The user's "For you" lists and profile. Polls while another request is generating them. */
 export function useForYou({ initialData, enabled = true }: { initialData?: ForYouState; enabled?: boolean } = {}) {
@@ -64,18 +78,34 @@ export function useTastePreferences({ initialData }: { initialData?: TastePrefer
   });
 }
 
-/** Saves preferences optimistically; the lists then show as out of date */
+/**
+ * Saves a partial update optimistically; the lists then show as out of date.
+ * People and keywords appear once the server has looked up their names.
+ */
 export function useSaveTastePreferences() {
   const queryClient = useQueryClient();
   const queryKey = tasteKeys.preferences();
 
   return useMutation({
-    mutationFn: (preferences: TastePreferences) => saveTastePreferences(preferences),
+    mutationFn: (update: TastePreferencesUpdate) => saveTastePreferences(update),
 
-    onMutate: async (preferences) => {
+    onMutate: async (update) => {
       await queryClient.cancelQueries({ queryKey });
       const previous = queryClient.getQueryData<TastePreferences>(queryKey);
-      queryClient.setQueryData(queryKey, preferences);
+      if (update.onboarding) {
+        const setup = update.onboarding === "completed" ? "done" : "skipped";
+        // Finishing beats putting off: "Do it later" after a finished setup changes nothing
+        queryClient.setQueryData<ForYouState>(tasteKeys.forYou(), (state) =>
+          state && state.setup !== "done" ? { ...state, setup } : state
+        );
+      }
+      if (previous) {
+        const fields = { ...update };
+        delete fields.people;
+        delete fields.keywords;
+        delete fields.onboarding;
+        queryClient.setQueryData<TastePreferences>(queryKey, { ...previous, ...(fields as Partial<TastePreferences>) });
+      }
       return { previous };
     },
 

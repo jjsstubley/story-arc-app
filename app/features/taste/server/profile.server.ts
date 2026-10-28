@@ -19,6 +19,7 @@ const RECENT_WATCHED = 30;
 const WATCHLIST_SIGNALS = 30;
 const MAX_WATCHED_ANCHORS = 6;
 const MAX_WATCHLIST_ANCHORS = 6;
+const ACTIVITY_REBUILD_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
 const tasteSchema = {
   type: "object",
@@ -43,7 +44,7 @@ export async function getTasteProfile(userId: string, supabase: SupabaseClient):
 }
 
 async function upsertTasteProfile(
-  profile: Pick<TasteProfile, 'user_id' | 'summary' | 'likes' | 'dislikes' | 'anchors' | 'fingerprint'>,
+  profile: Pick<TasteProfile, 'user_id' | 'summary' | 'likes' | 'dislikes' | 'anchors' | 'fingerprint' | 'core_fingerprint'>,
   supabase: SupabaseClient
 ): Promise<TasteProfile> {
   const { data, error } = await supabase
@@ -92,19 +93,55 @@ export function hasEnoughSignals(signals: TasteSignals): boolean {
   return filmSignals >= MIN_FILM_SIGNALS || hasPreferences(signals.preferences);
 }
 
-export function fingerprintSignals(signals: TasteSignals): string {
-  const { favourite_genre_ids, avoided_genre_ids, eras, languages, notes } = signals.preferences;
-  return createHash("sha1")
-    .update(
-      JSON.stringify({
-        ratings: signals.ratings.map((r) => `${r.tmdb_movie_id}:${r.rating_percentage}`).sort(),
-        favourites: [...signals.favouriteIds].sort((a, b) => a - b),
-        watched: [...signals.watchedIds].sort((a, b) => a - b),
-        watchlist: [...signals.watchlistIds].sort((a, b) => a - b),
-        preferences: { favourite_genre_ids, avoided_genre_ids, eras, languages, notes },
-      })
-    )
-    .digest("hex");
+function hash(value: unknown): string {
+  return createHash("sha1").update(JSON.stringify(value)).digest("hex");
+}
+
+/** Ratings, favourites and preferences: any change rebuilds the profile */
+function fingerprintCore(signals: TasteSignals): string {
+  const { favourite_genre_ids, avoided_genre_ids, eras, languages, notes, story_axes, arc_types, comparisons, people, keywords } =
+    signals.preferences;
+  return hash({
+    ratings: signals.ratings.map((r) => `${r.tmdb_movie_id}:${r.rating_percentage}`).sort(),
+    favourites: [...signals.favouriteIds].sort((a, b) => a - b),
+    preferences: {
+      favourite_genre_ids,
+      avoided_genre_ids,
+      eras,
+      languages,
+      notes,
+      story_axes,
+      arc_types,
+      comparisons,
+      people: people.map((person) => `${person.role}:${person.id}`),
+      keywords: keywords.map((keyword) => keyword.id),
+    },
+  });
+}
+
+/** Everything a profile is built from, including watched films and the watchlist */
+function fingerprintAll(signals: TasteSignals, core: string): string {
+  return hash({
+    core,
+    watched: [...signals.watchedIds].sort((a, b) => a - b),
+    watchlist: [...signals.watchlistIds].sort((a, b) => a - b),
+  });
+}
+
+/**
+ * Whether the stored profile needs rebuilding, and the fingerprint the
+ * current profile has (or will have once rebuilt). Watching films or changing
+ * the watchlist only rebuilds a profile older than a week, so everyday
+ * activity doesn't cost an AI call each time or invalidate cached suggestions.
+ */
+export function assessProfile(stored: TasteProfile | null, signals: TasteSignals) {
+  const core = fingerprintCore(signals);
+  const all = fingerprintAll(signals, core);
+  const age = stored?.updated_at ? Date.now() - Date.parse(stored.updated_at) : Infinity;
+  const needsRebuild =
+    !stored || stored.core_fingerprint !== core || (stored.fingerprint !== all && age >= ACTIVITY_REBUILD_AGE_MS);
+
+  return { needsRebuild, core, fingerprint: needsRebuild || !stored ? all : stored.fingerprint };
 }
 
 async function resolveAnchor(tmdbId: number, tier: string): Promise<TasteAnchor | null> {
@@ -134,7 +171,12 @@ function pickAnchors(signals: TasteSignals): { id: number; tier: string }[] {
   return [...liked, ...disliked, ...watched, ...wanted];
 }
 
-async function buildProfile(userId: string, signals: TasteSignals, fingerprint: string, supabase: SupabaseClient) {
+async function buildProfile(
+  userId: string,
+  signals: TasteSignals,
+  { fingerprint, core }: { fingerprint: string; core: string },
+  supabase: SupabaseClient
+) {
   const anchors = (await Promise.all(pickAnchors(signals).map(({ id, tier }) => resolveAnchor(id, tier))))
     .filter((anchor): anchor is TasteAnchor => anchor !== null);
   const preferences = await resolvePreferences(signals.preferences);
@@ -161,15 +203,14 @@ async function buildProfile(userId: string, signals: TasteSignals, fingerprint: 
   const parsed = JSON.parse(content) as { summary: string; likes: string[]; dislikes: string[] };
 
   console.log(`Taste profile regenerated for user ${userId} from ${anchors.length} films`);
-  const profile = await upsertTasteProfile({ user_id: userId, ...parsed, anchors, fingerprint }, supabase);
+  const profile = await upsertTasteProfile({ user_id: userId, ...parsed, anchors, fingerprint, core_fingerprint: core }, supabase);
   return { profile, preferences };
 }
 
 /**
- * The user's taste profile, regenerated only when its inputs (ratings,
- * favourites, watched films, watchlist, preferences) have changed. Returns
- * null when there isn't enough to go on, or if anything fails: suggestions
- * must work without it.
+ * The user's taste profile, regenerated only when its inputs have changed
+ * (see `assessProfile`). Returns null when there isn't enough to go on, or if
+ * anything fails: suggestions must work without it.
  */
 export async function getOrBuildTasteProfile(userId: string, supabase: SupabaseClient): Promise<TasteContext | null> {
   let stored: TasteProfile | null = null;
@@ -179,12 +220,12 @@ export async function getOrBuildTasteProfile(userId: string, supabase: SupabaseC
     [signals, stored] = await Promise.all([getTasteSignals(userId, supabase), getTasteProfile(userId, supabase)]);
     if (!hasEnoughSignals(signals)) return null;
 
-    const fingerprint = fingerprintSignals(signals);
-    if (stored?.fingerprint === fingerprint) {
+    const assessment = assessProfile(stored, signals);
+    if (stored && !assessment.needsRebuild) {
       return { ...stored, preferences: await resolvePreferences(signals.preferences) };
     }
 
-    const { profile, preferences } = await buildProfile(userId, signals, fingerprint, supabase);
+    const { profile, preferences } = await buildProfile(userId, signals, assessment, supabase);
     return { ...profile, preferences };
   } catch (error) {
     console.error("Failed to build taste profile (continuing without it):", error);

@@ -1,6 +1,7 @@
 import { Box, Button, Flex, Heading, SimpleGrid, Text } from "@chakra-ui/react";
 import { Link } from "@remix-run/react";
 import { useAutoRefreshForYou, useForYou } from "../queries";
+import { setupPath } from "../setup";
 import type { ForYouState, TastePreferences } from "../types";
 import { ForYouListRows, ForYouListsSkeleton } from "./for-you-lists";
 import { ForYouStatusBar } from "./for-you-status";
@@ -35,6 +36,11 @@ export default function ForYouPage({ initialState, initialPreferences, genres }:
             Built from what you rate, favourite, watch and save, plus anything you tell us below. Your lists update
             when your taste changes, at most once a day.
           </Text>
+          <Link to={setupPath("/for-you")}>
+            <Button mt={5} size="sm" variant="outline">
+              {initialPreferences.onboarded_at ? "Redo the taste setup" : "Set up your taste"}
+            </Button>
+          </Link>
         </Box>
       </Box>
 

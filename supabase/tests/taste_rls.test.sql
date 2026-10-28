@@ -3,7 +3,7 @@
 
 BEGIN;
 CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA extensions;
-SELECT plan(13);
+SELECT plan(15);
 
 -- Fixtures (as postgres, so RLS doesn't apply yet)
 INSERT INTO auth.users (id, email) VALUES
@@ -52,6 +52,23 @@ SELECT throws_ok(
      WHERE user_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' $$,
   '23514', NULL,
   'A genre cannot be both favoured and avoided'
+);
+
+SELECT lives_ok(
+  $$ UPDATE user_taste_preferences
+     SET story_axes = '{"pacing": -2}', arc_types = '{Redemption}',
+         comparisons = '[{"pair": "structure-1", "pick": "high"}]',
+         people = '[{"id": 525, "name": "Christopher Nolan", "role": "director"}]',
+         onboarded_at = now()
+     WHERE user_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' $$,
+  'User A can save their own story preferences'
+);
+
+SELECT throws_ok(
+  $$ UPDATE user_taste_preferences SET story_axes = '[]'
+     WHERE user_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' $$,
+  '23514', NULL,
+  'story_axes must be an object'
 );
 
 SELECT throws_ok(

@@ -1,5 +1,5 @@
 import { apiFetch } from "~/shared/api/client";
-import type { ForYouState, TastePreferences } from "./types";
+import type { ForYouState, TastePreferences, TastePreferencesUpdate, TasteSearchResult, TasteSearchType } from "./types";
 
 export function fetchForYou(signal?: AbortSignal) {
   return apiFetch<ForYouState>("/api/taste/for-you", { signal });
@@ -13,6 +13,11 @@ export function fetchTastePreferences(signal?: AbortSignal) {
   return apiFetch<TastePreferences>("/api/taste/preferences", { signal });
 }
 
-export function saveTastePreferences(preferences: TastePreferences) {
-  return apiFetch<TastePreferences>("/api/taste/preferences", { method: "PUT", body: preferences });
+export function saveTastePreferences(update: TastePreferencesUpdate) {
+  return apiFetch<TastePreferences>("/api/taste/preferences", { method: "PATCH", body: update });
+}
+
+export function searchTaste(type: TasteSearchType, query: string, signal?: AbortSignal) {
+  const params = new URLSearchParams({ type, query });
+  return apiFetch<TasteSearchResult[]>(`/api/taste/search?${params}`, { signal });
 }

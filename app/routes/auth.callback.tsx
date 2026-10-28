@@ -1,14 +1,9 @@
 // app/routes/auth.callback.tsx
 import { redirect, type LoaderFunctionArgs, type LoaderFunction } from "@remix-run/node";
+import { setupPath } from "~/features/taste";
+import { needsTasteSetup } from "~/features/taste/index.server";
+import { safeRedirectPath } from "~/shared/http/safe-redirect";
 import { getSupabaseServerClient } from "~/utils/supabase.server";
-
-// Only allow same-origin paths; "//host" and "/\host" would redirect off-site
-function safeRedirectPath(next: string | null): string {
-  if (!next || !next.startsWith('/') || next.startsWith('//') || next.startsWith('/\\')) {
-    return '/'
-  }
-  return next
-}
 
 export const loader: LoaderFunction = async ({ request }: LoaderFunctionArgs) => {
   const requestUrl = new URL(request.url)
@@ -18,12 +13,19 @@ export const loader: LoaderFunction = async ({ request }: LoaderFunctionArgs) =>
 
   if(code) {
     const supabase = getSupabaseServerClient(request, headers);
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code)
 
     if (!error) {
-      return redirect(next, { headers })
+      // Until they finish or put off the taste setup, send them there first
+      const setupNeeded = data.user
+        ? await needsTasteSetup(data.user.id, supabase).catch((setupError) => {
+            console.error('Taste setup check failed (continuing):', setupError);
+            return false;
+          })
+        : false;
+      return redirect(setupNeeded ? setupPath(next) : next, { headers })
     }
-    
+
     // If there's an error, redirect to home with error message
     console.error('Auth callback error:', error);
     return redirect("/?error=" + encodeURIComponent(error.message), { headers });
