@@ -1,6 +1,6 @@
 import { Button, Wrap } from "@chakra-ui/react";
 import type { ReactNode } from "react";
-import { LuMinus, LuPlus } from "react-icons/lu";
+import { LuMinus, LuPlus, LuX } from "react-icons/lu";
 
 export function Chip({ selected, onClick, children, label }: { selected: boolean; onClick: () => void; children: ReactNode; label?: string }) {
   return (
@@ -14,6 +14,15 @@ export function Chip({ selected, onClick, children, label }: { selected: boolean
       onClick={onClick}
     >
       {children}
+    </Button>
+  );
+}
+
+export function RemovableChip({ label, onRemove }: { label: string; onRemove: () => void }) {
+  return (
+    <Button size="xs" rounded="full" variant="subtle" colorPalette="orange" onClick={onRemove} aria-label={`Remove ${label}`}>
+      {label}
+      <LuX />
     </Button>
   );
 }

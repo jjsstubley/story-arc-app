@@ -2,8 +2,8 @@ import { Box, Button, Flex, Input, Skeleton, Text } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { LuPlus } from "react-icons/lu";
 import { InlineError } from "~/shared/ui/inline-error";
-import { useTasteSearch } from "../../queries";
-import type { TasteSearchResult, TasteSearchType } from "../../types";
+import { useTasteSearch } from "../queries";
+import type { TasteSearchResult, TasteSearchType } from "../types";
 
 const DEBOUNCE_MS = 300;
 

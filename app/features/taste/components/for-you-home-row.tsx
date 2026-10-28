@@ -2,7 +2,7 @@ import { Box, Button, CloseButton, Flex, Text } from "@chakra-ui/react";
 import { Link } from "@remix-run/react";
 import { LuArrowRight, LuSparkles } from "react-icons/lu";
 import { useAutoRefreshForYou, useForYou, useSaveTastePreferences } from "../queries";
-import { setupPath } from "../setup";
+import { TASTE_PATH, setupPath } from "../paths";
 import type { ForYouState } from "../types";
 import { ForYouListRows, ForYouListsSkeleton } from "./for-you-lists";
 
@@ -54,7 +54,7 @@ function emptyStatePrompt(state: ForYouState) {
     body: state.status === "needs-signals"
       ? "Rate or watch a few films, or tell us what you like, and we'll make you personal lists."
       : "See what we think you'll love, and fine-tune it.",
-    to: "/for-you",
+    to: TASTE_PATH,
     action: "See your taste",
   };
 }

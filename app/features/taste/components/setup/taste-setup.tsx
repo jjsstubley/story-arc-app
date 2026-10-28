@@ -1,14 +1,13 @@
 import { Box, Button, Flex, Heading, Text, Wrap } from "@chakra-ui/react";
 import { useNavigate } from "@remix-run/react";
 import { useState, type ReactNode } from "react";
-import { LuX } from "react-icons/lu";
 import { MAX_KEYWORDS, MAX_PEOPLE, SUGGESTED_KEYWORDS } from "../../options";
 import { useSaveTastePreferences } from "../../queries";
 import { ARC_TYPES, axesFromComparisons, type ComparisonPick } from "../../story";
 import type { ComparisonAnswer, ComparisonPairView, TasteKeyword, TastePerson, TastePreferences, TastePreferencesUpdate } from "../../types";
-import { Chip, GenreChips, toggleItem } from "../chips";
+import { Chip, GenreChips, RemovableChip, toggleItem } from "../chips";
 import PairPicker from "./pair-picker";
-import SearchPicker from "./search-picker";
+import SearchPicker from "../search-picker";
 
 interface TasteSetupProps {
   /** Saved preferences, so a returning user starts from what they've told us */
@@ -32,15 +31,6 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
       <Text fontWeight="semibold" fontSize="sm" mb={3}>{title}</Text>
       {children}
     </Box>
-  );
-}
-
-function RemovableChip({ label, onRemove }: { label: string; onRemove: () => void }) {
-  return (
-    <Button size="xs" rounded="full" variant="subtle" colorPalette="orange" onClick={onRemove} aria-label={`Remove ${label}`}>
-      {label}
-      <LuX />
-    </Button>
   );
 }
 

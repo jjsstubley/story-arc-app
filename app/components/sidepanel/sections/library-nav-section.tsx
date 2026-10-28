@@ -9,6 +9,7 @@ import { useState } from "react";
 import CollectionsList from "~/components/collections/displays/collections-list";
 import SavedSeriesList from "~/components/tv-series/saved-series-list";
 import { WatchlistInterface } from "~/interfaces/watchlist";
+import { TASTE_PATH } from "~/features/taste";
 import { POPCORN_WATCHLIST_ID, useWatchlist } from "~/features/watchlists";
 
 export default function LibraryNavSection({ watchlists = [] }: { watchlists?: WatchlistInterface[] }) {
@@ -29,7 +30,7 @@ export default function LibraryNavSection({ watchlists = [] }: { watchlists?: Wa
     // ]       
   return (
     <Box>
-        <Link to="/for-you">
+        <Link to={TASTE_PATH}>
           <Box
             display="flex"
             alignItems="center"
@@ -47,8 +48,8 @@ export default function LibraryNavSection({ watchlists = [] }: { watchlists?: Wa
           >
             <LuSparkles color="var(--chakra-colors-orange-400)" />
             <Box>
-              <Text fontSize="sm" fontWeight="semibold">For you</Text>
-              <Text fontSize="xs" color="fg.muted">Your taste profile and lists made for you</Text>
+              <Text fontSize="sm" fontWeight="semibold">Your taste</Text>
+              <Text fontSize="xs" color="fg.muted">Story preferences and lists made for you</Text>
             </Box>
           </Box>
         </Link>

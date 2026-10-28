@@ -1,21 +1,21 @@
-import { Box, Button, Flex, Heading, SimpleGrid, Text } from "@chakra-ui/react";
+import { Box, Button, Flex, Heading, Text } from "@chakra-ui/react";
 import { Link } from "@remix-run/react";
 import { useAutoRefreshForYou, useForYou } from "../queries";
-import { setupPath } from "../setup";
+import { TASTE_PATH, setupPath } from "../paths";
 import type { ForYouState, TastePreferences } from "../types";
 import { ForYouListRows, ForYouListsSkeleton } from "./for-you-lists";
 import { ForYouStatusBar } from "./for-you-status";
 import PreferencesEditor from "./preferences-editor";
 import TasteProfileCard from "./taste-profile-card";
 
-interface ForYouPageProps {
+interface TastePageProps {
   initialState: ForYouState;
   initialPreferences: TastePreferences;
   genres: { id: number; name: string }[];
 }
 
 /** The user's taste profile, their preferences, and the lists made from them */
-export default function ForYouPage({ initialState, initialPreferences, genres }: ForYouPageProps) {
+export default function TastePage({ initialState, initialPreferences, genres }: TastePageProps) {
   const { data: state = initialState } = useForYou({ initialData: initialState });
   const refresh = useAutoRefreshForYou(state);
   const busy = refresh.isPending || state.status === "generating";
@@ -33,10 +33,10 @@ export default function ForYouPage({ initialState, initialPreferences, genres }:
             Your taste
           </Heading>
           <Text mt={4} color="whiteAlpha.800" maxW="60ch">
-            Built from what you rate, favourite, watch and save, plus anything you tell us below. Your lists update
-            when your taste changes, at most once a day.
+            Built from what you rate, favourite, watch and save, plus the story preferences you set below. Your lists
+            update when your taste changes, at most once a day.
           </Text>
-          <Link to={setupPath("/for-you")}>
+          <Link to={setupPath(TASTE_PATH)}>
             <Button mt={5} size="sm" variant="outline">
               {initialPreferences.onboarded_at ? "Redo the taste setup" : "Set up your taste"}
             </Button>
@@ -45,10 +45,8 @@ export default function ForYouPage({ initialState, initialPreferences, genres }:
       </Box>
 
       <Flex direction="column" gap={10} px={{ base: 4, md: 8 }} pb={10}>
-        <SimpleGrid columns={{ base: 1, xl: 2 }} gap={6} alignItems="start">
-          <TasteProfileCard profile={state.profile} />
-          <PreferencesEditor initialPreferences={initialPreferences} genres={genres} />
-        </SimpleGrid>
+        <TasteProfileCard profile={state.profile} />
+        <PreferencesEditor initialPreferences={initialPreferences} genres={genres} />
 
         {state.status === "needs-signals" && state.lists.length === 0 ? (
           <Box p={6} rounded="lg" border="1px dashed" borderColor="whiteAlpha.300" textAlign="center">
