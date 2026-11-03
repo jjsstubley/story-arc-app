@@ -11,6 +11,7 @@ import { Section } from "~/components/layout/section";
 import MovieHero from "~/components/movie/hero";
 import { YouTubeEmbed } from "~/components/embeds/youtube";
 import { TmdbMovieDetailWAppendsProps } from "~/interfaces/tmdb/movie/detail";
+import { SimilarStories } from "~/features/films";
 
 interface MovieDetailsProps {
   movieData: {
@@ -48,6 +49,7 @@ export default function MovieDetails({ movieData }: MovieDetailsProps) {
               }
           </EmblaCarousel>
         </Section>
+        <SimilarStories movieId={movieData.details.id} />
         <Section title="Cast">
             <EmblaCarousel flex="0 0 130px">
               {

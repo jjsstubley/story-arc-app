@@ -1,8 +1,10 @@
 // Story vocabulary shared by onboarding, the preferences editor and prompts. Client and server safe.
 
-import { ARC_TYPES, STORY_AXES } from "~/features/films";
+// Defined with the film vocabulary so film story profiles score the same axes.
+// Imported from the shared file, not ~/features/films, so this module stays
+// free of UI code (scripts load it under plain Node).
+import { ARC_TYPES, STORY_AXES } from "../../../supabase/functions/_shared/film-vocabulary";
 
-// Defined with the film vocabulary so film story profiles score the same axes
 export { ARC_TYPES, STORY_AXES };
 
 export type StoryAxisKey = (typeof STORY_AXES)[number]["key"];

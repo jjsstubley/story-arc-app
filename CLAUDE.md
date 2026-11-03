@@ -109,7 +109,8 @@ export const action = route;
 - **Film story profiles:** `movies`, `film_story_profiles` and `film_embeddings` are written only by the
   `film-profile-worker` Edge Function (service role); everyone can read them. Queue a movie by inserting into
   `film_profile_jobs` (triggers already do this for ratings, favourites, watched and watchlist inserts); never
-  generate profiles in the app. The story vocabulary is `supabase/functions/_shared/film-vocabulary.ts`, read by the
+  generate profiles in the app. Rank story matches with `features/films/similarity.ts` (vector neighbours re-ranked
+  on the structured profile), not raw vector distance, which bunches up because story cards share a template. The story vocabulary is `supabase/functions/_shared/film-vocabulary.ts`, read by the
   app via `~/features/films`; changing a list means bumping `VOCAB_VERSION` and requeueing. `ending_type` and
   `character_arc` are spoilers: match on them, never show them (`logline` is safe to show).
 - **Watchlists:** the client addresses lists as `"default"`, `"popcorn"` or a uuid (`watchlistRef(list)`).
