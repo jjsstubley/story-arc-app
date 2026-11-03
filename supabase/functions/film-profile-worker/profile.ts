@@ -19,7 +19,7 @@ import type { MovieRow } from "./tmdb.ts";
 export const PROFILE_MODEL = "gpt-4o-mini";
 export const EMBEDDING_MODEL = "text-embedding-3-small";
 /** Bump when the prompt changes in a way that should regenerate profiles */
-const PROMPT_VERSION = 2;
+const PROMPT_VERSION = 3;
 
 /**
  * Reference films at each end of each axis, so scores mean the same thing
@@ -160,8 +160,13 @@ export async function generateProfile(input: ProfileInput): Promise<GeneratedPro
           "and lower your confidence when you do. Score each axis against the reference films in its description " +
           "and use the full range: give ±2 whenever the film is as clear an example as the references. " +
           "Don't hedge toward 1 or 'Bittersweet'; most films are not bittersweet. " +
-          "The ending axis is about how the story ends for its characters: a crowd-pleasing or romantic ending is " +
-          "hopeful (negative) even if the film has sad moments along the way.",
+          "The ending axis is about how the story ends for its protagonists: a crowd-pleasing or romantic ending is " +
+          "hopeful (negative) even if the film has sad moments along the way, and an ending where they die or fail is " +
+          "bleak (positive) even if their sacrifice saves others. " +
+          "The resolution axis is about whether the central question is answered (who did it, what happened, " +
+          "whether they succeed): answered is resolved (negative) even when the answer is dark. " +
+          "The focus axis: thrillers, action, sci-fi, heists and mysteries are usually plot-driven (positive) even " +
+          "with strong characters; give -2 only when there is little external plot and the story is the characters' inner lives.",
       },
       { role: "user", content: describeFilm(input) },
     ],
