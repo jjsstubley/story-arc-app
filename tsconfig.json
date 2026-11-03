@@ -7,6 +7,8 @@
     "**/.client/**/*.ts",
     "**/.client/**/*.tsx"
   ],
+  // Edge Functions run on Deno; the app type-checks the shared files it imports
+  "exclude": ["node_modules", "build", "supabase/functions"],
   "compilerOptions": {
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
     "types": ["@remix-run/node", "vite/client"],

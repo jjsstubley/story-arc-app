@@ -1,32 +1,14 @@
 // Story vocabulary shared by onboarding, the preferences editor and prompts. Client and server safe.
 
-/** Each axis is scored from -2 (low end) to 2 (high end); a missing axis means no preference */
-export const STORY_AXES = [
-  { key: "ending", low: "Hopeful endings", high: "Bleak or tragic endings" },
-  { key: "pacing", low: "Slow burn", high: "Propulsive" },
-  { key: "structure", low: "Linear, classic", high: "Non-linear, puzzle-box" },
-  { key: "focus", low: "Character-driven", high: "Plot-driven" },
-  { key: "tone", low: "Light", high: "Dark" },
-  { key: "resolution", low: "Everything resolved", high: "Open, ambiguous" },
-] as const;
+import { ARC_TYPES, STORY_AXES } from "~/features/films";
+
+// Defined with the film vocabulary so film story profiles score the same axes
+export { ARC_TYPES, STORY_AXES };
 
 export type StoryAxisKey = (typeof STORY_AXES)[number]["key"];
 
 export const STORY_AXIS_MIN = -2;
 export const STORY_AXIS_MAX = 2;
-
-export const ARC_TYPES = [
-  "Redemption",
-  "Coming of age",
-  "Rise and fall",
-  "Hero's journey",
-  "Revenge",
-  "Rags to riches",
-  "Voyage and return",
-  "Rebirth",
-  "Overcoming the monster",
-  "Tragedy",
-] as const;
 
 export interface ComparisonFilm {
   tmdbId: number;
