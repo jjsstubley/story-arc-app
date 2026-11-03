@@ -9,7 +9,7 @@ import { VOCAB_VERSION } from "../_shared/film-vocabulary.ts";
 import { PermanentError } from "./errors.ts";
 import { buildStoryCard, embed, EMBEDDING_MODEL, generateProfile, PROFILE_MODEL, sourceHash } from "./profile.ts";
 import { fetchMovie } from "./tmdb.ts";
-import { fetchPlot } from "./wikipedia.ts";
+import { fetchPlot, WikipediaRateLimitedError } from "./wikipedia.ts";
 
 const DEFAULT_BATCH = 10;
 const MAX_BATCH = 25;
@@ -37,7 +37,13 @@ async function buildProfile(movieId: number, supabase: SupabaseClient): Promise<
   const { error: movieError } = await supabase.from("movies").upsert(movie);
   if (movieError) throw movieError;
 
-  const wikipedia = await fetchPlot(movie.wikidata_id).catch(() => null);
+  // A missing plot isn't fatal: the profile falls back to the TMDB overview.
+  // Rate limiting is temporary, so that retries the job instead.
+  const wikipedia = await fetchPlot(movie.wikidata_id).catch((error) => {
+    if (error instanceof WikipediaRateLimitedError) throw error;
+    console.warn(`film ${movieId}: Wikipedia plot failed: ${error instanceof Error ? error.message : error}`);
+    return null;
+  });
   const input = { movie, genreNames, plot: wikipedia?.plot ?? null };
   const hash = await sourceHash(input);
 

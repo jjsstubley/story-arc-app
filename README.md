@@ -42,7 +42,7 @@ Create `supabase/functions/.env` (gitignored):
 | `OPENAI_API_KEY` | Profiles and embeddings |
 | `TMDB_ACCESS_TOKEN` | TMDB API read access token |
 | `FILM_WORKER_SECRET` | Any long random string (`openssl rand -hex 32`); cron sends it to the worker |
-| `WIKIMEDIA_USER_AGENT` | Optional. Wikimedia asks for contact details, e.g. `filmarc/1.0 (you@example.com)` |
+| `WIKIMEDIA_USER_AGENT` | Needed for Wikipedia plots. Must include contact details in brackets, e.g. `filmarc/1.0 (https://your-site; you@example.com)`. Without it Wikimedia allows only 10 requests a minute, so the worker skips Wikipedia and profiles from the TMDB overview |
 
 Locally:
 

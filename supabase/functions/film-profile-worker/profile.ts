@@ -19,7 +19,28 @@ import type { MovieRow } from "./tmdb.ts";
 export const PROFILE_MODEL = "gpt-4o-mini";
 export const EMBEDDING_MODEL = "text-embedding-3-small";
 /** Bump when the prompt changes in a way that should regenerate profiles */
-const PROMPT_VERSION = 1;
+const PROMPT_VERSION = 2;
+
+/**
+ * Reference films at each end of each axis, so scores mean the same thing
+ * across films. Keep these out of the taste COMPARISON_PAIRS: those films are
+ * the calibration check (scripts/check-film-profiles.ts).
+ */
+const AXIS_ANCHORS: Record<(typeof STORY_AXES)[number]["key"], { low: string; high: string }> = {
+  ending: { low: "Paddington 2, The Shawshank Redemption", high: "Requiem for a Dream, Million Dollar Baby" },
+  pacing: { low: "Paterson, The Assassination of Jesse James", high: "Mad Max: Fury Road, Speed" },
+  structure: { low: "Jaws, Little Miss Sunshine", high: "Primer, Mulholland Drive" },
+  focus: { low: "Lady Bird, Moonlight", high: "Mission: Impossible – Fallout, The Bourne Identity" },
+  tone: { low: "Paddington 2, Mamma Mia!", high: "Come and See, Requiem for a Dream" },
+  resolution: { low: "The Sting, The Usual Suspects", high: "Mulholland Drive, Inception" },
+};
+
+const ENDING_DEFINITIONS =
+  "Happy: the protagonists mostly get what they wanted or needed. " +
+  "Bittersweet: a real, lasting loss AND a real gain in the same ending; use it only when both are substantial. " +
+  "Tragic: the ending is mainly loss, death or failure. " +
+  "Ambiguous: what happened or what it means is deliberately left open. " +
+  "Twist: a late revelation reframes the story. Cliffhanger: stops mid-conflict. Circular: ends where it began.";
 
 const openai = new OpenAI({ apiKey: Deno.env.get("OPENAI_API_KEY") });
 
@@ -46,12 +67,20 @@ const profileSchema = {
       additionalProperties: false,
       required: STORY_AXES.map((axis) => axis.key),
       properties: Object.fromEntries(
-        STORY_AXES.map((axis) => [axis.key, { ...AXIS_SCORE, description: `-2 = ${axis.low}, 2 = ${axis.high}` }])
+        STORY_AXES.map((axis) => [
+          axis.key,
+          {
+            ...AXIS_SCORE,
+            description:
+              `-2 = ${axis.low} (like ${AXIS_ANCHORS[axis.key].low}), 2 = ${axis.high} (like ${AXIS_ANCHORS[axis.key].high}). ` +
+              "±1 = a clear lean, 0 = balanced or doesn't apply",
+          },
+        ])
       ),
     },
     arc_type: { type: "string", enum: [...ARC_TYPES] },
     character_arc: { type: "string", enum: [...CHARACTER_ARCS] },
-    ending_type: { type: "string", enum: [...ENDING_TYPES] },
+    ending_type: { type: "string", enum: [...ENDING_TYPES], description: ENDING_DEFINITIONS },
     conflict: { type: "string", enum: [...CONFLICTS], description: "The central conflict" },
     protagonist: { type: "string", enum: [...PROTAGONISTS] },
     moral_complexity: { ...LEVEL, description: "0 clear good vs evil, 3 everyone morally grey" },
@@ -128,8 +157,11 @@ export async function generateProfile(input: ProfileInput): Promise<GeneratedPro
         content:
           "You profile films by their story: its arc, how its characters change, how it ends and how it feels. " +
           "Base the profile on the plot you're given. Use your own knowledge of the film only to fill gaps, " +
-          "and lower your confidence when you do. Score each axis relative to films in general, using 0 when " +
-          "the film sits in the middle or the axis doesn't apply.",
+          "and lower your confidence when you do. Score each axis against the reference films in its description " +
+          "and use the full range: give ±2 whenever the film is as clear an example as the references. " +
+          "Don't hedge toward 1 or 'Bittersweet'; most films are not bittersweet. " +
+          "The ending axis is about how the story ends for its characters: a crowd-pleasing or romantic ending is " +
+          "hopeful (negative) even if the film has sad moments along the way.",
       },
       { role: "user", content: describeFilm(input) },
     ],
