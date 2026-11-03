@@ -29,6 +29,41 @@ Create `.env.local` (it's gitignored) with:
 
 To use the local database, set the Supabase variables to the values `npx supabase start` prints.
 
+## Film story profiles
+
+The `film-profile-worker` Edge Function builds each movie's story profile and embedding
+(TMDB → Wikipedia plot → OpenAI). It drains `film_profile_jobs`, which fills itself when users rate,
+favourite, watch or save a movie. `pg_cron` calls the worker every minute while there are jobs.
+
+Create `supabase/functions/.env` (gitignored):
+
+| Variable | What it's for |
+|---|---|
+| `OPENAI_API_KEY` | Profiles and embeddings |
+| `TMDB_ACCESS_TOKEN` | TMDB API read access token |
+| `FILM_WORKER_SECRET` | Any long random string (`openssl rand -hex 32`); cron sends it to the worker |
+| `WIKIMEDIA_USER_AGENT` | Optional. Wikimedia asks for contact details, e.g. `filmarc/1.0 (you@example.com)` |
+
+Locally:
+
+```sh
+npx supabase functions serve film-profile-worker --env-file supabase/functions/.env
+```
+
+Then tell cron where the worker is (once per database; `db reset` clears it):
+
+```sql
+select vault.create_secret('http://supabase_kong_story-arc-app:8000/functions/v1/film-profile-worker', 'film_worker_url');
+select vault.create_secret('<FILM_WORKER_SECRET>', 'film_worker_secret');
+```
+
+In production, set the function's secrets with `npx supabase secrets set --env-file supabase/functions/.env`,
+deploy with `npx supabase functions deploy film-profile-worker`, and create the same two Vault secrets
+with `https://<project-ref>.supabase.co/functions/v1/film-profile-worker` as the URL.
+
+To run the worker by hand: `curl -X POST -H "Authorization: Bearer $FILM_WORKER_SECRET" <url>`.
+Failed jobs keep their error: `select * from film_profile_jobs where status = 'failed'`.
+
 ## Checks
 
 ```sh

@@ -57,6 +57,8 @@ CREATE TABLE public.film_story_profiles (
   tropes text[] NOT NULL DEFAULT '{}',
   setting_era text,
   setting_scale text,
+  -- One spoiler-free sentence on what kind of story it is; safe to show
+  logline text NOT NULL,
   -- The paragraph that gets embedded: story qualities, not plot details
   story_card text NOT NULL,
   confidence real NOT NULL CHECK (confidence BETWEEN 0 AND 1),

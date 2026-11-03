@@ -16,11 +16,11 @@ INSERT INTO movies (tmdb_movie_id, title) VALUES (77, 'Memento'), (320, 'Insomni
 INSERT INTO film_story_profiles (
   tmdb_movie_id, axis_ending, axis_pacing, axis_structure, axis_focus, axis_tone, axis_resolution,
   arc_type, character_arc, ending_type, conflict, protagonist, moral_complexity, violence, tension,
-  story_card, confidence, plot_source, vocab_version, model, source_hash
+  logline, story_card, confidence, plot_source, vocab_version, model, source_hash
 ) VALUES (
   77, 1, 0, 2, -1, 1, 1,
   'Tragedy', 'Disillusionment', 'Twist', 'Self', 'Unreliable narrator', 3, 2, 3,
-  'A puzzle-box revenge story told backwards', 0.9, 'wikipedia', 1, 'test', 'h77'
+  'A puzzle-box revenge story', 'A puzzle-box revenge story told backwards', 0.9, 'wikipedia', 1, 'test', 'h77'
 );
 
 -- Memento and Insomnia point the same way; Rocky is orthogonal

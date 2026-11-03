@@ -93,6 +93,14 @@ module.exports = {
       },
     },
 
+    // Supabase Edge Functions (Deno): npm: specifiers resolve at runtime
+    {
+      files: ["supabase/functions/**/*.ts"],
+      rules: {
+        "import/no-unresolved": ["error", { ignore: ["^npm:"] }],
+      },
+    },
+
     // Node
     {
       files: [".eslintrc.cjs"],

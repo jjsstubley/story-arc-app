@@ -106,6 +106,12 @@ export const action = route;
   `generated_from.type = 'taste'`. The profile is rebuilt only when its fingerprint (ratings, favourites, recent watched,
   watchlist, preferences) changes. Lists regenerate from the client when stale, at most once a day automatically, with a
   manual refresh (5-minute cooldown) and a per-user lock (`lists_generating_since`). Loaders only read; never generate in a loader.
+- **Film story profiles:** `movies`, `film_story_profiles` and `film_embeddings` are written only by the
+  `film-profile-worker` Edge Function (service role); everyone can read them. Queue a movie by inserting into
+  `film_profile_jobs` (triggers already do this for ratings, favourites, watched and watchlist inserts); never
+  generate profiles in the app. The story vocabulary is `supabase/functions/_shared/film-vocabulary.ts`, read by the
+  app via `~/features/films`; changing a list means bumping `VOCAB_VERSION` and requeueing. `ending_type` and
+  `character_arc` are spoilers: match on them, never show them (`logline` is safe to show).
 - **Watchlists:** the client addresses lists as `"default"`, `"popcorn"` or a uuid (`watchlistRef(list)`).
   The server resolves `"default"` (creating it on first use); `"popcorn"` is a cookie, so its routes use
   `publicApiRoute` and work signed out. Add or remove movies with `useSetWatchlistMembership`, which refreshes
